@@ -1,5 +1,5 @@
-{% set version = "3.8.1" %}
-{% set sha256 = "4cd3836dfb4b88b597e075341cae86d61c63ce3963e45c7fe6a8bf59bb382cdf" %}
+{% set version = "3.9.1" %}
+{% set sha256 = "e6c4cebb96dee827fa0470af313dff265af391cb6da8d429842ef208c8f25e63" %}
 
 package:
   name: clangdev
