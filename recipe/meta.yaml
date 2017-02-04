@@ -1,6 +1,9 @@
 {% set version = "3.9.1" %}
 {% set sha256 = "e6c4cebb96dee827fa0470af313dff265af391cb6da8d429842ef208c8f25e63" %}
+
 {% set clang_variant = os.environ.get('CLANG_VARIANT', 'default') %}
+{% set build_number = "1" %}
+{% set build_string = "{}_{}".format(clang_variant, build_number) %}
 
 package:
   name: clangdev
@@ -73,21 +76,19 @@ source:
 {% endif %}
 
 build:
-  number: 0
+  number: {{ build_number }}
+  string: {{ build_string }}
   skip: true  # [(unix and py27) or (win and py<36)]
 
-  string: {{ clang_variant }}
-
-{% if clang_variant == "cling" %}
   features:
-    - cling
+    - llvm{{ clang_variant }}
     - vc14    # [win and py36]
+{% if clang_variant == "cling" %}
+    - cling
 {% endif %}
 
-{% if clang_variant == "default" %}
-  features:   # [win and py36]
-    - vc14    # [win and py36]
-{% endif %}
+  track_features:
+    - clang{{ clang_variant }}
 
 requirements:
   build:
@@ -117,10 +118,10 @@ requirements:
 {% endif %}
 
 test:
+{% if clang_variant == "default" %}
   requires:
     - python {{ environ['PY_VER'] + '*' }}  # [win]
     - cmake >=3.4.3
-
   files:
     - mytest.c
   commands:
@@ -132,9 +133,15 @@ test:
     - "%LIBRARY_BIN%/clang -v -c mytest.c"  # [win]
 
     - if not exist %LIBRARY_INC%\\clang\\Lex\\Lexer.h exit 1  # [win]
-
     - test -f $PREFIX/include/clang/Lex/Lexer.h      # [unix]
     - test -f $PREFIX/lib/libclangBasic.a            # [unix]
+{% endif %}
+{% if clang_variant == "cling" %}
+  commands:
+    - if not exist %LIBRARY_INC%\\clang\\Lex\\Lexer.h exit 1  # [win]
+    - test -f $PREFIX/include/clang/Lex/Lexer.h      # [unix]
+    - test -f $PREFIX/lib/libclangBasic.a            # [unix]
+{% endif %}
 
 about:
   home: http://llvm.org/
