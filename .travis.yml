@@ -9,8 +9,6 @@ osx_image: xcode6.4
 env:
   matrix:
     
-    - CLANG_VARIANT=cling  CONDA_PY=35
-    - CLANG_VARIANT=default  CONDA_PY=35
     - CLANG_VARIANT=cling  CONDA_PY=36
     - CLANG_VARIANT=default  CONDA_PY=36
   global:

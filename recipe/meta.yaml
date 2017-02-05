@@ -78,14 +78,11 @@ source:
 build:
   number: {{ build_number }}
   string: {{ build_string }}
-  skip: true  # [(unix and py27) or (win and py<36)]
+  skip: true  # [py<36]
 
   features:
     - llvm{{ clang_variant }}
     - vc14    # [win and py36]
-{% if clang_variant == "cling" %}
-    - cling
-{% endif %}
 
   track_features:
     - clang{{ clang_variant }}
@@ -105,9 +102,6 @@ requirements:
 
     - llvmdev =={{ version }}
     - libxml2
-{% if clang_variant == "cling" %}
-    - cling-patches
-{% endif %}
 
   run:
     - system  # [linux and not armv7l]
@@ -118,7 +112,6 @@ requirements:
 {% endif %}
 
 test:
-{% if clang_variant == "default" %}
   requires:
     - python {{ environ['PY_VER'] + '*' }}  # [win]
     - cmake >=3.4.3
@@ -135,13 +128,6 @@ test:
     - if not exist %LIBRARY_INC%\\clang\\Lex\\Lexer.h exit 1  # [win]
     - test -f $PREFIX/include/clang/Lex/Lexer.h      # [unix]
     - test -f $PREFIX/lib/libclangBasic.a            # [unix]
-{% endif %}
-{% if clang_variant == "cling" %}
-  commands:
-    - if not exist %LIBRARY_INC%\\clang\\Lex\\Lexer.h exit 1  # [win]
-    - test -f $PREFIX/include/clang/Lex/Lexer.h      # [unix]
-    - test -f $PREFIX/lib/libclangBasic.a            # [unix]
-{% endif %}
 
 about:
   home: http://llvm.org/
