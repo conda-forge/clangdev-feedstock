@@ -2,8 +2,7 @@
 {% set sha256 = "e6c4cebb96dee827fa0470af313dff265af391cb6da8d429842ef208c8f25e63" %}
 
 {% set clang_variant = os.environ.get('CLANG_VARIANT', 'default') %}
-{% set build_number = "1" %}
-{% set build_string = "{}_{}".format(clang_variant, build_number) %}
+{% set build_number = "2" %}
 
 package:
   name: clangdev
@@ -77,7 +76,7 @@ source:
 
 build:
   number: {{ build_number }}
-  string: {{ build_string }}
+  string: {{ clang_variant }}_{{ build_number  }}
   skip: true  # [py<36]
 
   features:
@@ -102,11 +101,15 @@ requirements:
 
     - llvmdev =={{ version }}
     - libxml2
+{% if clang_variant == "cling" %}
+    - cling-patches
+{% endif %}
 
   run:
     - system  # [linux and not armv7l]
     - llvmdev =={{ version }}
     - libxml2
+    - vs2015_runtime  # [win]
 {% if clang_variant == "cling" %}
     - cling-patches
 {% endif %}
