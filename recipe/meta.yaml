@@ -2,7 +2,7 @@
 {% set sha256 = "e6c4cebb96dee827fa0470af313dff265af391cb6da8d429842ef208c8f25e63" %}
 
 {% set clang_variant = os.environ.get('CLANG_VARIANT', 'default') %}
-{% set build_number = "2" %}
+{% set build_number = "3" %}
 
 package:
   name: clangdev
@@ -79,12 +79,14 @@ build:
   string: {{ clang_variant }}_{{ build_number  }}
   skip: true  # [py<36]
 
+{% if clang_variant == "cling" %}
   features:
-    - llvm{{ clang_variant }}
+    - cling
     - vc14    # [win and py36]
-
-  track_features:
-    - clang{{ clang_variant }}
+{% else %}
+  features:   # [win and py36]
+    - vc14    # [win and py36]
+{% endif %}
 
 requirements:
   build:
@@ -110,14 +112,14 @@ requirements:
     - llvmdev =={{ version }}
     - libxml2
     - vs2015_runtime  # [win]
-{% if clang_variant == "cling" %}
-    - cling-patches
-{% endif %}
 
 test:
   requires:
     - python {{ environ['PY_VER'] + '*' }}  # [win]
     - cmake >=3.4.3
+{% if clang_variant == "cling" %}
+    - cling-patches
+{% endif %}
   files:
     - mytest.c
   commands:
