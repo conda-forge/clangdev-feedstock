@@ -2,7 +2,7 @@
 {% set sha256 = "e6c4cebb96dee827fa0470af313dff265af391cb6da8d429842ef208c8f25e63" %}
 
 {% set clang_variant = os.environ.get('CLANG_VARIANT', 'default') %}
-{% set build_number = "3" %}
+{% set build_number = "4" %}
 
 package:
   name: clangdev
@@ -12,8 +12,12 @@ source:
   fn: cfe-{{ version }}.src.tar.xz
   url: http://llvm.org/releases/{{ version }}/cfe-{{ version }}.src.tar.xz
   sha256: {{ sha256 }}
-{% if clang_variant == "cling" %}
   patches:
+    # https://github.com/pocl/pocl/issues/1
+    # (also contains replacement patch for 4.0)
+    - clang-3.9-always-spir-cc-for-kernels.patch
+
+{% if clang_variant == "cling" %}
     - cling-patches/0001-Empty-the-C-DtorLists-once-emitted.patch
     - cling-patches/0002-Allow-multiple-setting-of-pragma-handler-for-same-id.patch
     - cling-patches/0003-Temporary-parsers-should-not-manipulate-global-parse.patch
