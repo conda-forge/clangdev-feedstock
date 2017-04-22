@@ -106,7 +106,7 @@ requirements:
     - python
 
     - llvmdev =={{ version }}
-    - libxml2
+    - libxml2 2.9.*
 {% if clang_variant == "cling" %}
     - cling-patches
 {% endif %}
@@ -114,7 +114,7 @@ requirements:
   run:
     - system  # [linux and not armv7l]
     - llvmdev =={{ version }}
-    - libxml2
+    - libxml2 2.9.*
     - vs2015_runtime  # [win]
 
 test:
