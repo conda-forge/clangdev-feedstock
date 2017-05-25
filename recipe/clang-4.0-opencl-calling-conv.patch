@@ -1,5 +1,5 @@
 diff --git a/lib/Basic/Targets.cpp b/lib/Basic/Targets.cpp
-index 1a95ff2681..b5cf2ba4ef 100644
+index 1a95ff2..b5cf2ba 100644
 --- a/lib/Basic/Targets.cpp
 +++ b/lib/Basic/Targets.cpp
 @@ -2971,6 +2971,7 @@ public:
@@ -75,7 +75,7 @@ index 1a95ff2681..b5cf2ba4ef 100644
  
  class MipsTargetInfo : public TargetInfo {
 diff --git a/lib/CodeGen/ABIInfo.h b/lib/CodeGen/ABIInfo.h
-index ac31dfdaf3..615c9350dd 100644
+index ac31dfd..615c935 100644
 --- a/lib/CodeGen/ABIInfo.h
 +++ b/lib/CodeGen/ABIInfo.h
 @@ -148,7 +148,6 @@ namespace swiftcall {
@@ -87,7 +87,7 @@ index ac31dfdaf3..615c9350dd 100644
  }  // end namespace clang
  
 diff --git a/lib/CodeGen/CGCall.cpp b/lib/CodeGen/CGCall.cpp
-index c7c61e0c8e..aef02c4a2b 100644
+index c7c61e0..aef02c4 100644
 --- a/lib/CodeGen/CGCall.cpp
 +++ b/lib/CodeGen/CGCall.cpp
 @@ -668,6 +668,12 @@ CodeGenTypes::arrangeCall(const CGFunctionInfo &signature,
@@ -125,7 +125,7 @@ index c7c61e0c8e..aef02c4a2b 100644
  
    // Loop over all of the computed argument and return value info.  If any of
 diff --git a/lib/CodeGen/TargetInfo.cpp b/lib/CodeGen/TargetInfo.cpp
-index d2fc3888ef..2d051b2ba3 100644
+index d2fc388..2d051b2 100644
 --- a/lib/CodeGen/TargetInfo.cpp
 +++ b/lib/CodeGen/TargetInfo.cpp
 @@ -398,7 +398,16 @@ TargetCodeGenInfo::getDependentLibraryOption(llvm::StringRef Lib,
@@ -166,24 +166,19 @@ index d2fc3888ef..2d051b2ba3 100644
  void SPIRTargetCodeGenInfo::emitTargetMD(const Decl *D, llvm::GlobalValue *GV,
                                           CodeGen::CodeGenModule &CGM) const {
 diff --git a/lib/Sema/SemaType.cpp b/lib/Sema/SemaType.cpp
-index 29b2142679..ea37af09b1 100644
+index 2cdf76c..5434572 100644
 --- a/lib/Sema/SemaType.cpp
 +++ b/lib/Sema/SemaType.cpp
-@@ -3152,16 +3152,11 @@ getCCForDeclaratorChunk(Sema &S, Declarator &D,
+@@ -3152,11 +3152,7 @@ getCCForDeclaratorChunk(Sema &S, Declarator &D,
      for (const AttributeList *Attr = D.getDeclSpec().getAttributes().getList();
           Attr; Attr = Attr->getNext()) {
        if (Attr->getKind() == AttributeList::AT_OpenCLKernel) {
 -        llvm::Triple::ArchType arch = S.Context.getTargetInfo().getTriple().getArch();
 -        if (arch == llvm::Triple::spir || arch == llvm::Triple::spir64 ||
--            arch == llvm::Triple::amdgcn) {
+-            arch == llvm::Triple::amdgcn || arch == llvm::Triple::r600) {
 -          CC = CC_OpenCLKernel;
 -        }
 +        CC = CC_OpenCLKernel;
          break;
        }
      }
-   }
--
-   return CC;
- }
- 
