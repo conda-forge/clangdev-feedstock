@@ -11,5 +11,5 @@ cmake \
   -DLLVM_INCLUDE_DOCS=OFF \
   ..
 
-make -j${CPU_COUNT} VERBOSE=1
+make -j${CPU_COUNT}
 make install
