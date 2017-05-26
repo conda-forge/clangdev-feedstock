@@ -15,6 +15,7 @@ source:
   patches:
     # https://github.com/pocl/pocl/issues/1
     - clang-4.0-opencl-calling-conv.patch
+    - disable-libxml2-detection.patch  # [linux]
 
 {% if clang_variant == "cling" %}
     - cling-patches/0001-Empty-the-C-DtorLists-once-emitted.patch
@@ -95,7 +96,6 @@ requirements:
   build:
     - toolchain
     - cmake >=3.4.3
-    - pkg-config  # [linux]
 
     # Needed to unpack the source tarball
     - m2-xz  # [py27 and win32]
@@ -107,7 +107,7 @@ requirements:
     - python
 
     - llvmdev =={{ version }}
-    - libxml2
+    - libxml2 2.9.*
 {% if clang_variant == "cling" %}
     - cling-patches
 {% endif %}
@@ -115,7 +115,7 @@ requirements:
   run:
     - system  # [linux and not armv7l]
     - llvmdev =={{ version }}
-    - libxml2
+    - libxml2 2.9.*
     - vs2015_runtime  # [win]
 
 test:
