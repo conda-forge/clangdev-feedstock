@@ -1,5 +1,5 @@
 matrix:
-  - [[CLANG_VARIANT, 'cling']]
+  # - [[CLANG_VARIANT, 'cling']]
   - [[CLANG_VARIANT, 'default']]
 travis:
   secure:
