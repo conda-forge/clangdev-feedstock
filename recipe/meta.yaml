@@ -14,7 +14,7 @@ source:
   sha256: {{ sha256 }}
   patches:
     # https://github.com/pocl/pocl/issues/1
-    - clang-4.0-opencl-calling-conv.patch
+    # - clang-4.0-opencl-calling-conv.patch
     - disable-libxml2-detection.patch  # [linux]
 
 {% if clang_variant == "cling" %}
