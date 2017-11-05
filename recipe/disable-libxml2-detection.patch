@@ -2,7 +2,7 @@ diff --git a/CMakeLists.txt b/CMakeLists.txt
 index ff1ff21..575593d 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -180,11 +180,6 @@ endif()
+@@ -181,11 +181,6 @@ endif()
  # we can include cmake files from this directory.
  list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
  
