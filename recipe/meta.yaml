@@ -2,7 +2,7 @@
 {% set github = "isuruf/clang" %}
 
 {% set sha256 = "7f16963effb0f37efb0ef6247e11ad57fa2fd0f638eda01328ed7ec10f26a4ac" %}
-{% set revision = "d4d6eb2f9dc7e0b0576d4552b369be4065468984" %}
+{% set revision = "cf4f08b612c4586a41fe268f6e736fe3fa2a94af" %}
 
 {% set clang_variant = "flang" %}
 {% set build_number = "0" %}
@@ -14,7 +14,7 @@ package:
 source:
   fn: cfe-{{ version }}.src.tar.xz
   url: https://github.com/{{ github }}/archive/{{ revision }}.tar.gz
-  sha256: {{ sha256 }}
+  # sha256: {{ sha256 }}
   patches:
     # https://github.com/pocl/pocl/issues/1
     - disable-libxml2-detection.patch  # [linux]
