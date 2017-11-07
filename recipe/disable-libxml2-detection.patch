@@ -1,8 +1,6 @@
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index ff1ff21..575593d 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -180,11 +180,6 @@ endif()
+--- CMakeLists.txt      2017-11-04 19:49:35.315032166 -0500
++++ CMakeLists.txt      2017-11-04 19:50:00.259020119 -0500
+@@ -181,11 +181,6 @@
  # we can include cmake files from this directory.
  list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
  
@@ -11,7 +9,7 @@ index ff1ff21..575593d 100644
 -  set(CLANG_HAVE_LIBXML 1)
 -endif()
 -
- include(CheckIncludeFile)
- check_include_file(sys/resource.h CLANG_HAVE_RLIMITS)
+ find_package(Z3 4.5)
  
+ include(CheckIncludeFile)
 
