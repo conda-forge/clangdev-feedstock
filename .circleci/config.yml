@@ -1,11 +1,11 @@
 version: 2
 
 jobs:
-  build__CLANG_VARIANT_default__CONDA_PY_36:
+  build__CLANG_VARIANT_flang__CONDA_PY_36:
     working_directory: ~/test
     machine: true
     environment:
-      - CLANG_VARIANT: "default"
+      - CLANG_VARIANT: "flang"
       - CONDA_PY: "36"
     steps:
       - checkout
@@ -29,4 +29,4 @@ workflows:
   version: 2
   build_and_test:
     jobs:
-      - build__CLANG_VARIANT_default__CONDA_PY_36
+      - build__CLANG_VARIANT_flang__CONDA_PY_36
