@@ -1,5 +1,8 @@
 {% set version = "5.0.0" %}
-{% set sha256 = "843009685ead62fcd1053d6e5f0f327db4460e7115cc6254f664ed5e088259da" %}
+{% set github = "isuruf/clang" %}
+
+{% set sha256 = "da6aec3cd98a4f74f90cc0d1397579f775f1c605f96a533d0556cb134f40d720" %}
+{% set revision = "f3558b4783b0ec013b416e47c0730900355864c6" %}
 
 {% set clang_variant = "flang" %}
 {% set build_number = "0" %}
@@ -10,7 +13,7 @@ package:
 
 source:
   fn: cfe-{{ version }}.src.tar.xz
-  url: https://github.com/albertziegenhagel/clang/archive/ee1e5b9d368525de4bcdebc8cb470bdc4e70aec4.tar.gz
+  url: https://github.com/{{ github }}/archive/{{ revision }}.tar.gz
   sha256: {{ sha256 }}
   patches:
     # https://github.com/pocl/pocl/issues/1
