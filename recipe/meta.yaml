@@ -22,7 +22,7 @@ source:
 build:
   number: {{ build_number }}
   string: {{ clang_variant }}_{{ build_number  }}
-  skip: true  # [py<36]
+  skip: true  # [py<36 or osx]
 
   features:   # [win and py36]
     - vc14    # [win and py36]
