@@ -1,11 +1,11 @@
-{% set version = "5.0.1" %}
+{% set version = "5.0.0" %}
 {% set github = "isuruf/clang" %}
 
 {% set sha256 = "751a24394b986e9b86113dd71d7990d9fb6e95e20a00cb6c320523ab991a1281" %}
 {% set revision = "e64caf401a718cc7e4ef14f7167e697973db524d" %}
 
 {% set clang_variant = "flang" %}
-{% set build_number = "0" %}
+{% set build_number = "1" %}
 
 package:
   name: clangdev
