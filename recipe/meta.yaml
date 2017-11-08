@@ -52,6 +52,7 @@ test:
   requires:
     - python {{ environ['PY_VER'] + '*' }}  # [win]
     - cmake >=3.4.3
+    - flang-meta
   files:
     - mytest.c
   commands:
