@@ -24,7 +24,8 @@ build:
   string: {{ clang_variant }}_{{ build_number  }}
   skip: true  # [py<36 or osx]
 
-  features:   # [win and py36]
+  features:
+    - flang
     - vc14    # [win and py36]
 
 requirements:
@@ -45,9 +46,6 @@ requirements:
     - libxml2 2.9.*
 
   run:
-    - system  # [linux and not armv7l]
-    - llvmdev =={{ version }}
-    - libxml2 2.9.*
     - vs2015_runtime  # [win]
 
 test:
