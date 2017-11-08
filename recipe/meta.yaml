@@ -1,8 +1,8 @@
-{% set version = "5.0.0" %}
+{% set version = "5.0.1" %}
 {% set github = "isuruf/clang" %}
 
-{% set sha256 = "07aca2c2d29c21dabd1a5c0c3bc5d162655da91be4e701315f8e5068ff85cd9a" %}
-{% set revision = "e39d1b17a5e7cab6701ff2137695717303e1d4ce" %}
+{% set sha256 = "751a24394b986e9b86113dd71d7990d9fb6e95e20a00cb6c320523ab991a1281" %}
+{% set revision = "e64caf401a718cc7e4ef14f7167e697973db524d" %}
 
 {% set clang_variant = "flang" %}
 {% set build_number = "0" %}
