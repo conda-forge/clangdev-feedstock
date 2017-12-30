@@ -33,7 +33,7 @@ requirements:
     - toolchain
     - cmake >=3.4.3
     
-    - ninja # [win32 or win64]
+    - ninja  # [win32 or win64]
 
     # Needed to unpack the source tarball
     - m2-xz  # [py27 and win32]
