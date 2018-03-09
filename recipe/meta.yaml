@@ -13,8 +13,8 @@ source:
   url: http://llvm.org/releases/{{ version }}/cfe-{{ version }}.src.tar.xz
   sha256: {{ sha256 }}
   patches:
-    # https://github.com/pocl/pocl/issues/1
-    - disable-libxml2-detection.patch  # [linux]
+    # (unclear why necessary)
+    # - disable-libxml2-detection.patch  # [linux]
 
 {% if clang_variant == "cling" %}
     - cling-patches/0001-Empty-the-C-DtorLists-once-emitted.patch
