@@ -1,5 +1,5 @@
-{% set version = "5.0.0" %}
-{% set sha256 = "019f23c2192df793ac746595e94a403908749f8e0c484b403476d2611dd20970" %}
+{% set version = "6.0.0" %}
+{% set sha256 = "e07d6dd8d9ef196cfc8e8bb131cbd6a2ed0b1caf1715f9d05b0f0eeaddb6df32" %}
 
 {% set clang_variant = os.environ.get('CLANG_VARIANT', 'default') %}
 {% set build_number = "0" %}
@@ -13,7 +13,7 @@ source:
   url: http://llvm.org/releases/{{ version }}/cfe-{{ version }}.src.tar.xz
   sha256: {{ sha256 }}
   patches:
-    # https://github.com/pocl/pocl/issues/1
+    # This (system) libxml2 may not be available on user systems.
     - disable-libxml2-detection.patch  # [linux]
 
 {% if clang_variant == "cling" %}
