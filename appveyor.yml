@@ -9,11 +9,6 @@ environment:
     secure: ipv/06DzgA7pzz2CIAtbPxZSsphDtF+JFyoWRnXkn3O8j7oRe3rzqj3LOoq2DZp4
 
   matrix:
-    - TARGET_ARCH: x86
-      CLANG_VARIANT: default
-      CONDA_PY: 36
-      CONDA_INSTALL_LOCN: C:\\Miniconda36
-
     - TARGET_ARCH: x64
       CLANG_VARIANT: default
       CONDA_PY: 36
