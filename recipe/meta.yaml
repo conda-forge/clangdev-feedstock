@@ -1,8 +1,8 @@
-{% set version = "6.0.1" %}
-{% set sha256 = "7c243f1485bddfdfedada3cd402ff4792ea82362ff91fbdac2dae67c6026b667" %}
+{% set version = "7.0.0" %}
+{% set sha256 = "550212711c752697d2f82c648714a7221b1207fd9441543ff4aa9e3be45bba55" %}
 
 {% set clang_variant = os.environ.get('CLANG_VARIANT', 'default') %}
-{% set build_number = 1 %}
+{% set build_number = 0 %}
 
 package:
   name: clangdev
