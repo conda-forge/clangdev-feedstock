@@ -27,6 +27,8 @@ requirements:
     - m2w64-xz  # [win]
     # "compiling .pyc files" fails without this
     - python
+    # Buildin with ninja on windows for parallel builds
+    - ninja  # [win]
   host:
     - llvmdev =={{ version }}
     - libxml2
