@@ -14,8 +14,8 @@ cmake -G "Ninja" ^
 
 if errorlevel 1 exit 1
 
-nmake
+ninja
 if errorlevel 1 exit 1
 
-nmake install
+ninja install
 if errorlevel 1 exit 1
