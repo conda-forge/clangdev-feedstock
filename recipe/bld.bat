@@ -1,7 +1,11 @@
 mkdir build
 cd build
 
-cmake -G "NMake Makefiles" ^
+:: Remove -GL from CXXFLAGS as this takes too much time and memory
+set "CFLAGS= -MD"
+set "CXXFLAGS= -MD"
+
+cmake -G "Ninja" ^
     -DCMAKE_BUILD_TYPE="Release" ^
     -DCMAKE_PREFIX_PATH=%LIBRARY_PREFIX% ^
     -DCMAKE_INSTALL_PREFIX:PATH=%LIBRARY_PREFIX% ^
@@ -14,8 +18,8 @@ cmake -G "NMake Makefiles" ^
 
 if errorlevel 1 exit 1
 
-nmake
+ninja -j2
 if errorlevel 1 exit 1
 
-nmake install
+ninja install
 if errorlevel 1 exit 1
