@@ -1,0 +1,37 @@
+From 1b5a5b2fd100463d5ff3bb62c04d888cd5ee9497 Mon Sep 17 00:00:00 2001
+From: Vassil Vassilev <v.g.vassilev@gmail.com>
+Date: Fri, 18 May 2018 14:21:32 +0200
+Subject: [PATCH 61/62] Backport D45921.
+
+Original commit message:
+"Add getDeserializationListener to ASTReader
+
+Summary:
+We need to know if ASTReader already has a DeserializationListner or
+not, and this also helps to create a multiplexing deserialization
+listener if there is one already attached.
+
+Reviewers: v.g.vassilev, rsmith, dblaikie, thakis"
+---
+ include/clang/Serialization/ASTReader.h | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/include/clang/Serialization/ASTReader.h b/include/clang/Serialization/ASTReader.h
+index eafa051758..19050016eb 100644
+--- a/include/clang/Serialization/ASTReader.h
++++ b/include/clang/Serialization/ASTReader.h
+@@ -1546,6 +1546,11 @@ public:
+   void setDeserializationListener(ASTDeserializationListener *Listener,
+                                   bool TakeOwnership = false);
+ 
++  /// \brief Get the AST deserialization listener.
++  ASTDeserializationListener *getDeserializationListener() {
++    return DeserializationListener;
++  }
++
+   /// \brief Determine whether this AST reader has a global index.
+   bool hasGlobalIndex() const { return (bool)GlobalIndex; }
+ 
+-- 
+2.18.0
+

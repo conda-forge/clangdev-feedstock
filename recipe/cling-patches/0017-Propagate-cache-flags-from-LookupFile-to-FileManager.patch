@@ -1,0 +1,134 @@
+From 8c39b618a8680eeb0fc7105e581f27820a78df91 Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Tue, 15 Apr 2014 12:11:18 +0200
+Subject: [PATCH 17/62] Propagate cache flags from LookupFile() to
+ FileManager::getFile().
+
+---
+ include/clang/Lex/HeaderSearch.h |  6 ++++--
+ include/clang/Lex/Preprocessor.h |  5 ++++-
+ lib/Lex/HeaderSearch.cpp         | 16 ++++++++++------
+ lib/Lex/PPDirectives.cpp         |  8 ++++++--
+ 4 files changed, 24 insertions(+), 11 deletions(-)
+
+diff --git a/include/clang/Lex/HeaderSearch.h b/include/clang/Lex/HeaderSearch.h
+index 1b7f80c87f..fdc658086a 100644
+--- a/include/clang/Lex/HeaderSearch.h
++++ b/include/clang/Lex/HeaderSearch.h
+@@ -384,7 +384,8 @@ public:
+       ArrayRef<std::pair<const FileEntry *, const DirectoryEntry *>> Includers,
+       SmallVectorImpl<char> *SearchPath, SmallVectorImpl<char> *RelativePath,
+       Module *RequestingModule, ModuleMap::KnownHeader *SuggestedModule,
+-      bool *IsMapped, bool SkipCache = false, bool BuildSystemModule = false);
++      bool *IsMapped, bool SkipCache = false, bool BuildSystemModule = false,
++      bool OpenFile = true, bool CacheFailures = true);
+ 
+   /// \brief Look up a subframework for the specified \#include file.
+   ///
+@@ -617,7 +618,8 @@ private:
+   getFileAndSuggestModule(StringRef FileName, SourceLocation IncludeLoc,
+                           const DirectoryEntry *Dir, bool IsSystemHeaderDir,
+                           Module *RequestingModule,
+-                          ModuleMap::KnownHeader *SuggestedModule);
++                          ModuleMap::KnownHeader *SuggestedModule,
++                          bool OpenFile = true, bool CacheFailures = true);
+ 
+ public:
+   /// \brief Retrieve the module map.
+diff --git a/include/clang/Lex/Preprocessor.h b/include/clang/Lex/Preprocessor.h
+index 5d1dff6b1f..7ef38a85aa 100644
+--- a/include/clang/Lex/Preprocessor.h
++++ b/include/clang/Lex/Preprocessor.h
+@@ -1733,7 +1733,10 @@ public:
+                               SmallVectorImpl<char> *SearchPath,
+                               SmallVectorImpl<char> *RelativePath,
+                               ModuleMap::KnownHeader *SuggestedModule,
+-                              bool *IsMapped, bool SkipCache = false);
++                              bool *IsMapped,
++                              bool SkipCache = false,
++                              bool OpenFile = true,
++                              bool CacheFailures = true);
+ 
+   /// \brief Get the DirectoryLookup structure used to find the current
+   /// FileEntry, if CurLexer is non-null and if applicable. 
+diff --git a/lib/Lex/HeaderSearch.cpp b/lib/Lex/HeaderSearch.cpp
+index 1ebcc0a1c6..d9f0030779 100644
+--- a/lib/Lex/HeaderSearch.cpp
++++ b/lib/Lex/HeaderSearch.cpp
+@@ -301,10 +301,12 @@ StringRef DirectoryLookup::getName() const {
+ const FileEntry *HeaderSearch::getFileAndSuggestModule(
+     StringRef FileName, SourceLocation IncludeLoc, const DirectoryEntry *Dir,
+     bool IsSystemHeaderDir, Module *RequestingModule,
+-    ModuleMap::KnownHeader *SuggestedModule) {
++    ModuleMap::KnownHeader *SuggestedModule,
++    bool OpenFile /*= true*/, bool CacheFailures /*= true*/) {
+   // If we have a module map that might map this header, load it and
+   // check whether we'll have a suggestion for a module.
+-  const FileEntry *File = getFileMgr().getFile(FileName, /*OpenFile=*/true);
++  const FileEntry *File = getFileMgr().getFile(FileName, OpenFile,
++                                               CacheFailures);
+   if (!File)
+     return nullptr;
+ 
+@@ -624,10 +626,10 @@ const FileEntry *HeaderSearch::LookupFile(
+     ArrayRef<std::pair<const FileEntry *, const DirectoryEntry *>> Includers,
+     SmallVectorImpl<char> *SearchPath, SmallVectorImpl<char> *RelativePath,
+     Module *RequestingModule, ModuleMap::KnownHeader *SuggestedModule,
+-    bool *IsMapped, bool SkipCache, bool BuildSystemModule) {
++    bool *IsMapped, bool SkipCache, bool BuildSystemModule,
++    bool OpenFile, bool CacheFailures) {
+   if (IsMapped)
+     *IsMapped = false;
+-
+   if (SuggestedModule)
+     *SuggestedModule = ModuleMap::KnownHeader();
+     
+@@ -647,7 +649,8 @@ const FileEntry *HeaderSearch::LookupFile(
+     // Otherwise, just return the file.
+     return getFileAndSuggestModule(Filename, IncludeLoc, nullptr,
+                                    /*IsSystemHeaderDir*/false,
+-                                   RequestingModule, SuggestedModule);
++                                   RequestingModule, SuggestedModule,
++                                   OpenFile, CacheFailures);
+   }
+ 
+   // This is the header that MSVC's header search would have found.
+@@ -683,7 +686,8 @@ const FileEntry *HeaderSearch::LookupFile(
+           BuildSystemModule;
+       if (const FileEntry *FE = getFileAndSuggestModule(
+               TmpDir, IncludeLoc, IncluderAndDir.second, IncluderIsSystemHeader,
+-              RequestingModule, SuggestedModule)) {
++              RequestingModule, SuggestedModule,
++              OpenFile, CacheFailures)) {
+         if (!Includer) {
+           assert(First && "only first includer can have no file");
+           return FE;
+diff --git a/lib/Lex/PPDirectives.cpp b/lib/Lex/PPDirectives.cpp
+index c81c01db1d..10cd821a94 100644
+--- a/lib/Lex/PPDirectives.cpp
++++ b/lib/Lex/PPDirectives.cpp
+@@ -721,7 +721,11 @@ const FileEntry *Preprocessor::LookupFile(
+     const DirectoryLookup *FromDir, const FileEntry *FromFile,
+     const DirectoryLookup *&CurDir, SmallVectorImpl<char> *SearchPath,
+     SmallVectorImpl<char> *RelativePath,
+-    ModuleMap::KnownHeader *SuggestedModule, bool *IsMapped, bool SkipCache) {
++    ModuleMap::KnownHeader *SuggestedModule,
++    bool *IsMapped,
++    bool SkipCache,
++    bool OpenFile,
++    bool CacheFailures) {
+   Module *RequestingModule = getModuleForLocation(FilenameLoc);
+   bool RequestingModuleIsModuleInterface = !SourceMgr.isInMainFile(FilenameLoc);
+ 
+@@ -796,7 +800,7 @@ const FileEntry *Preprocessor::LookupFile(
+   const FileEntry *FE = HeaderInfo.LookupFile(
+       Filename, FilenameLoc, isAngled, FromDir, CurDir, Includers, SearchPath,
+       RelativePath, RequestingModule, SuggestedModule, IsMapped, SkipCache,
+-      BuildSystemModule);
++      BuildSystemModule, OpenFile, CacheFailures);
+   if (FE) {
+     if (SuggestedModule && !LangOpts.AsmPreprocessor)
+       HeaderInfo.getModuleMap().diagnoseHeaderInclusion(
+-- 
+2.18.0
+

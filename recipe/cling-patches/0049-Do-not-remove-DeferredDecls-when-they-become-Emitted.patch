@@ -1,0 +1,36 @@
+From 54bfb8cca105b9eb9d6f8d085c1f2c8f87f292d1 Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Fri, 3 Mar 2017 13:01:34 +0100
+Subject: [PATCH 49/62] Do not remove DeferredDecls when they become
+ EmittedDeferredDecls.
+
+Needs an appropriate "if" on a future LangOpts::incremantallyProcessing.
+---
+ lib/CodeGen/CodeGenModule.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/lib/CodeGen/CodeGenModule.cpp b/lib/CodeGen/CodeGenModule.cpp
+index e125527dba..51bc910d77 100644
+--- a/lib/CodeGen/CodeGenModule.cpp
++++ b/lib/CodeGen/CodeGenModule.cpp
+@@ -2164,7 +2164,7 @@ llvm::Constant *CodeGenModule::GetOrCreateLLVMFunction(
+       // don't need it anymore).
+       addDeferredDeclToEmit(DDI->second);
+       EmittedDeferredDecls[F] = std::make_pair(DDI->first, DDI->second);
+-      DeferredDecls.erase(DDI);
++      //DeferredDecls.erase(DDI);
+ 
+       // Otherwise, there are cases we have to worry about where we're
+       // using a declaration for which we must emit a definition but where
+@@ -2415,7 +2415,7 @@ CodeGenModule::GetOrCreateLLVMGlobal(StringRef MangledName,
+     // list, and remove it from DeferredDecls (since we don't need it anymore).
+     addDeferredDeclToEmit(DDI->second);
+     EmittedDeferredDecls[GV] = std::make_pair(DDI->first, DDI->second);
+-    DeferredDecls.erase(DDI);
++    //DeferredDecls.erase(DDI);
+   }
+ 
+   // Handle things which are present even on external declarations.
+-- 
+2.18.0
+

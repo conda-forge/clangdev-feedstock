@@ -1,0 +1,47 @@
+From c214e6482ee5e6e378068d53cb9984e26331702c Mon Sep 17 00:00:00 2001
+From: Philippe Canal <pcanal@fnal.gov>
+Date: Wed, 23 Sep 2015 09:34:32 +0200
+Subject: [PATCH 36/62] Add ASTConsumer::HandleInvalidTagDeclDefinition.
+
+This allows Sema to inform the consumer that an invalid declaration has been seen and
+can properly react (for example an interpreter may want to revert the transaction)
+---
+ include/clang/AST/ASTConsumer.h      | 6 ++++++
+ lib/Sema/SemaTemplateInstantiate.cpp | 4 +++-
+ 2 files changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/include/clang/AST/ASTConsumer.h b/include/clang/AST/ASTConsumer.h
+index ad368c86c7..78e3297103 100644
+--- a/include/clang/AST/ASTConsumer.h
++++ b/include/clang/AST/ASTConsumer.h
+@@ -72,6 +72,12 @@ public:
+   /// can be defined in declspecs).
+   virtual void HandleTagDeclDefinition(TagDecl *D) {}
+ 
++  /// HandleInvalidTagDeclDefinition - This callback is invoked each time a TagDecl
++  /// (e.g. struct, union, enum, class) end up invalid after attempting completion.
++  /// This allows the client to record (and possibly remove from the AST) the
++  /// decl.
++  virtual void HandleInvalidTagDeclDefinition(TagDecl *D) {}
++
+   /// \brief This callback is invoked the first time each TagDecl is required to
+   /// be complete.
+   virtual void HandleTagDeclRequiredDefinition(const TagDecl *D) {}
+diff --git a/lib/Sema/SemaTemplateInstantiate.cpp b/lib/Sema/SemaTemplateInstantiate.cpp
+index f4f0c804ae..8255e4f622 100644
+--- a/lib/Sema/SemaTemplateInstantiate.cpp
++++ b/lib/Sema/SemaTemplateInstantiate.cpp
+@@ -2192,7 +2192,9 @@ Sema::InstantiateClass(SourceLocation PointOfInstantiation,
+   // Exit the scope of this instantiation.
+   SavedContext.pop();
+ 
+-  if (!Instantiation->isInvalidDecl()) {
++  if (Instantiation->isInvalidDecl()) {
++     Consumer.HandleInvalidTagDeclDefinition(Instantiation);
++  } else {
+     Consumer.HandleTagDeclDefinition(Instantiation);
+ 
+     // Always emit the vtable for an explicit instantiation definition
+-- 
+2.18.0
+

@@ -1,0 +1,34 @@
+From 545a6d00303d8b5c5fb1ca81bb16948b57e8e0c8 Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Fri, 12 Sep 2014 11:58:16 +0200
+Subject: [PATCH 25/62] Use raw string literals to correctly stringify '"' and
+ '\\' in attributes.
+
+---
+ utils/TableGen/ClangAttrEmitter.cpp | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/utils/TableGen/ClangAttrEmitter.cpp b/utils/TableGen/ClangAttrEmitter.cpp
+index b6d2988964..08f76f65d1 100644
+--- a/utils/TableGen/ClangAttrEmitter.cpp
++++ b/utils/TableGen/ClangAttrEmitter.cpp
+@@ -427,12 +427,13 @@ namespace {
+     }
+ 
+     void writeValue(raw_ostream &OS) const override {
+-      OS << "\\\"\" << get" << getUpperName() << "() << \"\\\"";
++      OS << "R\\\"ATTRDUMP(\" << get" << getUpperName()
++         << "() << \")ATTRDUMP\\\"";
+     }
+ 
+     void writeDump(raw_ostream &OS) const override {
+-      OS << "    OS << \" \\\"\" << SA->get" << getUpperName()
+-         << "() << \"\\\"\";\n";
++      OS << "    OS << \" R\\\"ATTRDUMP(\" << SA->get" << getUpperName()
++         << "() << \")ATTRDUMP\\\"\";\n";
+     }
+   };
+ 
+-- 
+2.18.0
+
