@@ -1,6 +1,10 @@
 mkdir build
 cd build
 
+:: Remove -GL from CXXFLAGS as this takes too much time and memory
+set "CFLAGS= -MD"
+set "CXXFLAGS= -MD"
+
 cmake -G "NMake Makefiles" ^
     -DCMAKE_BUILD_TYPE="Release" ^
     -DCMAKE_PREFIX_PATH=%LIBRARY_PREFIX% ^
