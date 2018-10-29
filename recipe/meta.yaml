@@ -84,38 +84,62 @@ build:
   number: {{ build_number }}
   skip: true  # [win and vc<14]
 
-requirements:
-  build:
-    - {{ compiler('cxx') }}
-    - cmake >=3.4.3
-    # Needed to unpack the source tarball
-    - m2w64-xz  # [win]
-    # "compiling .pyc files" fails without this
-    - python >3
-  host:
-    - llvmdev =={{ version }}
-    - libxml2
-  run:
-    - llvmdev =={{ version }}
-    - libxml2
+outputs:
 
-test:
-  requires:
-    - {{ compiler('cxx') }}
-    - cmake >=3.4.3
-  files:
-    - mytest.c
-  commands:
-    - $PREFIX/bin/clang --version  # [unix]
-    - $PREFIX/bin/clang++ --version  # [unix]
-    - $PREFIX/bin/clang-check --version  # [unix]
+  # Main output
+  - name: clangdev
+    version: {{ version }}
+    script: build_clangdev.sh   # [unix]
+    script: build_clangdev.bat  # [win]
+    build:
+      activate_in_script: True
+    requirements:
+      build:
+        - {{ compiler('cxx') }}
+        - cmake >=3.4.3
+        # Needed to unpack the source tarball
+        - m2w64-xz  # [win]
+        # "compiling .pyc files" fails without this
+        - python >3
+      host:
+        - llvmdev =={{ version }}
+        - libxml2
+      run:
+        - llvmdev =={{ version }}
+        - libxml2
+        # Require the mutex package.
+        - clang_variant * {{ clang_variant }}
+    test:
+      requires:
+        - {{ compiler('cxx') }}
+        - cmake >=3.4.3
+      files:
+        - mytest.c
+      commands:
+        - $PREFIX/bin/clang --version  # [unix]
+        - $PREFIX/bin/clang++ --version  # [unix]
+        - $PREFIX/bin/clang-check --version  # [unix]
 
-    - $PREFIX/bin/clang -v -c mytest.c      # [unix]
-    - "%LIBRARY_BIN%/clang -v -c mytest.c"  # [win]
+        - $PREFIX/bin/clang -v -c mytest.c      # [unix]
+        - "%LIBRARY_BIN%/clang -v -c mytest.c"  # [win]
 
-    - if not exist %LIBRARY_INC%\\clang\\Lex\\Lexer.h exit 1  # [win]
-    - test -f $PREFIX/include/clang/Lex/Lexer.h      # [unix]
-    - test -f $PREFIX/lib/libclangBasic.a            # [unix]
+        - if not exist %LIBRARY_INC%\\clang\\Lex\\Lexer.h exit 1  # [win]
+        - test -f $PREFIX/include/clang/Lex/Lexer.h      # [unix]
+        - test -f $PREFIX/lib/libclangBasic.a            # [unix]
+
+  # Mutex package to keep only one variant of clangdev in a given environment.
+  #
+  # Non-default variants track the "non_default_clang" feature.
+  # This is used to weigh down non-default variants of the package, allowing
+  # the default variant to take precedence unless required explicitely.
+  - name: clang_variant
+    version: 1.0
+    build:
+      string: {{ clang_variant }}
+{% if clang_variant != "default" %}
+      track_features:
+        - non_default_clang
+{% endif %}
 
 about:
   home: http://llvm.org/
