@@ -1,0 +1,47 @@
+From d56c76db683df1a0d3b852a04feb61c6abcb32fb Mon Sep 17 00:00:00 2001
+From: Vassil Vassilev <vvasilev@cern.ch>
+Date: Thu, 27 Feb 2014 15:50:03 +0100
+Subject: [PATCH 08/62] Find an easier way of accessing CodeGenModule
+ internals.
+
+---
+ lib/CodeGen/CodeGenModule.h   | 2 ++
+ lib/CodeGen/ModuleBuilder.cpp | 2 +-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/lib/CodeGen/CodeGenModule.h b/lib/CodeGen/CodeGenModule.h
+index b162e72d19..a6e3c72b78 100644
+--- a/lib/CodeGen/CodeGenModule.h
++++ b/lib/CodeGen/CodeGenModule.h
+@@ -52,6 +52,7 @@ class IndexedInstrProfReader;
+ namespace clang {
+ class ASTContext;
+ class AtomicType;
++class CodeGeneratorImpl; // hack needed by cling
+ class FunctionDecl;
+ class IdentifierInfo;
+ class ObjCMethodDecl;
+@@ -1354,6 +1355,7 @@ private:
+   void ConstructDefaultFnAttrList(StringRef Name, bool HasOptnone,
+                                   bool AttrOnCallSite,
+                                   llvm::AttrBuilder &FuncAttrs);
++   friend class clang::CodeGeneratorImpl; // hack needed by cling
+ };
+ }  // end namespace CodeGen
+ }  // end namespace clang
+diff --git a/lib/CodeGen/ModuleBuilder.cpp b/lib/CodeGen/ModuleBuilder.cpp
+index fc642850d6..4453d797a0 100644
+--- a/lib/CodeGen/ModuleBuilder.cpp
++++ b/lib/CodeGen/ModuleBuilder.cpp
+@@ -29,7 +29,7 @@
+ using namespace clang;
+ using namespace CodeGen;
+ 
+-namespace {
++namespace clang {
+   class CodeGeneratorImpl : public CodeGenerator {
+     DiagnosticsEngine &Diags;
+     ASTContext *Ctx;
+-- 
+2.18.0
+

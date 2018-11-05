@@ -1,0 +1,46 @@
+From 3fbbfef2845534bb0d407b93f134791bdaba6058 Mon Sep 17 00:00:00 2001
+From: Vassil Vassilev <vvasilev@cern.ch>
+Date: Tue, 8 Apr 2014 18:00:07 +0200
+Subject: [PATCH 12/62] Adapt the user of invalidateCache to its new signature.
+ Note: this might be change of behavior, because the new implementation
+ doesn't erase the entry from the ADT.
+
+---
+ lib/Serialization/ModuleManager.cpp | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/lib/Serialization/ModuleManager.cpp b/lib/Serialization/ModuleManager.cpp
+index 9eaddec604..2ab7828638 100644
+--- a/lib/Serialization/ModuleManager.cpp
++++ b/lib/Serialization/ModuleManager.cpp
+@@ -174,7 +174,7 @@ ModuleManager::addModule(StringRef FileName, ModuleKind Type,
+     // Try to remove the buffer.  If it can't be removed, then it was already
+     // validated by this process.
+     if (!PCMCache->tryToRemoveBuffer(NewModule->FileName))
+-      FileMgr.invalidateCache(NewModule->File);
++      FileMgr.invalidateCache(const_cast<FileEntry*>(NewModule->File));
+     return OutOfDate;
+   }
+ 
+@@ -233,6 +233,7 @@ void ModuleManager::removeModules(
+   for (ModuleIterator victim = First; victim != Last; ++victim) {
+     Modules.erase(victim->File);
+ 
++    FileMgr.invalidateCache(const_cast<FileEntry*>(victim->File));
+     if (modMap) {
+       StringRef ModuleName = victim->ModuleName;
+       if (Module *mod = modMap->findModule(ModuleName)) {
+@@ -249,9 +250,7 @@ void ModuleManager::removeModules(
+     // safely invalidate it anyway).
+     if (LoadedSuccessfully.count(&*victim) == 0 &&
+         !PCMCache->tryToRemoveBuffer(victim->FileName))
+-      FileMgr.invalidateCache(const_cast<FileEntry*>((*victim)->File));
+-
+-    delete *victim;
++      FileMgr.invalidateCache(const_cast<FileEntry*>(victim->File));
+   }
+ 
+   // Delete the modules.
+-- 
+2.18.0
+

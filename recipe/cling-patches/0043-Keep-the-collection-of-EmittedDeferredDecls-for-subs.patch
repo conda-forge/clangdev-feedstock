@@ -1,0 +1,25 @@
+From ed9760bb470e5a976e2a577698b8c11f65610043 Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Fri, 9 Sep 2016 16:58:55 +0200
+Subject: [PATCH 43/62] Keep the collection of EmittedDeferredDecls for
+ subsequent transactions.
+
+---
+ lib/CodeGen/ModuleBuilder.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/lib/CodeGen/ModuleBuilder.cpp b/lib/CodeGen/ModuleBuilder.cpp
+index 910fc8c944..5d441b1a74 100644
+--- a/lib/CodeGen/ModuleBuilder.cpp
++++ b/lib/CodeGen/ModuleBuilder.cpp
+@@ -155,6 +155,7 @@ namespace clang {
+              && "Newly created module should not have weakRefRefs");
+       Builder->WeakRefReferences.swap(OldBuilder->WeakRefReferences);
+ 
++      Builder->EmittedDeferredDecls.swap(OldBuilder->EmittedDeferredDecls);
+ 
+       return M.get();
+     }
+-- 
+2.18.0
+

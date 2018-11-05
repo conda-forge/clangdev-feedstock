@@ -1,0 +1,73 @@
+From 27d2d5b247e83f3ac5d6e9f36d25d168a6afc97a Mon Sep 17 00:00:00 2001
+From: Vassil Vassilev <v.g.vassilev@gmail.com>
+Date: Wed, 18 Oct 2017 17:21:27 +0200
+Subject: [PATCH 60/62] [backport r316022] Expose ConsumeAnyToken interface to
+ external clients.
+
+This patch is not part of LLVM 5.0!
+---
+ include/clang/Parse/Parser.h | 41 ++++++++++++++++++------------------
+ 1 file changed, 21 insertions(+), 20 deletions(-)
+
+diff --git a/include/clang/Parse/Parser.h b/include/clang/Parse/Parser.h
+index 2fa194f701..5410c9ca7f 100644
+--- a/include/clang/Parse/Parser.h
++++ b/include/clang/Parse/Parser.h
+@@ -369,6 +369,27 @@ public:
+     return true;
+   }
+ 
++  /// ConsumeAnyToken - Dispatch to the right Consume* method based on the
++  /// current token type.  This should only be used in cases where the type of
++  /// the token really isn't known, e.g. in error recovery.
++  SourceLocation ConsumeAnyToken(bool ConsumeCodeCompletionTok = false) {
++    if (isTokenParen())
++      return ConsumeParen();
++    if (isTokenBracket())
++      return ConsumeBracket();
++    if (isTokenBrace())
++      return ConsumeBrace();
++    if (isTokenStringLiteral())
++      return ConsumeStringToken();
++    if (Tok.is(tok::code_completion))
++      return ConsumeCodeCompletionTok ? ConsumeCodeCompletionToken()
++                                      : handleUnexpectedCodeCompletionToken();
++    if (Tok.isAnnotation())
++      return ConsumeAnnotationToken();
++    return ConsumeToken();
++  }
++
++
+   SourceLocation getEndOfPreviousToken() {
+     return PP.getLocForEndOfToken(PrevTokLocation);
+   }
+@@ -419,26 +440,6 @@ private:
+       PP.EnterToken(Next);
+   }
+ 
+-  /// ConsumeAnyToken - Dispatch to the right Consume* method based on the
+-  /// current token type.  This should only be used in cases where the type of
+-  /// the token really isn't known, e.g. in error recovery.
+-  SourceLocation ConsumeAnyToken(bool ConsumeCodeCompletionTok = false) {
+-    if (isTokenParen())
+-      return ConsumeParen();
+-    if (isTokenBracket())
+-      return ConsumeBracket();
+-    if (isTokenBrace())
+-      return ConsumeBrace();
+-    if (isTokenStringLiteral())
+-      return ConsumeStringToken();
+-    if (Tok.is(tok::code_completion))
+-      return ConsumeCodeCompletionTok ? ConsumeCodeCompletionToken()
+-                                      : handleUnexpectedCodeCompletionToken();
+-    if (Tok.isAnnotation())
+-      return ConsumeAnnotationToken();
+-    return ConsumeToken();
+-  }
+-
+   SourceLocation ConsumeAnnotationToken() {
+     assert(Tok.isAnnotation() && "wrong consume method");
+     SourceLocation Loc = Tok.getLocation();
+-- 
+2.18.0
+

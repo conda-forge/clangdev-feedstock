@@ -1,0 +1,28 @@
+From ddaac890f557ee1af579b4391ad0fefcd3eae1fc Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Fri, 31 Mar 2017 10:01:13 +0200
+Subject: [PATCH 52/62] Make sure no EmittedDeferredDecls are left.
+
+They should have been merged into DeferredDecls in a previous Release(),
+leaving and empty EmittedDeferredDecls behind.
+---
+ lib/CodeGen/ModuleBuilder.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/lib/CodeGen/ModuleBuilder.cpp b/lib/CodeGen/ModuleBuilder.cpp
+index e65f39273e..4ab61ce7d0 100644
+--- a/lib/CodeGen/ModuleBuilder.cpp
++++ b/lib/CodeGen/ModuleBuilder.cpp
+@@ -141,6 +141,9 @@ namespace clang {
+              && "Newly created module should not have deferred decls");
+       Builder->DeferredDecls.swap(OldBuilder->DeferredDecls);
+ 
++      assert(OldBuilder->EmittedDeferredDecls.empty()
++             && "Still have (unmerged) EmittedDeferredDecls deferred decls");
++
+       assert(Builder->DeferredVTables.empty()
+              && "Newly created module should not have deferred vtables");
+       Builder->DeferredVTables.swap(OldBuilder->DeferredVTables);
+-- 
+2.18.0
+
