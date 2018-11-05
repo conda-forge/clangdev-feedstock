@@ -22,6 +22,7 @@ Current release info
 
 | Name | Downloads | Version | Platforms |
 | --- | --- | --- | --- |
+| [![Conda Recipe](https://img.shields.io/badge/recipe-clang_variant-green.svg)](https://anaconda.org/conda-forge/clang_variant) | [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/clang_variant.svg)](https://anaconda.org/conda-forge/clang_variant) | [![Conda Version](https://img.shields.io/conda/vn/conda-forge/clang_variant.svg)](https://anaconda.org/conda-forge/clang_variant) | [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/clang_variant.svg)](https://anaconda.org/conda-forge/clang_variant) |
 | [![Conda Recipe](https://img.shields.io/badge/recipe-clangdev-green.svg)](https://anaconda.org/conda-forge/clangdev) | [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/clangdev.svg)](https://anaconda.org/conda-forge/clangdev) | [![Conda Version](https://img.shields.io/conda/vn/conda-forge/clangdev.svg)](https://anaconda.org/conda-forge/clangdev) | [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/clangdev.svg)](https://anaconda.org/conda-forge/clangdev) |
 
 Installing clangdev
@@ -33,16 +34,16 @@ Installing `clangdev` from the `conda-forge` channel can be achieved by adding `
 conda config --add channels conda-forge
 ```
 
-Once the `conda-forge` channel has been enabled, `clangdev` can be installed with:
+Once the `conda-forge` channel has been enabled, `clang_variant, clangdev` can be installed with:
 
 ```
-conda install clangdev
+conda install clang_variant clangdev
 ```
 
-It is possible to list all of the versions of `clangdev` available on your platform with:
+It is possible to list all of the versions of `clang_variant` available on your platform with:
 
 ```
-conda search clangdev --channel conda-forge
+conda search clang_variant --channel conda-forge
 ```
 
 

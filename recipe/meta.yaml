@@ -84,6 +84,13 @@ build:
   number: {{ build_number }}
   skip: true  # [win and vc<14]
 
+
+# Specifying `compiler('cxx')` as a top-level build requirements to force
+# conda-smithy to generate the correct build matrix.
+requirements:
+  build:
+    - {{ compiler('cxx') }}
+
 outputs:
 
   # Main output
