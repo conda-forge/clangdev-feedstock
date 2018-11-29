@@ -45,6 +45,7 @@ install:
 
     # Configure the VM.
     - cmd: conda.exe install -n root --quiet --yes conda-forge-ci-setup=2
+    - cmd: conda.exe install -n root --quiet --yes conda-build=3.16.3 -c defaults
     - cmd: run_conda_forge_build_setup
 
 # Skip .NET project specific build phase.
