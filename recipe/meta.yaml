@@ -113,7 +113,6 @@ outputs:
         - m2w64-xz  # [win]
         # "compiling .pyc files" fails without this
         - python >3
-        - llvmdev =={{ version }}
       host:
         - llvmdev =={{ version }}
         - libxml2
