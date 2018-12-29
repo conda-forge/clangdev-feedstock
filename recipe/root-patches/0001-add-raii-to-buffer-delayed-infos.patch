@@ -1,0 +1,39 @@
+From b4fd2f0e81cf5067a900fc6f839c1b02499fc17e Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Fri, 22 Jul 2016 18:04:04 +0200
+Subject: [PATCH] Add RAII to buffer delayed infos, for recursive parsing.
+
+---
+ .../src/tools/clang/include/clang/Sema/Sema.h | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+
+diff --git a/interpreter/llvm/src/tools/clang/include/clang/Sema/Sema.h b/interpreter/llvm/src/tools/clang/include/clang/Sema/Sema.h
+index 2c2f4991675..8126ea61031 100644
+--- a/interpreter/llvm/src/tools/clang/include/clang/Sema/Sema.h
++++ b/interpreter/llvm/src/tools/clang/include/clang/Sema/Sema.h
+@@ -719,6 +719,25 @@ class Sema {
+     }
+   };
+ 
++  class DelayedInfoRAII {
++    Sema &S;
++    SmallVector<std::pair<const CXXMethodDecl*, const CXXMethodDecl*>, 2>
++      DelayedExceptionSpecChecks;
++    SmallVector<std::pair<CXXMethodDecl*, const FunctionProtoType*>, 2>
++      DelayedDefaultedMemberExceptionSpecs;
++  public:
++    DelayedInfoRAII(Sema& S): S(S) {
++      std::swap(S.DelayedExceptionSpecChecks, DelayedExceptionSpecChecks);
++      std::swap(S.DelayedDefaultedMemberExceptionSpecs,
++                DelayedDefaultedMemberExceptionSpecs);
++    }
++    ~DelayedInfoRAII() {
++      std::swap(S.DelayedExceptionSpecChecks, DelayedExceptionSpecChecks);
++      std::swap(S.DelayedDefaultedMemberExceptionSpecs,
++                DelayedDefaultedMemberExceptionSpecs);
++    }
++  };
++
+   /// WeakUndeclaredIdentifiers - Identifiers contained in
+   /// \#pragma weak before declared. rare. may alias another
+   /// identifier, declared or undeclared
