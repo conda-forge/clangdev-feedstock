@@ -20,6 +20,9 @@ conda-build:
 CONDARC
 
 conda install --yes --quiet conda-forge-ci-setup=2 conda-build -c conda-forge
+# FIXME: This recipe cannot be built by the latest release of conda-build
+# Just downgrade for now
+conda install -n root --quiet --yes conda-build=3.16.3 -c defaults
 
 # set up the condarc
 setup_conda_rc "${FEEDSTOCK_ROOT}" "${RECIPE_ROOT}" "${CONFIG_FILE}"

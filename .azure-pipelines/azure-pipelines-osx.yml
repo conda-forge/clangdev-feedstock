@@ -43,6 +43,7 @@ jobs:
       export PATH=$(Build.StagingDirectory)/miniconda/bin:$PATH
       set -x -e
       conda install -n base -c conda-forge --quiet --yes conda-forge-ci-setup=2
+      conda install -n root --quiet --yes conda-build=3.16.3 -c defaults
     displayName: 'Add conda-forge-ci-setup=2'
 
   - script: |

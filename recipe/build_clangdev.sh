@@ -17,6 +17,7 @@ cmake \
   -DCLANG_INCLUDE_DOCS=OFF \
   -DLLVM_INCLUDE_TESTS=OFF \
   -DLLVM_INCLUDE_DOCS=OFF \
+  -DLLVM_CONFIG="${PREFIX}/bin/llvm-config" \
   ..
 
 make -j${CPU_COUNT}
