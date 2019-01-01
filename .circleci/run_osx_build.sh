@@ -18,9 +18,6 @@ echo "Configuring conda."
 source ~/miniconda3/bin/activate root
 
 conda install -n root -c conda-forge --quiet --yes conda-forge-ci-setup=2
-# FIXME: This recipe cannot be built by the latest release of conda-build
-# Just downgrade for now
-conda install -n root --quiet --yes conda-build=3.16.3 -c defaults
 mangle_compiler ./ ./recipe .ci_support/${CONFIG}.yaml
 setup_conda_rc ./ ./recipe ./.ci_support/${CONFIG}.yaml
 

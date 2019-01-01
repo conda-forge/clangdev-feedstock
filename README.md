@@ -16,8 +16,8 @@ Summary: Development headers and libraries for Clang
 Current build status
 ====================
 
-[![Linux,OSX](https://img.shields.io/circleci/project/github/conda-forge/clangdev-feedstock/master.svg?label=Linux,OSX)](https://circleci.com/gh/conda-forge/clangdev-feedstock)
-[![Windows](https://img.shields.io/appveyor/ci/conda-forge/clangdev-feedstock/master.svg?label=Windows)](https://ci.appveyor.com/project/conda-forge/clangdev-feedstock/branch/master)
+[![Linux,OSX](https://img.shields.io/circleci/project/github/conda-forge/repo-feedstock/master.svg?label=Linux,OSX)](https://circleci.com/gh/conda-forge/repo-feedstock)
+[![Windows](https://img.shields.io/appveyor/ci/conda-forge/repo-feedstock/master.svg?label=Windows)](https://ci.appveyor.com/project/conda-forge/repo-feedstock/branch/master)
 
 Current release info
 ====================
