@@ -1,4 +1,4 @@
-if [ "$(uname)" == "Linux" ]; then
+if [[ "$(uname)" == "Linux" && "$cxx_compiler" == "gxx" ]; then
     sed -i.bak -e 's@addSystemInclude(DriverArgs, CC1Args, SysRoot + "/usr/local/include");@addSystemInclude(DriverArgs, CC1Args, "'"${PREFIX}/${HOST}/sysroot/usr/include"'");@g' \
         lib/Driver/ToolChains/Linux.cpp && rm $_.bak
 
