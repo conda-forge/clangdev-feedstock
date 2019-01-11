@@ -117,7 +117,7 @@ outputs:
         - llvmdev =={{ version }}
         - libxml2
       run:
-        - {{ compiler('cxx') }}  # [linux]
+        - {{ compiler('cxx') }}  # [linux and cxx_compiler='gxx']
         - llvmdev =={{ version }}
         - libxml2
         # Require the mutex package.
