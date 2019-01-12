@@ -1,3 +1,17 @@
+if [[ "$(uname)" == "Linux" && "$cxx_compiler" == "gxx" ]]; then
+    sed -i.bak -e 's@addSystemInclude(DriverArgs, CC1Args, SysRoot + "/usr/local/include");@addSystemInclude(DriverArgs, CC1Args, "'"${PREFIX}/${HOST}/sysroot/usr/include"'");@g' \
+        lib/Driver/ToolChains/Linux.cpp && rm $_.bak
+
+    sed -i.bak -e 's@addPathIfExists(D, SysRoot + "/lib", Paths);@addPathIfExists(D, "'"${PREFIX}/${HOST}/sysroot/lib"'", Paths);@g' \
+        lib/Driver/ToolChains/Linux.cpp && rm $_.bak
+
+    sed -i.bak -e 's@addPathIfExists(D, SysRoot + "/usr/lib", Paths);@addPathIfExists(D, "'"${PREFIX}/${HOST}/sysroot/usr/lib"'", Paths);@g' \
+        lib/Driver/ToolChains/Linux.cpp && rm $_.bak
+
+    sed -i.bak -e 's@AddPath("/usr/local/include", System, false);@AddPath("'"${PREFIX}/${HOST}/sysroot/usr/include"'", System, false);@g' \
+        lib/Frontend/InitHeaderSearch.cpp && rm $_.bak
+fi
+
 mkdir build
 cd build
 
@@ -10,6 +24,7 @@ cmake \
   -DCLANG_INCLUDE_DOCS=OFF \
   -DLLVM_INCLUDE_TESTS=OFF \
   -DLLVM_INCLUDE_DOCS=OFF \
+  -DLLVM_CONFIG="${PREFIX}/bin/llvm-config" \
   ..
 
 make -j${CPU_COUNT}

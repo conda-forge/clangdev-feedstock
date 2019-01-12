@@ -1,10 +1,10 @@
 {% set version = "5.0.0" %}
 {% set sha256 = "019f23c2192df793ac746595e94a403908749f8e0c484b403476d2611dd20970" %}
 
-{% set build_number = "1000" %}
+{% set build_number = "1001" %}
 
 package:
-  name: clangdev
+  name: clangdev_and_clangvariant
   version: {{ version }}
 
 source:
@@ -78,6 +78,11 @@ source:
     - cling-patches/0060-backport-r316022-Expose-ConsumeAnyToken-interface-to.patch
     - cling-patches/0061-Backport-D45921.patch
     - cling-patches/0062-D51295-Allow-resetting-of-NumCreatedFIDsForFileID.patch
+    - root-patches/0001-add-raii-to-buffer-delayed-infos.patch
+    - root-patches/0002-constify-nfc.patch
+    - root-patches/0003-default-template-arg-hack.patch
+    - root-patches/0004-refactor-generation-counter.patch
+    - root-patches/0005-refactor-in-RequireCompleteDeclContext.patch
 {% endif %}
 
 build:
@@ -112,6 +117,7 @@ outputs:
         - llvmdev =={{ version }}
         - libxml2
       run:
+        - {{ compiler('cxx') }}  # [linux and cxx_compiler=='gxx']
         - llvmdev =={{ version }}
         - libxml2
         # Require the mutex package.
@@ -138,7 +144,7 @@ outputs:
   #
   # Non-default variants track the "non_default_clang" feature.
   # This is used to weigh down non-default variants of the package, allowing
-  # the default variant to take precedence unless required explicitely.
+  # the default variant to take precedence unless required explicitly.
   - name: clang_variant
     version: 1.0
     build:

@@ -1,6 +1,8 @@
 About clangdev
 ==============
 
+[![Powered by NumFOCUS](https://img.shields.io/badge/powered%20by-NumFOCUS-orange.svg?style=flat&colorA=E1523D&colorB=007D8A)](http://numfocus.org)
+
 Home: http://llvm.org/
 
 Package license: NCSA
@@ -14,8 +16,8 @@ Summary: Development headers and libraries for Clang
 Current build status
 ====================
 
-[![Linux,OSX](https://img.shields.io/circleci/project/github/conda-forge/clangdev-feedstock/master.svg?label=Linux,OSX)](https://circleci.com/gh/conda-forge/clangdev-feedstock)
-[![Windows](https://img.shields.io/appveyor/ci/conda-forge/clangdev-feedstock/master.svg?label=Windows)](https://ci.appveyor.com/project/conda-forge/clangdev-feedstock/branch/master)
+[![Linux,OSX](https://img.shields.io/circleci/project/github/conda-forge/repo-feedstock/master.svg?label=Linux,OSX)](https://circleci.com/gh/conda-forge/repo-feedstock)
+[![Windows](https://img.shields.io/appveyor/ci/conda-forge/repo-feedstock/master.svg?label=Windows)](https://ci.appveyor.com/project/conda-forge/repo-feedstock/branch/master)
 
 Current release info
 ====================
@@ -104,3 +106,13 @@ In order to produce a uniquely identifiable distribution:
  * If the version of a package **is** being increased, please remember to return
    the [``build/number``](https://conda.io/docs/user-guide/tasks/build-packages/define-metadata.html#build-number-and-string)
    back to 0.
+
+Feedstock Maintainers
+=====================
+
+* [@SylvainCorlay](https://github.com/SylvainCorlay/)
+* [@inducer](https://github.com/inducer/)
+* [@isuruf](https://github.com/isuruf/)
+* [@jakirkham](https://github.com/jakirkham/)
+* [@mattwala](https://github.com/mattwala/)
+
