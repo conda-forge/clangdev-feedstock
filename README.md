@@ -1,7 +1,9 @@
-About clangdev
-==============
+<!--
+# -*- mode: jinja -*-
+-->
 
-[![Powered by NumFOCUS](https://img.shields.io/badge/powered%20by-NumFOCUS-orange.svg?style=flat&colorA=E1523D&colorB=007D8A)](http://numfocus.org)
+About clangdev_and_clangvariant
+===============================
 
 Home: http://llvm.org/
 
@@ -16,8 +18,8 @@ Summary: Development headers and libraries for Clang
 Current build status
 ====================
 
-[![Linux,OSX](https://img.shields.io/circleci/project/github/conda-forge/repo-feedstock/master.svg?label=Linux,OSX)](https://circleci.com/gh/conda-forge/repo-feedstock)
-[![Windows](https://img.shields.io/appveyor/ci/conda-forge/repo-feedstock/master.svg?label=Windows)](https://ci.appveyor.com/project/conda-forge/repo-feedstock/branch/master)
+[![Linux,OSX](https://img.shields.io/circleci/project/github/conda-forge/clangdev-feedstock/master.svg?label=Linux,OSX)](https://circleci.com/gh/conda-forge/clangdev-feedstock)
+![Windows disabled](https://img.shields.io/badge/Windows-disabled-lightgrey.svg)
 
 Current release info
 ====================
@@ -27,10 +29,10 @@ Current release info
 | [![Conda Recipe](https://img.shields.io/badge/recipe-clang_variant-green.svg)](https://anaconda.org/conda-forge/clang_variant) | [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/clang_variant.svg)](https://anaconda.org/conda-forge/clang_variant) | [![Conda Version](https://img.shields.io/conda/vn/conda-forge/clang_variant.svg)](https://anaconda.org/conda-forge/clang_variant) | [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/clang_variant.svg)](https://anaconda.org/conda-forge/clang_variant) |
 | [![Conda Recipe](https://img.shields.io/badge/recipe-clangdev-green.svg)](https://anaconda.org/conda-forge/clangdev) | [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/clangdev.svg)](https://anaconda.org/conda-forge/clangdev) | [![Conda Version](https://img.shields.io/conda/vn/conda-forge/clangdev.svg)](https://anaconda.org/conda-forge/clangdev) | [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/clangdev.svg)](https://anaconda.org/conda-forge/clangdev) |
 
-Installing clangdev
-===================
+Installing clangdev_and_clangvariant
+====================================
 
-Installing `clangdev` from the `conda-forge` channel can be achieved by adding `conda-forge` to your channels with:
+Installing `clangdev_and_clangvariant` from the `conda-forge` channel can be achieved by adding `conda-forge` to your channels with:
 
 ```
 conda config --add channels conda-forge
@@ -51,6 +53,8 @@ conda search clang_variant --channel conda-forge
 
 About conda-forge
 =================
+
+[![Powered by NumFOCUS](https://img.shields.io/badge/powered%20by-NumFOCUS-orange.svg?style=flat&colorA=E1523D&colorB=007D8A)](http://numfocus.org)
 
 conda-forge is a community-led conda channel of installable packages.
 In order to provide high-quality builds, the process has been automated into the
@@ -85,17 +89,17 @@ Terminology
                   produce the finished article (built conda distributions)
 
 
-Updating clangdev-feedstock
-===========================
+Updating clangdev_and_clangvariant-feedstock
+============================================
 
-If you would like to improve the clangdev recipe or build a new
+If you would like to improve the clangdev_and_clangvariant recipe or build a new
 package version, please fork this repository and submit a PR. Upon submission,
 your changes will be run on the appropriate platforms to give the reviewer an
 opportunity to confirm that the changes result in a successful build. Once
 merged, the recipe will be re-built and uploaded automatically to the
 `conda-forge` channel, whereupon the built conda packages will be available for
 everybody to install and use from the `conda-forge` channel.
-Note that all branches in the conda-forge/clangdev-feedstock are
+Note that all branches in the conda-forge/clangdev_and_clangvariant-feedstock are
 immediately built and any created packages are uploaded, so PRs should be based
 on branches in forks and branches in the main repository should only be used to
 build distinct package versions.
