@@ -2,8 +2,8 @@
 # -*- mode: jinja -*-
 -->
 
-About clangdev_and_clangvariant
-===============================
+About clangdev
+==============
 
 Home: http://llvm.org/
 
@@ -19,7 +19,7 @@ Current build status
 ====================
 
 [![Linux,OSX](https://img.shields.io/circleci/project/github/conda-forge/clangdev-feedstock/master.svg?label=Linux,OSX)](https://circleci.com/gh/conda-forge/clangdev-feedstock)
-![Windows disabled](https://img.shields.io/badge/Windows-disabled-lightgrey.svg)
+[![Windows](https://img.shields.io/appveyor/ci/conda-forge/clangdev-feedstock/master.svg?label=Windows)](https://ci.appveyor.com/project/conda-forge/clangdev-feedstock/branch/master)
 
 Current release info
 ====================
@@ -29,10 +29,10 @@ Current release info
 | [![Conda Recipe](https://img.shields.io/badge/recipe-clang_variant-green.svg)](https://anaconda.org/conda-forge/clang_variant) | [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/clang_variant.svg)](https://anaconda.org/conda-forge/clang_variant) | [![Conda Version](https://img.shields.io/conda/vn/conda-forge/clang_variant.svg)](https://anaconda.org/conda-forge/clang_variant) | [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/clang_variant.svg)](https://anaconda.org/conda-forge/clang_variant) |
 | [![Conda Recipe](https://img.shields.io/badge/recipe-clangdev-green.svg)](https://anaconda.org/conda-forge/clangdev) | [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/clangdev.svg)](https://anaconda.org/conda-forge/clangdev) | [![Conda Version](https://img.shields.io/conda/vn/conda-forge/clangdev.svg)](https://anaconda.org/conda-forge/clangdev) | [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/clangdev.svg)](https://anaconda.org/conda-forge/clangdev) |
 
-Installing clangdev_and_clangvariant
-====================================
+Installing clangdev
+===================
 
-Installing `clangdev_and_clangvariant` from the `conda-forge` channel can be achieved by adding `conda-forge` to your channels with:
+Installing `clangdev` from the `conda-forge` channel can be achieved by adding `conda-forge` to your channels with:
 
 ```
 conda config --add channels conda-forge
@@ -89,17 +89,17 @@ Terminology
                   produce the finished article (built conda distributions)
 
 
-Updating clangdev_and_clangvariant-feedstock
-============================================
+Updating clangdev-feedstock
+===========================
 
-If you would like to improve the clangdev_and_clangvariant recipe or build a new
+If you would like to improve the clangdev recipe or build a new
 package version, please fork this repository and submit a PR. Upon submission,
 your changes will be run on the appropriate platforms to give the reviewer an
 opportunity to confirm that the changes result in a successful build. Once
 merged, the recipe will be re-built and uploaded automatically to the
 `conda-forge` channel, whereupon the built conda packages will be available for
 everybody to install and use from the `conda-forge` channel.
-Note that all branches in the conda-forge/clangdev_and_clangvariant-feedstock are
+Note that all branches in the conda-forge/clangdev-feedstock are
 immediately built and any created packages are uploaded, so PRs should be based
 on branches in forks and branches in the main repository should only be used to
 build distinct package versions.
