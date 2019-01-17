@@ -1,7 +1,7 @@
 {% set version = "5.0.0" %}
 {% set sha256 = "019f23c2192df793ac746595e94a403908749f8e0c484b403476d2611dd20970" %}
 
-{% set build_number = "1001" %}
+{% set build_number = "1002" %}
 
 package:
   name: clangdev_and_clangvariant
@@ -14,6 +14,8 @@ source:
   patches:
     # This (system) libxml2 may not be available on user systems.
     - disable-libxml2-detection.patch  # [linux]
+    - Manually-set-linux-sysroot-for-conda.patch # [linux]
+    - Improve-logic-for-finding-the-macos-sysroot-for-cond.patch # [osx]
 
 {% if clang_variant == "cling" %}
     - cling-patches/0001-Temporary-parsers-should-not-manipulate-global-parse.patch
@@ -118,8 +120,6 @@ outputs:
         - libxml2
       run:
         - {{ compiler('cxx') }}  # [linux and cxx_compiler=='gxx']
-        - llvmdev =={{ version }}
-        - libxml2
         # Require the mutex package.
         - clang_variant * {{ clang_variant }}
     test:
