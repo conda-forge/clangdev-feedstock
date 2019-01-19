@@ -117,16 +117,17 @@ outputs:
         - python >3
       host:
         - llvmdev =={{ version }}
-        - libxml2
+        - libxml2  # [osx]
+        # FIXME: This shouldn't be needed but the recipe fails to render without it
         - libcxx =4  # [osx]
       run:
         - {{ compiler('cxx') }}  # [linux and cxx_compiler=='gxx']
+        - zlib  # [osx]
         # Require the mutex package.
         - clang_variant * {{ clang_variant }}
     test:
       requires:
-        - {{ compiler('cxx') }}
-        - cmake >=3.4.3
+        - {{ compiler('cxx') }}  # [linux]
       files:
         - mytest.c
       commands:
