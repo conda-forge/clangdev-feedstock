@@ -118,6 +118,7 @@ outputs:
       host:
         - llvmdev =={{ version }}
         - libxml2
+        - libcxx =4  # [osx]
       run:
         - {{ compiler('cxx') }}  # [linux and cxx_compiler=='gxx']
         # Require the mutex package.
