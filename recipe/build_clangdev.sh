@@ -1,3 +1,19 @@
+set -x
+
+if [[ "${clang_variant}" != "default" ]]; then
+  # For the cling variants we use the sources from the ROOT fork
+  cd root-source/interpreter/llvm/src/tools/clang
+fi
+
+if [[ "$(uname)" == "Linux" ]]; then
+  patch -p0 -i "${RECIPE_DIR}/disable-libxml2-detection.patch"
+  patch -p1 -i "${RECIPE_DIR}/Manually-set-linux-sysroot-for-conda.patch"
+  patch -p1 -i "${RECIPE_DIR}/Use-external-char-instead-of-std-string-to-avoid-pre.patch"
+fi
+if [[ "$(uname)" == "Darwin" ]]; then
+  patch -p1 -i "${RECIPE_DIR}/Improve-logic-for-finding-the-macos-sysroot-for-cond.patch"
+fi
+
 if [[ "$(uname)" == "Linux" && "$cxx_compiler" == "gxx" ]]; then
     sed -i.bak -e 's@SYSROOT_PATH_TO_BE_REPLACED_WITH_SED@'"${PREFIX}/${HOST}/sysroot"'@g' \
         lib/Driver/ToolChains/Linux_sysroot.cc && rm $_.bak

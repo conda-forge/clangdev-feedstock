@@ -5,16 +5,16 @@ Subject: [PATCH] Use external char* instead of std::string to avoid prefix
  replacement errors
 
 ---
- interpreter/llvm/src/tools/clang/lib/Driver/CMakeLists.txt | 1 +
- .../llvm/src/tools/clang/lib/Driver/ToolChains/Linux.cpp   | 7 ++++++-
- .../src/tools/clang/lib/Driver/ToolChains/Linux_sysroot.cc | 7 +++++++
+ lib/Driver/CMakeLists.txt | 1 +
+ lib/Driver/ToolChains/Linux.cpp   | 7 ++++++-
+ lib/Driver/ToolChains/Linux_sysroot.cc | 7 +++++++
  3 files changed, 14 insertions(+), 1 deletion(-)
- create mode 100644 interpreter/llvm/src/tools/clang/lib/Driver/ToolChains/Linux_sysroot.cc
+ create mode 100644 lib/Driver/ToolChains/Linux_sysroot.cc
 
-diff --git a/interpreter/llvm/src/tools/clang/lib/Driver/CMakeLists.txt b/interpreter/llvm/src/tools/clang/lib/Driver/CMakeLists.txt
+diff --git a/lib/Driver/CMakeLists.txt b/lib/Driver/CMakeLists.txt
 index c7ca698d95..0b73889608 100644
---- a/interpreter/llvm/src/tools/clang/lib/Driver/CMakeLists.txt
-+++ b/interpreter/llvm/src/tools/clang/lib/Driver/CMakeLists.txt
+--- a/lib/Driver/CMakeLists.txt
++++ b/lib/Driver/CMakeLists.txt
 @@ -46,6 +46,7 @@ add_clang_library(clangDriver
    ToolChains/Gnu.cpp
    ToolChains/Haiku.cpp
@@ -23,10 +23,10 @@ index c7ca698d95..0b73889608 100644
    ToolChains/Linux.cpp
    ToolChains/MipsLinux.cpp
    ToolChains/MinGW.cpp
-diff --git a/interpreter/llvm/src/tools/clang/lib/Driver/ToolChains/Linux.cpp b/interpreter/llvm/src/tools/clang/lib/Driver/ToolChains/Linux.cpp
+diff --git a/lib/Driver/ToolChains/Linux.cpp b/lib/Driver/ToolChains/Linux.cpp
 index 992b22eac1..1de7c6912f 100644
---- a/interpreter/llvm/src/tools/clang/lib/Driver/ToolChains/Linux.cpp
-+++ b/interpreter/llvm/src/tools/clang/lib/Driver/ToolChains/Linux.cpp
+--- a/lib/Driver/ToolChains/Linux.cpp
++++ b/lib/Driver/ToolChains/Linux.cpp
 @@ -380,6 +380,11 @@ Tool *Linux::buildAssembler() const {
    return new tools::gnutools::Assembler(*this);
  }
@@ -48,11 +48,11 @@ index 992b22eac1..1de7c6912f 100644
  }
 
  std::string Linux::getDynamicLinker(const ArgList &Args) const {
-diff --git a/interpreter/llvm/src/tools/clang/lib/Driver/ToolChains/Linux_sysroot.cc b/interpreter/llvm/src/tools/clang/lib/Driver/ToolChains/Linux_sysroot.cc
+diff --git a/lib/Driver/ToolChains/Linux_sysroot.cc b/lib/Driver/ToolChains/Linux_sysroot.cc
 new file mode 100644
 index 0000000000..0f5995f74f
 --- /dev/null
-+++ b/interpreter/llvm/src/tools/clang/lib/Driver/ToolChains/Linux_sysroot.cc
++++ b/lib/Driver/ToolChains/Linux_sysroot.cc
 @@ -0,0 +1,7 @@
 +extern "C"
 +{

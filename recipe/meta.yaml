@@ -1,91 +1,21 @@
 {% set version = "5.0.0" %}
 {% set sha256 = "019f23c2192df793ac746595e94a403908749f8e0c484b403476d2611dd20970" %}
 
-{% set build_number = "1002" %}
+{% set build_number = "1013" %}
 
 package:
   name: clangdev_and_clangvariant
   version: {{ version }}
 
 source:
+{% if clang_variant == "default" %}
   fn: cfe-{{ version }}.src.tar.xz
   url: http://llvm.org/releases/{{ version }}/cfe-{{ version }}.src.tar.xz
   sha256: {{ sha256 }}
-  patches:
-    # This (system) libxml2 may not be available on user systems.
-    - disable-libxml2-detection.patch  # [linux]
-    - Manually-set-linux-sysroot-for-conda.patch  # [linux]
-    - Use-external-char-instead-of-std-string-to-avoid-pre.patch  # [linux]
-    - Improve-logic-for-finding-the-macos-sysroot-for-cond.patch  # [osx]
-
-{% if clang_variant == "cling" %}
-    - cling-patches/0001-Temporary-parsers-should-not-manipulate-global-parse.patch
-    - cling-patches/0002-Only-reset-extra-parsers-if-not-temporary.patch
-    - cling-patches/0003-Let-autoload-act-on-fwd-declares.patch
-    - cling-patches/0004-Do-not-complain-about-invalid-sources-for-PCH-files.patch
-    - cling-patches/0005-Extend-SubstTemplateTypeParmType-to-support-non-cano.patch
-    - cling-patches/0006-Remove-macro-and-print-macro.patch
-    - cling-patches/0007-Do-not-remove-decls-from-the-lookup-if-they-don-t-ex.patch
-    - cling-patches/0008-Find-an-easier-way-of-accessing-CodeGenModule-intern.patch
-    - cling-patches/0009-From-Vassil-add-debug-printout-of-ModuleBuilder-data.patch
-    - cling-patches/0010-Cleanup-cached-constant-.str-from-codegen.patch
-    - cling-patches/0011-Implement-FileManager-uncaching.patch
-    - cling-patches/0012-Adapt-the-user-of-invalidateCache-to-its-new-signatu.patch
-    - cling-patches/0013-Mark-the-file-entry-invalid-until-reread.-Invalidate.patch
-    - cling-patches/0014-In-cases-of-nested-parsing-at-execution-time-sometim.patch
-    - cling-patches/0015-Implement-soft-reset-of-the-diagnostics-engine.patch
-    - cling-patches/0016-Access-sema-internals-and-revert-the-list-of-unused-.patch
-    - cling-patches/0017-Propagate-cache-flags-from-LookupFile-to-FileManager.patch
-    - cling-patches/0018-Do-not-try-to-re-read-non-existent-files.patch
-    - cling-patches/0019-Pass-the-OpenFile-flag-also-to-DirectoryLookup.patch
-    - cling-patches/0020-Merge-Ctors-from-nested-transactions.patch
-    - cling-patches/0021-SrcMan-can-happen-for-Locs-from-the-command-line.patch
-    - cling-patches/0022-Make-sure-the-inode-did-not-get-updated-since-we-rea.patch
-    - cling-patches/0023-More-RAIIs-for-autoloading.patch
-    - cling-patches/0024-Fix-cling-teardown-issues-when-a-pch-is-attached.-Ku.patch
-    - cling-patches/0025-Use-raw-string-literals-to-correctly-stringify-and-i.patch
-    - cling-patches/0026-Accessor-to-is-file-opened-this-is-crucial-info-for-.patch
-    - cling-patches/0027-Buffer-the-pending-instantiations-in-case-or-recursi.patch
-    - cling-patches/0028-Also-store-Parser-paren-numbers-likely-fixes-ROOT-69.patch
-    - cling-patches/0029-Allow-switching-of-CodeGen-llvm-Module.patch
-    - cling-patches/0030-Avoid-dupe-llvm.ident-operands.patch
-    - cling-patches/0031-Hand-over-deferred-objects-to-the-new-CGModule-fixes.patch
-    - cling-patches/0032-CGModule-can-have-pending-WeakRefReferences-carry-ov.patch
-    - cling-patches/0033-Survive-pragma-once-from-virtual-file.patch
-    - cling-patches/0034-Provide-possibly-updated-CodegenOpts-to-StartModule.patch
-    - cling-patches/0035-Clear-pending-decls-from-Builder-in-case-of-errors-R.patch
-    - cling-patches/0036-Add-ASTConsumer-HandleInvalidTagDeclDefinition.patch
-    - cling-patches/0037-Fix-ROOT-7775-by-making-all-static-init-function-nam.patch
-    - cling-patches/0038-Inject-DeclUnloader-as-a-friend.patch
-    - cling-patches/0039-Do-not-load-the-source-file-just-to-get-an-irrelevan.patch
-    - cling-patches/0040-Construct-DestroyTemplateIdAnnotationsRAIIObj-given-.patch
-    - cling-patches/0041-Keep-track-of-emitted-deferred-decls-in-case-cling-n.patch
-    - cling-patches/0042-Forget-Decls-by-removing-them-from-the-DeferredDecls.patch
-    - cling-patches/0043-Keep-the-collection-of-EmittedDeferredDecls-for-subs.patch
-    - cling-patches/0044-Track-previously-deferred-emitted-symbol-put-back-as.patch
-    - cling-patches/0045-CLING-Move-cling-DeclUnloader-and-ParserStateRAII-in.patch
-    - cling-patches/0046-Fix-assertion-when-removing-decls-coming-from-a-pch-.patch
-    - cling-patches/0047-Do-not-collect-DeleteExprs-over-incremental-end-of-T.patch
-    - cling-patches/0048-In-the-RAII-ctor-set-private-Parser-fields-to-defaul.patch
-    - cling-patches/0049-Do-not-remove-DeferredDecls-when-they-become-Emitted.patch
-    - cling-patches/0050-Keep-track-of-immediately-emitted-deferred-decls.-Di.patch
-    - cling-patches/0051-Only-keep-track-of-weak-symbols.-Move-to-addDeferred.patch
-    - cling-patches/0052-Make-sure-no-EmittedDeferredDecls-are-left.patch
-    - cling-patches/0053-Keep-DeferredDecl-entry-when-forgetting-symbols-from.patch
-    - cling-patches/0054-Move-addEmittedDeferredDecl-into-separate-function-a.patch
-    - cling-patches/0055-Pass-mangled-name-to-CodeGenerator-forgetDecl.-From-.patch
-    - cling-patches/0056-Clear-also-EmittedDeferredDecls.patch
-    - cling-patches/0057-Also-remember-ODROnce-vars-fixes-cling-test-Prompt-S.patch
-    - cling-patches/0058-Keep-into-account-if-files-were-virtual.patch
-    - cling-patches/0059-Get-the-file-name-for-the-symbol-from-the-Module-not.patch
-    - cling-patches/0060-backport-r316022-Expose-ConsumeAnyToken-interface-to.patch
-    - cling-patches/0061-Backport-D45921.patch
-    - cling-patches/0062-D51295-Allow-resetting-of-NumCreatedFIDsForFileID.patch
-    - root-patches/0001-add-raii-to-buffer-delayed-infos.patch
-    - root-patches/0002-constify-nfc.patch
-    - root-patches/0003-default-template-arg-hack.patch
-    - root-patches/0004-refactor-generation-counter.patch
-    - root-patches/0005-refactor-in-RequireCompleteDeclContext.patch
+{% else %}
+  git_url: https://github.com/root-project/root.git
+  git_rev: {{ clang_variant|replace('cling_', 'v')|replace('.', '-') }}
+  folder: root-source
 {% endif %}
 
 build:
@@ -104,7 +34,7 @@ outputs:
   # Main output
   - name: clangdev
     version: {{ version }}
-    script: build_clangdev.sh   # [unix]
+    script: build_clangdev.sh  # [unix]
     script: build_clangdev.bat  # [win]
     build:
       activate_in_script: True
@@ -160,7 +90,11 @@ outputs:
 about:
   home: http://llvm.org/
   license: NCSA
+{% if clang_variant == "default" %}
   license_file: LICENSE.TXT
+{% else %}
+  license_file: root-source/interpreter/llvm/src/tools/clang/LICENSE.TXT
+{% endif %}
   summary: Development headers and libraries for Clang
 
 extra:
