@@ -1,6 +1,6 @@
 if [[ "$(uname)" == "Linux" && "$cxx_compiler" == "gxx" ]]; then
     sed -i.bak -e 's@SYSROOT_PATH_TO_BE_REPLACED_WITH_SED@'"${PREFIX}/${HOST}/sysroot"'@g' \
-        lib/Driver/ToolChains/Linux.cpp && rm $_.bak
+        lib/Driver/ToolChains/Linux_sysroot.cc && rm $_.bak
 
     sed -i.bak -e 's@AddPath("/usr/local/include", System, false);@AddPath("'"${PREFIX}/${HOST}/sysroot/usr/include"'", System, false);@g' \
         lib/Frontend/InitHeaderSearch.cpp && rm $_.bak

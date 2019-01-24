@@ -15,6 +15,7 @@ source:
     # This (system) libxml2 may not be available on user systems.
     - disable-libxml2-detection.patch  # [linux]
     - Manually-set-linux-sysroot-for-conda.patch  # [linux]
+    - Use-external-char-instead-of-std-string-to-avoid-pre.patch  # linux
     - Improve-logic-for-finding-the-macos-sysroot-for-cond.patch  # [osx]
 
 {% if clang_variant == "cling" %}
