@@ -10,8 +10,11 @@ jobs:
   strategy:
     maxParallel: 8
     matrix:
-      osx_clang_variantcling:
-        CONFIG: osx_clang_variantcling
+      osx_clang_variantcling_6.14.06:
+        CONFIG: osx_clang_variantcling_6.14.06
+        UPLOAD_PACKAGES: False
+      osx_clang_variantcling_6.16.00:
+        CONFIG: osx_clang_variantcling_6.16.00
         UPLOAD_PACKAGES: False
       osx_clang_variantdefault:
         CONFIG: osx_clang_variantdefault

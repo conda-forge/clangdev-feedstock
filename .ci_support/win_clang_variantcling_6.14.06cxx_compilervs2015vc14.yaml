@@ -3,13 +3,14 @@ channel_sources:
 channel_targets:
 - conda-forge main
 clang_variant:
-- cling
+- cling_6.14.06
 cxx_compiler:
-- gxx
-docker_image:
-- condaforge/linux-anvil-comp7
-libxml2:
-- '2.9'
+- vs2015
 pin_run_as_build:
-  libxml2:
-    max_pin: x.x
+  vc:
+    max_pin: x
+vc:
+- '14'
+zip_keys:
+- - vc
+  - cxx_compiler

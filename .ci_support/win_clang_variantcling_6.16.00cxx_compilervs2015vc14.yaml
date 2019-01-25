@@ -3,14 +3,10 @@ channel_sources:
 channel_targets:
 - conda-forge main
 clang_variant:
-- cling
+- cling_6.16.00
 cxx_compiler:
 - vs2015
-libxml2:
-- '2.9'
 pin_run_as_build:
-  libxml2:
-    max_pin: x.x
   vc:
     max_pin: x
 vc:

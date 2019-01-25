@@ -5,7 +5,7 @@ channel_sources:
 channel_targets:
 - conda-forge main
 clang_variant:
-- default
+- cling_6.16.00
 cxx_compiler:
 - clangxx
 libxml2:
