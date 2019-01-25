@@ -1,3 +1,5 @@
+if NOT "%clang_variant%" == "default" cd root-source/interpreter/llvm/src/tools/clang
+
 mkdir build
 cd build
 
