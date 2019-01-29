@@ -1,3 +1,4 @@
 clang_variant:
   - default
-  - cling
+  - cling_6.14.06
+  - cling_6.16.00

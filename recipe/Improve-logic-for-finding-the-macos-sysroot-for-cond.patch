@@ -1,0 +1,123 @@
+From 28149b124f2433fa619f235427159b1f7d47cd35 Mon Sep 17 00:00:00 2001
+From: Christopher Burr <christopher.burr@cern.ch>
+Date: Thu, 17 Jan 2019 06:19:44 +0000
+Subject: [PATCH] Improve logic for finding the macos sysroot for conda
+
+---
+ lib/Driver/ToolChains/Darwin.cpp    | 79 ++++++++++++++++++-
+ 1 file changed, 75 insertions(+), 4 deletions(-)
+
+diff --git a/lib/Driver/ToolChains/Darwin.cpp b/lib/Driver/ToolChains/Darwin.cpp
+index 32103a6120..19d05b108f 100644
+--- a/lib/Driver/ToolChains/Darwin.cpp
++++ b/lib/Driver/ToolChains/Darwin.cpp
+@@ -23,6 +23,10 @@
+ #include "llvm/Support/ScopedPrinter.h"
+ #include "llvm/Support/TargetParser.h"
+ #include <cstdlib> // ::getenv
++#include <cstdio>
++#include <iostream>
++#include <memory>
++#include <array>
+
+ using namespace clang::driver;
+ using namespace clang::driver::tools;
+@@ -1150,15 +1154,79 @@ void Darwin::AddDeploymentTarget(DerivedArgList &Args) const {
+     if (!getVFS().exists(A->getValue()))
+       getDriver().Diag(clang::diag::warn_missing_sysroot) << A->getValue();
+   } else {
+-    if (char *env = ::getenv("SDKROOT")) {
++    std::string foundSDKPath = "/";
++    std::string prefixToTry = "/";
++
++    if (char *env = ::getenv("CONDA_BUILD_SYSROOT")) {
+       // We only use this value as the default if it is an absolute path,
+       // exists, and it is not the root path.
+       if (llvm::sys::path::is_absolute(env) && getVFS().exists(env) &&
+           StringRef(env) != "/") {
+-        Args.append(Args.MakeSeparateArg(
+-            nullptr, Opts.getOption(options::OPT_isysroot), env));
++        foundSDKPath = std::string(env);
++      }
++    }
++
++    if (foundSDKPath == "/") {
++      if (char *env = ::getenv("SDKROOT")) {
++        // We only use this value as the default if it is an absolute path,
++        // exists, and it is not the root path.
++        if (llvm::sys::path::is_absolute(env) && getVFS().exists(env) &&
++            StringRef(env) != "/") {
++          foundSDKPath = std::string(env);
++        }
+       }
+     }
++
++    // Check if the command line tools are installed in the default directory
++    prefixToTry = "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk";
++    if (foundSDKPath == "/" && !getVFS().exists(prefixToTry+"/usr/include/sys/types.h")) {
++      foundSDKPath = std::string(prefixToTry);
++    }
++
++    // Check if xcode is installed in the default directory
++    prefixToTry = "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk";
++    if (foundSDKPath == "/" && !getVFS().exists(prefixToTry+"/usr/include/sys/types.h")) {
++      foundSDKPath = std::string(prefixToTry);
++    }
++
++    // If the SDK is not found by now and it's not inside /, our only choice
++    // is to fail or ask xcode-select
++    if (foundSDKPath == "/" && !getVFS().exists("/usr/include/sys/types.h")) {
++      // Run xcode-select, based on https://stackoverflow.com/a/478960
++      std::array<char, 128> buffer;
++      std::string result;
++      std::unique_ptr<FILE, decltype(&pclose)> pipe(popen("xcode-select -p", "r"), pclose);
++      if (pipe) {
++        while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
++            result += buffer.data();
++        }
++
++        // Trim whitespace, based on https://stackoverflow.com/a/217605
++        result.erase(result.begin(), std::find_if(result.begin(), result.end(), [](int ch) {
++            return !std::isspace(ch);
++        }));
++        result.erase(std::find_if(result.rbegin(), result.rend(), [](int ch) {
++            return !std::isspace(ch);
++        }).base(), result.end());
++
++        // Check if the command line tools are installed
++        prefixToTry = result+"/SDKs/MacOSX.sdk";
++        if (foundSDKPath == "/" && !getVFS().exists(prefixToTry+"/usr/include/sys/types.h")) {
++          foundSDKPath = std::string(prefixToTry);
++        }
++
++        // Check if xcode is installed
++        prefixToTry = result+"/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk";
++        if (foundSDKPath == "/" && !getVFS().exists(prefixToTry+"/usr/include/sys/types.h")) {
++          foundSDKPath = std::string(prefixToTry);
++        }
++      }
++    }
++
++    if (foundSDKPath != "/") {
++      Args.append(Args.MakeSeparateArg(
++          nullptr, Opts.getOption(options::OPT_isysroot), foundSDKPath));
++    }
+   }
+
+   Arg *OSXVersion = Args.getLastArg(options::OPT_mmacosx_version_min_EQ);
+@@ -1213,8 +1283,11 @@ void Darwin::AddDeploymentTarget(DerivedArgList &Args) const {
+     std::string TvOSTarget;
+     std::string WatchOSTarget;
+
+-    if (char *env = ::getenv("MACOSX_DEPLOYMENT_TARGET"))
++    if (char *env = ::getenv("MACOSX_DEPLOYMENT_TARGET")) {
+       OSXTarget = env;
++    } else {
++      OSXTarget = "MACOSX_DEPLOYMENT_TARGET_TO_BE_REPLACED_WITH_SED";
++    }
+     if (char *env = ::getenv("IPHONEOS_DEPLOYMENT_TARGET"))
+       iOSTarget = env;
+     if (char *env = ::getenv("TVOS_DEPLOYMENT_TARGET"))
+--
+2.20.0
+

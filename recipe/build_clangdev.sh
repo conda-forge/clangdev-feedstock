@@ -1,15 +1,30 @@
+set -x
+
+if [[ "${clang_variant}" != "default" ]]; then
+  # For the cling variants we use the sources from the ROOT fork
+  cd root-source/interpreter/llvm/src/tools/clang
+fi
+
+if [[ "$(uname)" == "Linux" ]]; then
+  patch -p0 -i "${RECIPE_DIR}/disable-libxml2-detection.patch"
+  patch -p1 -i "${RECIPE_DIR}/Manually-set-linux-sysroot-for-conda.patch"
+  patch -p1 -i "${RECIPE_DIR}/Use-external-char-instead-of-std-string-to-avoid-pre.patch"
+fi
+if [[ "$(uname)" == "Darwin" ]]; then
+  patch -p1 -i "${RECIPE_DIR}/Improve-logic-for-finding-the-macos-sysroot-for-cond.patch"
+fi
+
 if [[ "$(uname)" == "Linux" && "$cxx_compiler" == "gxx" ]]; then
-    sed -i.bak -e 's@addSystemInclude(DriverArgs, CC1Args, SysRoot + "/usr/local/include");@addSystemInclude(DriverArgs, CC1Args, "'"${PREFIX}/${HOST}/sysroot/usr/include"'");@g' \
-        lib/Driver/ToolChains/Linux.cpp && rm $_.bak
-
-    sed -i.bak -e 's@addPathIfExists(D, SysRoot + "/lib", Paths);@addPathIfExists(D, "'"${PREFIX}/${HOST}/sysroot/lib"'", Paths);@g' \
-        lib/Driver/ToolChains/Linux.cpp && rm $_.bak
-
-    sed -i.bak -e 's@addPathIfExists(D, SysRoot + "/usr/lib", Paths);@addPathIfExists(D, "'"${PREFIX}/${HOST}/sysroot/usr/lib"'", Paths);@g' \
-        lib/Driver/ToolChains/Linux.cpp && rm $_.bak
+    sed -i.bak -e 's@SYSROOT_PATH_TO_BE_REPLACED_WITH_SED@'"${PREFIX}/${HOST}/sysroot"'@g' \
+        lib/Driver/ToolChains/Linux_sysroot.cc && rm $_.bak
 
     sed -i.bak -e 's@AddPath("/usr/local/include", System, false);@AddPath("'"${PREFIX}/${HOST}/sysroot/usr/include"'", System, false);@g' \
         lib/Frontend/InitHeaderSearch.cpp && rm $_.bak
+fi
+
+if [[ "$(uname)" == "Darwin" ]]; then
+    sed -i.bak -e 's@MACOSX_DEPLOYMENT_TARGET_TO_BE_REPLACED_WITH_SED@'"${MACOSX_DEPLOYMENT_TARGET}"'@g' \
+        lib/Driver/ToolChains/Darwin.cpp && rm $_.bak
 fi
 
 mkdir build
@@ -24,6 +39,7 @@ cmake \
   -DCLANG_INCLUDE_DOCS=OFF \
   -DLLVM_INCLUDE_TESTS=OFF \
   -DLLVM_INCLUDE_DOCS=OFF \
+  -DCMAKE_OSX_SYSROOT="${CONDA_BUILD_SYSROOT}" \
   -DLLVM_CONFIG="${PREFIX}/bin/llvm-config" \
   ..
 

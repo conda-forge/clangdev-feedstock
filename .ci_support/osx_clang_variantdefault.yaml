@@ -1,15 +1,13 @@
 MACOSX_DEPLOYMENT_TARGET:
 - '10.9'
-build_number_decrement:
-- '1000'
 channel_sources:
 - conda-forge,defaults
 channel_targets:
 - conda-forge main
 clang_variant:
-- cling
+- default
 cxx_compiler:
-- toolchain_cxx
+- clangxx
 libxml2:
 - '2.9'
 macos_machine:
@@ -19,8 +17,7 @@ macos_min_version:
 pin_run_as_build:
   libxml2:
     max_pin: x.x
-zip_keys:
-- - cxx_compiler
-  - channel_sources
-  - channel_targets
-  - build_number_decrement
+  zlib:
+    max_pin: x.x
+zlib:
+- '1.2'

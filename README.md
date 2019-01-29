@@ -1,7 +1,9 @@
+<!--
+# -*- mode: jinja -*-
+-->
+
 About clangdev
 ==============
-
-[![Powered by NumFOCUS](https://img.shields.io/badge/powered%20by-NumFOCUS-orange.svg?style=flat&colorA=E1523D&colorB=007D8A)](http://numfocus.org)
 
 Home: http://llvm.org/
 
@@ -16,8 +18,8 @@ Summary: Development headers and libraries for Clang
 Current build status
 ====================
 
-[![Linux,OSX](https://img.shields.io/circleci/project/github/conda-forge/repo-feedstock/master.svg?label=Linux,OSX)](https://circleci.com/gh/conda-forge/repo-feedstock)
-[![Windows](https://img.shields.io/appveyor/ci/conda-forge/repo-feedstock/master.svg?label=Windows)](https://ci.appveyor.com/project/conda-forge/repo-feedstock/branch/master)
+[![Linux,OSX](https://img.shields.io/circleci/project/github/conda-forge/clangdev-feedstock/master.svg?label=Linux,OSX)](https://circleci.com/gh/conda-forge/clangdev-feedstock)
+[![Windows](https://img.shields.io/appveyor/ci/conda-forge/clangdev-feedstock/master.svg?label=Windows)](https://ci.appveyor.com/project/conda-forge/clangdev-feedstock/branch/master)
 
 Current release info
 ====================
@@ -51,6 +53,8 @@ conda search clang_variant --channel conda-forge
 
 About conda-forge
 =================
+
+[![Powered by NumFOCUS](https://img.shields.io/badge/powered%20by-NumFOCUS-orange.svg?style=flat&colorA=E1523D&colorB=007D8A)](http://numfocus.org)
 
 conda-forge is a community-led conda channel of installable packages.
 In order to provide high-quality builds, the process has been automated into the

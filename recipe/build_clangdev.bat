@@ -1,3 +1,8 @@
+if "%clang_variant%" NEQ "default" (
+    cd root-source/interpreter/llvm/src/tools/clang
+    set "SRC_DIR= %SRC_DIR%/root-source/interpreter/llvm/src/tools/clang"
+)
+
 mkdir build
 cd build
 
