@@ -54,13 +54,13 @@ index 32103a6120..19d05b108f 100644
 +
 +    // Check if the command line tools are installed in the default directory
 +    prefixToTry = "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk";
-+    if (foundSDKPath == "/" && !getVFS().exists(prefixToTry+"/usr/include/sys/types.h")) {
++    if (foundSDKPath == "/" && getVFS().exists(prefixToTry+"/usr/include/sys/types.h")) {
 +      foundSDKPath = std::string(prefixToTry);
 +    }
 +
 +    // Check if xcode is installed in the default directory
 +    prefixToTry = "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk";
-+    if (foundSDKPath == "/" && !getVFS().exists(prefixToTry+"/usr/include/sys/types.h")) {
++    if (foundSDKPath == "/" && getVFS().exists(prefixToTry+"/usr/include/sys/types.h")) {
 +      foundSDKPath = std::string(prefixToTry);
 +    }
 +
@@ -86,13 +86,13 @@ index 32103a6120..19d05b108f 100644
 +
 +        // Check if the command line tools are installed
 +        prefixToTry = result+"/SDKs/MacOSX.sdk";
-+        if (foundSDKPath == "/" && !getVFS().exists(prefixToTry+"/usr/include/sys/types.h")) {
++        if (foundSDKPath == "/" && getVFS().exists(prefixToTry+"/usr/include/sys/types.h")) {
 +          foundSDKPath = std::string(prefixToTry);
 +        }
 +
 +        // Check if xcode is installed
 +        prefixToTry = result+"/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk";
-+        if (foundSDKPath == "/" && !getVFS().exists(prefixToTry+"/usr/include/sys/types.h")) {
++        if (foundSDKPath == "/" && getVFS().exists(prefixToTry+"/usr/include/sys/types.h")) {
 +          foundSDKPath = std::string(prefixToTry);
 +        }
 +      }
