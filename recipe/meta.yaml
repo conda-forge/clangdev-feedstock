@@ -1,7 +1,7 @@
 {% set version = "5.0.0" %}
 {% set sha256 = "019f23c2192df793ac746595e94a403908749f8e0c484b403476d2611dd20970" %}
 
-{% set build_number = "1003" %}
+{% set build_number = "1004" %}
 
 package:
   name: clangdev_and_clangvariant
