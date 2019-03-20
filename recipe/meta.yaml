@@ -1,7 +1,7 @@
-{% set version = "7.0.1" %}
-{% set sha256 = "a45b62dde5d7d5fdcdfa876b0af92f164d434b06e9e89b5d0b1cbc65dfe3f418" %}
+{% set version = "8.0.0" %}
+{% set sha256 = "084c115aab0084e63b23eee8c233abb6739c399e29966eaeccfc6e088e0b736b" %}
 
-{% set build_number = 1000 %}
+{% set build_number = 0 %}
 
 package:
   name: clangdev
