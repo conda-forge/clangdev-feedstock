@@ -23,7 +23,7 @@ install:
     # If there is a newer build queued for the same PR, cancel this one.
     - cmd: |
         powershell -Command "(New-Object Net.WebClient).DownloadFile('https://raw.githubusercontent.com/conda-forge/conda-forge-ci-setup-feedstock/master/recipe/conda_forge_ci_setup/ff_ci_pr_build.py', 'ff_ci_pr_build.py')"
-        ff_ci_pr_build -v --ci "appveyor" "%APPVEYOR_ACCOUNT_NAME%/%APPVEYOR_PROJECT_SLUG%" "%APPVEYOR_BUILD_NUMBER%" "%APPVEYOR_PULL_REQUEST_NUMBER%"
+        "%CONDA_INSTALL_LOCN%\python.exe" ff_ci_pr_build.py -v --ci "appveyor" "%APPVEYOR_ACCOUNT_NAME%/%APPVEYOR_PROJECT_SLUG%" "%APPVEYOR_BUILD_NUMBER%" "%APPVEYOR_PULL_REQUEST_NUMBER%"
         del ff_ci_pr_build.py
 
     # Cygwin's git breaks conda-build. (See https://github.com/conda-forge/conda-smithy-feedstock/pull/2.)
@@ -37,7 +37,7 @@ install:
 
     # Configure the VM.
     # Tell conda we want an updated version of conda-forge-ci-setup and conda-build
-    - cmd: conda.exe install -n root -c conda-forge --quiet --yes conda-forge-ci-setup=2 conda-build=3.15
+    - cmd: conda.exe install -n root -c conda-forge --quiet --yes conda-forge-ci-setup=2 conda-build
     - cmd: setup_conda_rc .\ .\recipe .\.ci_support\%CONFIG%.yaml
     - cmd: run_conda_forge_build_setup
 
