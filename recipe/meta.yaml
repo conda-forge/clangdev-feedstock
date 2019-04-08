@@ -32,8 +32,7 @@ requirements:
     # Remove the following when libcxx has been rebuilt on conda-forge
     - libcxx 4.0.1  # [osx]
   host:
-    # with osx we get a cycle and conda-build doesn't like cycles
-    - llvmdev =={{ version }}  # [not osx]
+    - llvmdev =={{ version }}
     - libxml2
     # Remove the following when libcxx has been rebuilt on conda-forge
     - libcxx 4.0.1  # [osx]
