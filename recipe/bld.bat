@@ -14,6 +14,7 @@ cmake -G "Ninja" ^
     -DLLVM_INCLUDE_TESTS=OFF ^
     -DLLVM_INCLUDE_DOCS=OFF ^
     -DLLVM_TEMPORARILY_ALLOW_OLD_TOOLCHAIN=ON ^
+    -DLLVM_ENABLE_LIBXML2=OFF ^
     %SRC_DIR%
 
 if errorlevel 1 exit 1
