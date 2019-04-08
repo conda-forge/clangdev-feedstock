@@ -34,7 +34,7 @@ requirements:
     - llvmdev =={{ version }}  # [not osx]
     - libxml2
   run:
-    - llvmdev =={{ version }}
+    - llvm-meta =={{ version }}  # [not osx]
     - libxml2
 
 test:
