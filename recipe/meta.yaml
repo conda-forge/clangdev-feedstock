@@ -11,6 +11,9 @@ source:
   fn: cfe-{{ version }}.src.tar.xz
   url: http://llvm.org/releases/{{ version }}/cfe-{{ version }}.src.tar.xz
   sha256: {{ sha256 }}
+  patches:
+    - 0001-Find-conda-gcc-installation.patch
+    - 0002-Fix-sysroot-detection-for-linux.patch
 
 build:
   number: {{ build_number }}
@@ -24,10 +27,11 @@ requirements:
     - m2w64-xz  # [win]
     # "compiling .pyc files" fails without this
     - python >3
-    # Buildin with ninja on windows for parallel builds
+    # Building with ninja on windows for parallel builds
     - ninja  # [win]
   host:
-    - llvmdev =={{ version }}
+    # with osx we get a cycle and conda-build doesn't like cycles
+    - llvmdev =={{ version }}  # [not osx]
     - libxml2
   run:
     - llvmdev =={{ version }}

@@ -5,6 +5,9 @@ cd build
 set "CFLAGS= -MD"
 set "CXXFLAGS= -MD"
 
+set "CXX=cl.exe"
+set "CC=cl.exe"
+
 cmake -G "Ninja" ^
     -DCMAKE_BUILD_TYPE="Release" ^
     -DCMAKE_PREFIX_PATH=%LIBRARY_PREFIX% ^
