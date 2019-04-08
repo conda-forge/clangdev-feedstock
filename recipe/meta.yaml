@@ -29,6 +29,8 @@ requirements:
     - python >3
     # Building with ninja on windows for parallel builds
     - ninja  # [win]
+    # Remove the following when libcxx has been rebuilt on conda-forge
+    - libcxx 4.0.1  # [osx]
   host:
     # with osx we get a cycle and conda-build doesn't like cycles
     - llvmdev =={{ version }}  # [not osx]
@@ -40,6 +42,7 @@ requirements:
     # Remove the following when libcxx has been rebuilt on conda-forge
     - libcxx 4.0.1  # [osx]
   run_constrained:
+    - llvm-meta =={{ version }}
     - llvmdev =={{ version }}
 
 test:
