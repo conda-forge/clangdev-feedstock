@@ -17,7 +17,7 @@ index 2ad45097..91a4d9d2 100644
        "x86_64-slackware-linux", "x86_64-unknown-linux",
 -      "x86_64-amazon-linux",    "x86_64-linux-android"};
 +      "x86_64-amazon-linux",    "x86_64-linux-android",
-+      "x86_64-conda_cos6-linux-gnu", "x86_64-unknown-linux-gnu"};
++      "x86_64-conda_cos6-linux-gnu", "x86_64-conda_cos7-linux-gnu"};
    static const char *const X32LibDirs[] = {"/libx32"};
    static const char *const X86LibDirs[] = {"/lib32", "/lib"};
    static const char *const X86Triples[] = {
