@@ -39,7 +39,7 @@ requirements:
   run:
     - libxml2
     # Remove the following when libcxx has been rebuilt on conda-forge
-    - libcxx 4.0.1  # [osx]
+    - libcxx >=4.0.1  # [osx]
   run_constrained:
     - llvm-meta =={{ version }}
     - llvmdev =={{ version }}
@@ -48,6 +48,8 @@ test:
   requires:
     - {{ compiler('cxx') }}
     - cmake >=3.4.3
+    # Remove the following when libcxx has been rebuilt on conda-forge
+    - libcxx 4.0.1  # [osx]
   files:
     - mytest.c
   commands:
