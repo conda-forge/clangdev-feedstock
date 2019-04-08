@@ -18,6 +18,8 @@ source:
 build:
   number: {{ build_number }}
   skip: True  # [win and vc<14]
+  ignore_run_exports:
+    - libcxx
 
 requirements:
   build:
@@ -34,8 +36,10 @@ requirements:
     - llvmdev =={{ version }}  # [not osx]
     - libxml2
   run:
-    - llvm-meta =={{ version }}  # [not osx]
     - libxml2
+    - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
+  run_constrained:
+    - llvmdev =={{ version }}
 
 test:
   requires:
