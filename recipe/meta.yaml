@@ -18,8 +18,6 @@ source:
 build:
   number: {{ build_number }}
   skip: True  # [win and vc<14]
-  ignore_run_exports:
-    - libcxx
 
 requirements:
   build:
@@ -35,9 +33,12 @@ requirements:
     # with osx we get a cycle and conda-build doesn't like cycles
     - llvmdev =={{ version }}  # [not osx]
     - libxml2
+    # Remove the following when libcxx has been rebuilt on conda-forge
+    - libcxx 4.0.1  # [osx]
   run:
     - libxml2
-    - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
+    # Remove the following when libcxx has been rebuilt on conda-forge
+    - libcxx 4.0.1  # [osx]
   run_constrained:
     - llvmdev =={{ version }}
 
