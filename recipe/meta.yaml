@@ -12,8 +12,8 @@ source:
   url: http://llvm.org/releases/{{ version }}/cfe-{{ version }}.src.tar.xz
   sha256: {{ sha256 }}
   patches:
-    - 0001-Find-conda-gcc-installation.patch
-    - 0002-Fix-sysroot-detection-for-linux.patch
+    - patches/0001-Find-conda-gcc-installation.patch
+    - patches/0002-Fix-sysroot-detection-for-linux.patch
 
 build:
   number: {{ build_number }}
