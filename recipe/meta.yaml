@@ -1,7 +1,7 @@
-{% set version = "7.0.1" %}
-{% set sha256 = "a45b62dde5d7d5fdcdfa876b0af92f164d434b06e9e89b5d0b1cbc65dfe3f418" %}
+{% set version = "8.0.0" %}
+{% set sha256 = "084c115aab0084e63b23eee8c233abb6739c399e29966eaeccfc6e088e0b736b" %}
 
-{% set build_number = 1000 %}
+{% set build_number = 0 %}
 
 package:
   name: clangdev
@@ -12,8 +12,8 @@ source:
   url: http://llvm.org/releases/{{ version }}/cfe-{{ version }}.src.tar.xz
   sha256: {{ sha256 }}
   patches:
-    # This (system) libxml2 may not be available on user systems.
-    - disable-libxml2-detection.patch  # [linux]
+    - patches/0001-Find-conda-gcc-installation.patch
+    - patches/0002-Fix-sysroot-detection-for-linux.patch
 
 build:
   number: {{ build_number }}
@@ -27,19 +27,29 @@ requirements:
     - m2w64-xz  # [win]
     # "compiling .pyc files" fails without this
     - python >3
-    # Buildin with ninja on windows for parallel builds
+    # Building with ninja on windows for parallel builds
     - ninja  # [win]
+    # Remove the following when libcxx has been rebuilt on conda-forge
+    - libcxx 4.0.1  # [osx]
   host:
     - llvmdev =={{ version }}
     - libxml2
+    # Remove the following when libcxx has been rebuilt on conda-forge
+    - libcxx 4.0.1  # [osx]
   run:
-    - llvmdev =={{ version }}
     - libxml2
+    # Remove the following when libcxx has been rebuilt on conda-forge
+    - libcxx >=4.0.1  # [osx]
+  run_constrained:
+    - llvm-meta =={{ version }}
+    - llvmdev =={{ version }}
 
 test:
   requires:
     - {{ compiler('cxx') }}
     - cmake >=3.4.3
+    # Remove the following when libcxx has been rebuilt on conda-forge
+    - libcxx 4.0.1  # [osx]
   files:
     - mytest.c
   commands:

@@ -5,6 +5,9 @@ cd build
 set "CFLAGS= -MD"
 set "CXXFLAGS= -MD"
 
+set "CXX=cl.exe"
+set "CC=cl.exe"
+
 cmake -G "Ninja" ^
     -DCMAKE_BUILD_TYPE="Release" ^
     -DCMAKE_PREFIX_PATH=%LIBRARY_PREFIX% ^
@@ -13,12 +16,13 @@ cmake -G "Ninja" ^
     -DCLANG_INCLUDE_DOCS=OFF ^
     -DLLVM_INCLUDE_TESTS=OFF ^
     -DLLVM_INCLUDE_DOCS=OFF ^
-    -DLLVM_TARGETS_TO_BUILD=X86 ^
+    -DLLVM_TEMPORARILY_ALLOW_OLD_TOOLCHAIN=ON ^
+    -DLLVM_ENABLE_LIBXML2=OFF ^
     %SRC_DIR%
 
 if errorlevel 1 exit 1
 
-ninja -j2
+ninja -j%CPU_COUNT%
 if errorlevel 1 exit 1
 
 ninja install
