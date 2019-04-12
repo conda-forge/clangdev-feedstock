@@ -31,7 +31,7 @@ requirements:
     - ninja  # [win]
     # Remove the following when libcxx has been rebuilt on conda-forge
     - libcxx 4.0.1  # [osx]
-    - make
+    - make # [unix]
   host:
     - llvmdev =={{ version }}
     - libxml2
