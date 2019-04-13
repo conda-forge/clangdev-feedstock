@@ -29,6 +29,7 @@ requirements:
     - python >3
     # Building with ninja on windows for parallel builds
     - ninja  # [win]
+    - make   # [unix]
   host:
     - llvmdev =={{ version }}
   run_constrained:
