@@ -1,7 +1,7 @@
 {% set version = "8.0.0" %}
 {% set sha256 = "084c115aab0084e63b23eee8c233abb6739c399e29966eaeccfc6e088e0b736b" %}
 
-{% set build_number = 0 %}
+{% set build_number = 1 %}
 
 package:
   name: clangdev
@@ -29,17 +29,8 @@ requirements:
     - python >3
     # Building with ninja on windows for parallel builds
     - ninja  # [win]
-    # Remove the following when libcxx has been rebuilt on conda-forge
-    - libcxx 4.0.1  # [osx]
   host:
     - llvmdev =={{ version }}
-    - libxml2
-    # Remove the following when libcxx has been rebuilt on conda-forge
-    - libcxx 4.0.1  # [osx]
-  run:
-    - libxml2
-    # Remove the following when libcxx has been rebuilt on conda-forge
-    - libcxx >=4.0.1  # [osx]
   run_constrained:
     - llvm-meta =={{ version }}
     - llvmdev =={{ version }}

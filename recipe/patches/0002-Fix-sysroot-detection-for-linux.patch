@@ -1,4 +1,4 @@
-From 3684853d38d62f069e7d2371b15b263488bc9bc0 Mon Sep 17 00:00:00 2001
+From 662d7b8e96468596a67e4b8e917b5f776e1e745f Mon Sep 17 00:00:00 2001
 From: Isuru Fernando <isuruf@gmail.com>
 Date: Mon, 8 Apr 2019 16:32:17 -0500
 Subject: [PATCH 2/2] Fix sysroot detection for linux
@@ -36,5 +36,5 @@ index 65ab9b2d..77e7b178 100644
  
    if (getVFS().exists(Path))
 -- 
-2.20.1
+2.17.1
 
