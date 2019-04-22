@@ -43,20 +43,6 @@ Current build status
                 </a>
               </td>
             </tr><tr>
-              <td>linux_aarch64</td>
-              <td>
-                <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=master">
-                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=master&jobName=linux&configuration=linux_aarch64_" alt="variant">
-                </a>
-              </td>
-            </tr><tr>
-              <td>linux_ppc64le</td>
-              <td>
-                <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=master">
-                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=master&jobName=linux&configuration=linux_ppc64le_" alt="variant">
-                </a>
-              </td>
-            </tr><tr>
               <td>osx</td>
               <td>
                 <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=master">
@@ -76,6 +62,7 @@ Current build status
       </details>
     </td>
   </tr>
+![ppc64le disabled](https://img.shields.io/badge/ppc64le-disabled-lightgrey.svg)
 </table>
 
 Current release info
@@ -84,6 +71,7 @@ Current release info
 | Name | Downloads | Version | Platforms |
 | --- | --- | --- | --- |
 | [![Conda Recipe](https://img.shields.io/badge/recipe-clangdev-green.svg)](https://anaconda.org/conda-forge/clangdev) | [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/clangdev.svg)](https://anaconda.org/conda-forge/clangdev) | [![Conda Version](https://img.shields.io/conda/vn/conda-forge/clangdev.svg)](https://anaconda.org/conda-forge/clangdev) | [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/clangdev.svg)](https://anaconda.org/conda-forge/clangdev) |
+| [![Conda Recipe](https://img.shields.io/badge/recipe-python--clang-green.svg)](https://anaconda.org/conda-forge/python-clang) | [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/python-clang.svg)](https://anaconda.org/conda-forge/python-clang) | [![Conda Version](https://img.shields.io/conda/vn/conda-forge/python-clang.svg)](https://anaconda.org/conda-forge/python-clang) | [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/python-clang.svg)](https://anaconda.org/conda-forge/python-clang) |
 
 Installing clangdev
 ===================
@@ -94,10 +82,10 @@ Installing `clangdev` from the `conda-forge` channel can be achieved by adding `
 conda config --add channels conda-forge
 ```
 
-Once the `conda-forge` channel has been enabled, `clangdev` can be installed with:
+Once the `conda-forge` channel has been enabled, `clangdev, python-clang` can be installed with:
 
 ```
-conda install clangdev
+conda install clangdev python-clang
 ```
 
 It is possible to list all of the versions of `clangdev` available on your platform with:
