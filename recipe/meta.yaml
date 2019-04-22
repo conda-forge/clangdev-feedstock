@@ -1,14 +1,12 @@
 {% set version = "8.0.0" %}
 {% set sha256 = "084c115aab0084e63b23eee8c233abb6739c399e29966eaeccfc6e088e0b736b" %}
-
-{% set build_number = 1 %}
+{% set build_number = 2 %}
 
 package:
   name: clangdev
   version: {{ version }}
 
 source:
-  fn: cfe-{{ version }}.src.tar.xz
   url: http://llvm.org/releases/{{ version }}/cfe-{{ version }}.src.tar.xz
   sha256: {{ sha256 }}
   patches:
@@ -55,6 +53,40 @@ test:
     - if not exist %LIBRARY_INC%\\clang\\Lex\\Lexer.h exit 1  # [win]
     - test -f $PREFIX/include/clang/Lex/Lexer.h      # [unix]
     - test -f $PREFIX/lib/libclangBasic.a            # [unix]
+
+
+outputs:
+  - name: clangdev
+
+  - name: python-clang
+    build:
+      noarch: python
+      # Building this output using this recipe is only supported on unix
+      # It can still be installed on Windows as it is marked as `noarch: python`
+      skip: true  # [win]
+
+    script: build_python_bindings.sh
+
+    requirements:
+      host:
+        - python
+      run:
+        - python
+        - clangdev =={{ version }}
+
+    test:
+      requires:
+        - nose
+      source_files:
+        - bindings/python/tests
+        - bindings/python/examples/cindex
+      imports:
+        - clang
+        - clang.cindex
+      commands:
+        - cd bindings/python
+        - cp tests/cindex/util.py tests
+        - nosetests -v
 
 about:
   home: http://llvm.org/
