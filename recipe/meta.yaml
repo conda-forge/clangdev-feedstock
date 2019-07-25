@@ -54,7 +54,8 @@ test:
 
 outputs:
   - name: clangdev
-    script: install_clangdev.sh
+    script: install_clangdev.sh    # [unix]
+    script: install_clangdev.bat   # [win]
     requirements:
       build:
         - cmake >=3.4.3
@@ -74,9 +75,16 @@ outputs:
       run_constrained:
         - llvm-meta =={{ version }}
         - llvmdev =={{ version }}
+    test:
+      commands:
+        - test -f "$PREFIX/include/clang/Config/config.h"   # [unix]
+        - test -f "$PREFIX/lib/libclangAST.a"               # [unix]
+        - if not exist %LIBRARY_INC%\\clang/Config/config.h exit 1   # [win]
+        - if not exist %LIBRARY_LIB%\\clangAST.lib exit 1            # [win]
 
   - name: libclang
-    script: install_libclang.sh
+    script: install_libclang.sh    # [unix]
+    script: install_libclang.bat   # [win]
     requirements:
       build:
         - {{ compiler('cxx') }}    # [not osx]
@@ -88,9 +96,20 @@ outputs:
         - llvmdev =={{ version }}
       run:
         - libcxx >={{c_compiler_version}}  # [osx]
+      run_constrained:
+        - clangdev {{ version }}
+        - clang-tools {{ version }}
+        - clang {{ version }}
+    test:
+      commands:
+        - test -f "$PREFIX/lib/libclang.so"                     # [linux]
+        - test -f "$PREFIX/lib/libclang.so.{{major_version}}"   # [linux]
+        - test -f "$PREFIX/lib/libclang.dylib"                  # [osx]
+        - if not exist %LIBRARY_BIN%\\clang.dll exit 1          # [win]
 
   - name: clang
-    script: install_clang.sh
+    script: install_clang.sh       # [unix]
+    script: install_clang.bat      # [win]
     requirements:
       build:
         - {{ compiler('cxx') }}    # [not osx]
@@ -103,9 +122,30 @@ outputs:
         - llvmdev =={{ version }}
       run:
         - libcxx >={{c_compiler_version}}  # [osx]
+      run_constrained:
+        - clangdev {{ version }}
+        - clang-tools {{ version }}
+        - libclang {{ version }}
+    test:
+      commands:
+        - clang --version
+        - clang-cl --version
+        - clang++ --version
+        - clang-cpp --version
+        - clang-{{major_version}} --version
+
+  # Defaults provides this, so let's do the same in conda-forge
+  - name: clangxx
+    requirements:
+      run:
+        - {{ pin_subpackage("clang", exact=True) }}
+    test:
+      commands:
+        - clang++ --version
 
   - name: clang-tools
-    script: install_clang_tools.sh
+    script: install_clang_tools.sh    # [unix]
+    script: install_clang_tools.bat   # [win]
     requirements:
       build:
         # "compiling .pyc files" fails without this
@@ -121,6 +161,12 @@ outputs:
       run:
         - {{ pin_subpackage("clang", exact=True) }}
         - libcxx >={{c_compiler_version}}  # [osx]
+      run_constrained:
+        - clangdev {{ version }}
+        - libclang {{ version }}
+    test:
+      commands:
+        - clang-check --version
 
   - name: python-clang
     build:
