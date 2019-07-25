@@ -63,12 +63,14 @@ outputs:
         - make   # [unix]
       host:
         - {{ pin_subpackage("clang", exact=True) }}
+        - {{ pin_subpackage("clangxx", exact=True) }}
         - {{ pin_subpackage("clang-tools", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
         - libcxx {{cxx_compiler_version}}  # [osx]
         - llvmdev =={{ version }}
       run:
         - {{ pin_subpackage("clang", exact=True) }}
+        - {{ pin_subpackage("clangxx", exact=True) }}
         - {{ pin_subpackage("clang-tools", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
@@ -100,6 +102,7 @@ outputs:
         - clangdev {{ version }}
         - clang-tools {{ version }}
         - clang {{ version }}
+        - clangxx {{ version }}
     test:
       commands:
         - test -f "$PREFIX/lib/libclang.so"                     # [linux]
@@ -124,19 +127,23 @@ outputs:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
       run_constrained:
         - clangdev {{ version }}
+        - clangxx {{ version }}
         - clang-tools {{ version }}
         - libclang {{ version }}
     test:
       commands:
         - clang --version
         - clang-cl --version
-        - clang++ --version
         - clang-cpp --version
-        - clang-{{major_version}} --version
+        - clang-{{major_version}} --version   # [unix]
 
   # Defaults provides this, so let's do the same in conda-forge
   - name: clangxx
+    script: install_clangxx.sh       # [unix]
+    script: install_clangxx.bat      # [win]
     requirements:
+      host:
+        - {{ pin_subpackage("clang", exact=True) }}
       run:
         - {{ pin_subpackage("clang", exact=True) }}
     test:
@@ -156,10 +163,12 @@ outputs:
         - make   # [unix]
       host:
         - {{ pin_subpackage("clang", exact=True) }}
+        - {{ pin_subpackage("clangxx", exact=True) }}
         - libcxx {{cxx_compiler_version}}  # [osx]
         - llvmdev =={{ version }}
       run:
         - {{ pin_subpackage("clang", exact=True) }}
+        - {{ pin_subpackage("clangxx", exact=True) }}
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
       run_constrained:
         - clangdev {{ version }}
