@@ -64,6 +64,8 @@ outputs:
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clang-tools", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
+        - libcxx {{c_compiler_version}}.*  # [osx]
+        - llvmdev =={{ version }}
       run:
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clang-tools", exact=True) }}
@@ -81,6 +83,9 @@ outputs:
         - cmake >=3.4.3
         - ninja  # [win]
         - make   # [unix]
+      host:
+        - libcxx {{c_compiler_version}}.*  # [osx]
+        - llvmdev =={{ version }}
       run:
         - libcxx >={{c_compiler_version}}  # [osx]
 
@@ -93,6 +98,9 @@ outputs:
         - cmake >=3.4.3
         - ninja  # [win]
         - make   # [unix]
+      host:
+        - libcxx {{c_compiler_version}}.*  # [osx]
+        - llvmdev =={{ version }}
       run:
         - libcxx >={{c_compiler_version}}  # [osx]
 
@@ -108,6 +116,8 @@ outputs:
         - make   # [unix]
       host:
         - {{ pin_subpackage("clang", exact=True) }}
+        - libcxx {{c_compiler_version}}.*  # [osx]
+        - llvmdev =={{ version }}
       run:
         - {{ pin_subpackage("clang", exact=True) }}
         - libcxx >={{c_compiler_version}}  # [osx]
