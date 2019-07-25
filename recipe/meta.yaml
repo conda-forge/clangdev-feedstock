@@ -30,7 +30,7 @@ requirements:
     - ninja  # [win]
     - make   # [unix]
   host:
-    - libcxx {{c_compiler_version}}.*  # [osx]
+    - libcxx {{cxx_compiler_version}}  # [osx]
     - llvmdev =={{ version }}
 
 test:
@@ -65,13 +65,13 @@ outputs:
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clang-tools", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
-        - libcxx {{c_compiler_version}}.*  # [osx]
+        - libcxx {{cxx_compiler_version}}  # [osx]
         - llvmdev =={{ version }}
       run:
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clang-tools", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
-        - libcxx >={{c_compiler_version}}  # [osx]
+        - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
       run_constrained:
         - llvm-meta =={{ version }}
         - llvmdev =={{ version }}
@@ -92,10 +92,10 @@ outputs:
         - ninja  # [win]
         - make   # [unix]
       host:
-        - libcxx {{c_compiler_version}}.*  # [osx]
+        - libcxx {{cxx_compiler_version}}  # [osx]
         - llvmdev =={{ version }}
       run:
-        - libcxx >={{c_compiler_version}}  # [osx]
+        - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
       run_constrained:
         - clangdev {{ version }}
         - clang-tools {{ version }}
@@ -118,10 +118,10 @@ outputs:
         - ninja  # [win]
         - make   # [unix]
       host:
-        - libcxx {{c_compiler_version}}.*  # [osx]
+        - libcxx {{cxx_compiler_version}}  # [osx]
         - llvmdev =={{ version }}
       run:
-        - libcxx >={{c_compiler_version}}  # [osx]
+        - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
       run_constrained:
         - clangdev {{ version }}
         - clang-tools {{ version }}
@@ -156,11 +156,11 @@ outputs:
         - make   # [unix]
       host:
         - {{ pin_subpackage("clang", exact=True) }}
-        - libcxx {{c_compiler_version}}.*  # [osx]
+        - libcxx {{cxx_compiler_version}}  # [osx]
         - llvmdev =={{ version }}
       run:
         - {{ pin_subpackage("clang", exact=True) }}
-        - libcxx >={{c_compiler_version}}  # [osx]
+        - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
       run_constrained:
         - clangdev {{ version }}
         - libclang {{ version }}
