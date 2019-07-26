@@ -102,9 +102,6 @@ outputs:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
       run_constrained:
         - clangdev {{ version }}
-        - clang-tools {{ version }}
-        - clang {{ version }}
-        - clangxx {{ version }}
     test:
       commands:
         - test -f "$PREFIX/lib/libclang.so"                     # [linux]
@@ -131,7 +128,6 @@ outputs:
         - clangdev {{ version }}
         - clangxx {{ version }}
         - clang-tools {{ version }}
-        - libclang {{ version }}
     test:
       commands:
         - clang --version
@@ -174,7 +170,6 @@ outputs:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
       run_constrained:
         - clangdev {{ version }}
-        - libclang {{ version }}
     test:
       commands:
         - clang-check --version
