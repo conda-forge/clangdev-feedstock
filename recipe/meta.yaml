@@ -18,7 +18,7 @@ source:
 
 build:
   number: {{ build_number }}
-  skip: True  # [win and vc<14]
+  skip: True  # [win and py<35]
 
 requirements:
   build:
@@ -27,8 +27,7 @@ requirements:
     # Needed to unpack the source tarball
     - m2w64-xz  # [win]
     # "compiling .pyc files" fails without this
-    - python >3  # [unix]
-    - python     # [win]
+    - python >3
     # Building with ninja on windows for parallel builds
     - ninja  # [win]
     - make   # [unix]
