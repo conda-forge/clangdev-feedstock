@@ -27,7 +27,8 @@ requirements:
     # Needed to unpack the source tarball
     - m2w64-xz  # [win]
     # "compiling .pyc files" fails without this
-    - python
+    - python >3  # [unix]
+    - python     # [win]
     # Building with ninja on windows for parallel builds
     - ninja  # [win]
     - make   # [unix]
