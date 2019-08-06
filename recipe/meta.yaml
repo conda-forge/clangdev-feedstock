@@ -1,7 +1,7 @@
 {% set version = "8.0.0" %}
 {% set major_version = version.split(".")[0] %}
 {% set sha256 = "084c115aab0084e63b23eee8c233abb6739c399e29966eaeccfc6e088e0b736b" %}
-{% set build_number = 4 %}
+{% set build_number = 5 %}
 
 package:
   name: clang_packages
@@ -101,8 +101,6 @@ outputs:
         - llvmdev =={{ version }}
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
-      run_constrained:
-        - clangdev {{ version }}
     test:
       commands:
         - test -f "$PREFIX/lib/libclang.so"                     # [linux]
