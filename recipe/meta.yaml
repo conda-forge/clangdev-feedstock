@@ -1,7 +1,7 @@
 {% set version = "8.0.0" %}
 {% set major_version = version.split(".")[0] %}
 {% set sha256 = "084c115aab0084e63b23eee8c233abb6739c399e29966eaeccfc6e088e0b736b" %}
-{% set build_number = 3 %}
+{% set build_number = 4 %}
 
 package:
   name: clang_packages
@@ -15,10 +15,11 @@ source:
     - patches/0002-Fix-sysroot-detection-for-linux.patch
     - patches/0002-clang-add-conda-specific-env-var-CONDA_BUILD_SYSROOT.patch
     - patches/0003-clang-Fix-normalizeProgramName-s-handling-of-dots-ou.patch
+    - patches/0001-Set-VERSION-in-osx-as-well.patch
 
 build:
   number: {{ build_number }}
-  skip: True  # [win and vc<14]
+  skip: True  # [win and py<35]
 
 requirements:
   build:
@@ -102,9 +103,6 @@ outputs:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
       run_constrained:
         - clangdev {{ version }}
-        - clang-tools {{ version }}
-        - clang {{ version }}
-        - clangxx {{ version }}
     test:
       commands:
         - test -f "$PREFIX/lib/libclang.so"                     # [linux]
@@ -131,7 +129,6 @@ outputs:
         - clangdev {{ version }}
         - clangxx {{ version }}
         - clang-tools {{ version }}
-        - libclang {{ version }}
     test:
       commands:
         - clang --version
@@ -174,7 +171,6 @@ outputs:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
       run_constrained:
         - clangdev {{ version }}
-        - libclang {{ version }}
     test:
       commands:
         - clang-check --version
