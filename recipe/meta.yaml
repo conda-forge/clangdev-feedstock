@@ -77,8 +77,6 @@ outputs:
         - {{ pin_subpackage("clang-tools", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
-      run_constrained:
-        - llvm-meta =={{ version }}
         - llvmdev =={{ version }}
     test:
       commands:
@@ -99,6 +97,7 @@ outputs:
       host:
         - libcxx {{cxx_compiler_version}}  # [osx]
         - llvmdev =={{ version }}
+        - llvm =={{ version }}
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
     test:
@@ -121,6 +120,7 @@ outputs:
       host:
         - libcxx {{cxx_compiler_version}}  # [osx]
         - llvmdev =={{ version }}
+        - llvm =={{ version }}
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
       run_constrained:
@@ -163,6 +163,7 @@ outputs:
         - {{ pin_subpackage("clangxx", exact=True) }}
         - libcxx {{cxx_compiler_version}}  # [osx]
         - llvmdev =={{ version }}
+        - llvm =={{ version }}
       run:
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clangxx", exact=True) }}
@@ -179,16 +180,13 @@ outputs:
       # Building this output using this recipe is only supported on unix
       # It can still be installed on Windows as it is marked as `noarch: python`
       skip: true  # [win]
-
     script: build_python_bindings.sh
-
     requirements:
       host:
         - python
       run:
         - python
-        - clangdev =={{ version }}
-
+        - libclang =={{version}}
     test:
       requires:
         - nose
