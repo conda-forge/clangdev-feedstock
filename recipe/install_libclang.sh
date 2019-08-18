@@ -1,6 +1,6 @@
 #!/bin/bash
 set -x -e
-source osx_hack.sh
+source $RECIPE_DIR/osx_hack.sh
 cd ${SRC_DIR}/build
 make install
 cd $PREFIX

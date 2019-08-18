@@ -1,4 +1,4 @@
-source osx_hack.sh
+source $RECIPE_DIR/osx_hack.sh
 
 mkdir build
 cd build
