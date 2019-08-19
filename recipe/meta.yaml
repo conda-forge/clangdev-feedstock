@@ -1,14 +1,14 @@
-{% set version = "8.0.0" %}
+{% set version = "8.0.1" %}
 {% set major_version = version.split(".")[0] %}
-{% set sha256 = "084c115aab0084e63b23eee8c233abb6739c399e29966eaeccfc6e088e0b736b" %}
-{% set build_number = 6 %}
+{% set sha256 = "70effd69f7a8ab249f66b0a68aba8b08af52aa2ab710dfb8a0fba102685b1646" %}
+{% set build_number = 0 %}
 
 package:
   name: clang_packages
   version: {{ version }}
 
 source:
-  url: http://llvm.org/releases/{{ version }}/cfe-{{ version }}.src.tar.xz
+  url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version }}/cfe-{{ version }}.src.tar.xz
   sha256: {{ sha256 }}
   patches:
     - patches/0001-Find-conda-gcc-installation.patch
@@ -77,8 +77,6 @@ outputs:
         - {{ pin_subpackage("clang-tools", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
-      run_constrained:
-        - llvm-meta =={{ version }}
         - llvmdev =={{ version }}
     test:
       commands:
@@ -99,6 +97,7 @@ outputs:
       host:
         - libcxx {{cxx_compiler_version}}  # [osx]
         - llvmdev =={{ version }}
+        - llvm =={{ version }}
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
     test:
@@ -121,6 +120,7 @@ outputs:
       host:
         - libcxx {{cxx_compiler_version}}  # [osx]
         - llvmdev =={{ version }}
+        - llvm =={{ version }}
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
       run_constrained:
@@ -163,6 +163,7 @@ outputs:
         - {{ pin_subpackage("clangxx", exact=True) }}
         - libcxx {{cxx_compiler_version}}  # [osx]
         - llvmdev =={{ version }}
+        - llvm =={{ version }}
       run:
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clangxx", exact=True) }}
@@ -179,16 +180,13 @@ outputs:
       # Building this output using this recipe is only supported on unix
       # It can still be installed on Windows as it is marked as `noarch: python`
       skip: true  # [win]
-
     script: build_python_bindings.sh
-
     requirements:
       host:
         - python
       run:
         - python
-        - clangdev =={{ version }}
-
+        - libclang =={{version}}
     test:
       requires:
         - nose
