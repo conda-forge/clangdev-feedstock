@@ -1,2 +1,3 @@
 clang_variant:
+  - default
   - cling_6.18.00
