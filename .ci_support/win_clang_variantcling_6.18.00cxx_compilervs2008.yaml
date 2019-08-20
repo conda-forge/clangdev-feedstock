@@ -1,8 +1,0 @@
-channel_sources:
-- conda-forge,defaults
-channel_targets:
-- conda-forge main
-clang_variant:
-- cling_6.18.00
-cxx_compiler:
-- vs2008
