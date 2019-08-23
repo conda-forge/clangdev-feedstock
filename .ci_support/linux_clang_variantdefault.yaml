@@ -6,5 +6,7 @@ clang_variant:
 - default
 cxx_compiler:
 - gxx
+cxx_compiler_version:
+- '7'
 docker_image:
 - condaforge/linux-anvil-comp7

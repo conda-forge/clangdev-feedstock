@@ -3,8 +3,6 @@ channel_sources:
 channel_targets:
 - conda-forge main
 clang_variant:
-- cling_6.14.06
+- default
 cxx_compiler:
-- gxx
-docker_image:
-- condaforge/linux-anvil-comp7
+- vs2015

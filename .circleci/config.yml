@@ -5,63 +5,12 @@
 version: 2
 
 jobs:
-  build_linux_clang_variantcling_6.14.06:
-    working_directory: ~/test
-    machine: true
-    environment:
-      - CONFIG: "linux_clang_variantcling_6.14.06"
-    steps:
-      - checkout
-      - run:
-          name: Fast finish outdated PRs and merge PRs
-          command: |
-            ./.circleci/fast_finish_ci_pr_build.sh
-            ./.circleci/checkout_merge_commit.sh
-      - run:
-          command: docker pull condaforge/linux-anvil-comp7
-      - run:
-          # Run, test and (if we have a BINSTAR_TOKEN) upload the distributions.
-          command: ./.circleci/run_docker_build.sh
-  build_linux_clang_variantcling_6.16.00:
-    working_directory: ~/test
-    machine: true
-    environment:
-      - CONFIG: "linux_clang_variantcling_6.16.00"
-    steps:
-      - checkout
-      - run:
-          name: Fast finish outdated PRs and merge PRs
-          command: |
-            ./.circleci/fast_finish_ci_pr_build.sh
-            ./.circleci/checkout_merge_commit.sh
-      - run:
-          command: docker pull condaforge/linux-anvil-comp7
-      - run:
-          # Run, test and (if we have a BINSTAR_TOKEN) upload the distributions.
-          command: ./.circleci/run_docker_build.sh
-  build_linux_clang_variantdefault:
-    working_directory: ~/test
-    machine: true
-    environment:
-      - CONFIG: "linux_clang_variantdefault"
-    steps:
-      - checkout
-      - run:
-          name: Fast finish outdated PRs and merge PRs
-          command: |
-            ./.circleci/fast_finish_ci_pr_build.sh
-            ./.circleci/checkout_merge_commit.sh
-      - run:
-          command: docker pull condaforge/linux-anvil-comp7
-      - run:
-          # Run, test and (if we have a BINSTAR_TOKEN) upload the distributions.
-          command: ./.circleci/run_docker_build.sh
-  build_osx_clang_variantcling_6.14.06:
+  build_osx_clang_variantcling_6.18.00:
     working_directory: ~/test
     macos:
       xcode: "9.0"
     environment:
-      - CONFIG: "osx_clang_variantcling_6.14.06"
+      - CONFIG: "osx_clang_variantcling_6.18.00"
     steps:
       - checkout
       - run:
@@ -71,23 +20,9 @@ jobs:
             ./.circleci/checkout_merge_commit.sh
       - run:
           # Run, test and (if we have a BINSTAR_TOKEN) upload the distributions.
-          command: ./.circleci/run_osx_build.sh
-  build_osx_clang_variantcling_6.16.00:
-    working_directory: ~/test
-    macos:
-      xcode: "9.0"
-    environment:
-      - CONFIG: "osx_clang_variantcling_6.16.00"
-    steps:
-      - checkout
-      - run:
-          name: Fast finish outdated PRs and merge PRs
           command: |
-            ./.circleci/fast_finish_ci_pr_build.sh
-            ./.circleci/checkout_merge_commit.sh
-      - run:
-          # Run, test and (if we have a BINSTAR_TOKEN) upload the distributions.
-          command: ./.circleci/run_osx_build.sh
+            export CI=circle
+            ./.circleci/run_osx_build.sh
   build_osx_clang_variantdefault:
     working_directory: ~/test
     macos:
@@ -103,15 +38,13 @@ jobs:
             ./.circleci/checkout_merge_commit.sh
       - run:
           # Run, test and (if we have a BINSTAR_TOKEN) upload the distributions.
-          command: ./.circleci/run_osx_build.sh
+          command: |
+            export CI=circle
+            ./.circleci/run_osx_build.sh
 
 workflows:
   version: 2
   build_and_test:
     jobs:
-      - build_linux_clang_variantcling_6.14.06
-      - build_linux_clang_variantcling_6.16.00
-      - build_linux_clang_variantdefault
-      - build_osx_clang_variantcling_6.14.06
-      - build_osx_clang_variantcling_6.16.00
+      - build_osx_clang_variantcling_6.18.00
       - build_osx_clang_variantdefault
