@@ -10,12 +10,16 @@ jobs:
   strategy:
     maxParallel: 8
     matrix:
-      linux_clang_variantcling_6.18.00:
-        CONFIG: linux_clang_variantcling_6.18.00
+      linux_clang_variantcling_v0.6:
+        CONFIG: linux_clang_variantcling_v0.6
         UPLOAD_PACKAGES: True
         DOCKER_IMAGE: condaforge/linux-anvil-comp7
       linux_clang_variantdefault:
         CONFIG: linux_clang_variantdefault
+        UPLOAD_PACKAGES: True
+        DOCKER_IMAGE: condaforge/linux-anvil-comp7
+      linux_clang_variantroot_v6.18.02:
+        CONFIG: linux_clang_variantroot_v6.18.02
         UPLOAD_PACKAGES: True
         DOCKER_IMAGE: condaforge/linux-anvil-comp7
   steps:
@@ -29,6 +33,7 @@ jobs:
 
   - script: |
         export CI=azure
+        export GIT_BRANCH=$BUILD_SOURCEBRANCHNAME
         .azure-pipelines/run_docker_build.sh
     displayName: Run docker build
     env:

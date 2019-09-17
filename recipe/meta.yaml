@@ -3,25 +3,30 @@
 
 {% set build_number = "1005" %}
 
+{% if not clang_variant %}
+{% set clang_variant = "default" %}
+{% endif %}
+
 package:
   name: clangdev_and_clangvariant
   version: {{ version }}
 
 source:
 {% if clang_variant == "default" %}
-  fn: cfe-{{ version }}.src.tar.xz
   url: http://llvm.org/releases/{{ version }}/cfe-{{ version }}.src.tar.xz
   sha256: {{ sha256 }}
-{% else %}
+{% elif clang_variant.startswith("cling") %}
+  git_url: http://root.cern.ch/git/clang.git
+  git_rev: {{ clang_variant|replace('cling_', 'cling-') }}
+{% elif clang_variant.startswith("root") %}
   git_url: https://github.com/root-project/root.git
-  git_rev: {{ clang_variant|replace('cling_', 'v')|replace('.', '-') }}
+  git_rev: {{ clang_variant|replace('root_', '')|replace('.', '-') }}
   folder: root-source
 {% endif %}
 
 build:
   number: {{ build_number }}
   skip: true  # [win and vc<14]
-
 
 # Specifying `compiler('cxx')` as a top-level build requirements to force
 # conda-smithy to generate the correct build matrix.
@@ -90,7 +95,7 @@ outputs:
 about:
   home: http://llvm.org/
   license: NCSA
-{% if clang_variant == "default" %}
+{% if not clang_variant.startswith("root") %}
   license_file: LICENSE.TXT
 {% else %}
   license_file: root-source/interpreter/llvm/src/tools/clang/LICENSE.TXT

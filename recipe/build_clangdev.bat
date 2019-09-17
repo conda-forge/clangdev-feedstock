@@ -1,4 +1,4 @@
-if "%clang_variant%" NEQ "default" (
+IF "%clang_variant:~0,4%"=="root" (
     cd root-source/interpreter/llvm/src/tools/clang
     set "SRC_DIR= %SRC_DIR%/root-source/interpreter/llvm/src/tools/clang"
 )
