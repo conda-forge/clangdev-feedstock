@@ -1,4 +1,8 @@
-source $RECIPE_DIR/osx_hack.sh
+#!/bin/bash
+
+IFS='.' read -r -a PKG_VER_ARRAY <<< "${PKG_VERSION}"
+
+sed -i.bak "s/libLTO.dylib/libLTO.${PKG_VER_ARRAY[0]}.dylib/g" lib/Driver/ToolChains/Darwin.cpp
 
 mkdir build
 cd build
