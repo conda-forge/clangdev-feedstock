@@ -8,14 +8,18 @@ package:
   version: {{ version }}
 
 source:
-  url: http://releases.llvm.org/{{ version }}/cfe-{{ version }}.src.tar.xz
-  sha256: {{ sha256 }}
-  patches:
-    - patches/0001-Find-conda-gcc-installation.patch
-    - patches/0002-Fix-sysroot-detection-for-linux.patch
-    - patches/0002-clang-add-conda-specific-env-var-CONDA_BUILD_SYSROOT.patch
-    - patches/0003-clang-Fix-normalizeProgramName-s-handling-of-dots-ou.patch
-    - patches/0001-Set-VERSION-in-osx-as-well.patch
+  - url: http://releases.llvm.org/{{ version }}/cfe-{{ version }}.src.tar.xz
+    sha256: {{ sha256 }}
+    patches:
+      - patches/0001-Find-conda-gcc-installation.patch
+      - patches/0002-Fix-sysroot-detection-for-linux.patch
+      - patches/0002-clang-add-conda-specific-env-var-CONDA_BUILD_SYSROOT.patch
+      - patches/0003-clang-Fix-normalizeProgramName-s-handling-of-dots-ou.patch
+      - patches/0001-Set-VERSION-in-osx-as-well.patch
+    folder: .
+  - url: http://releases.llvm.org/{{ version }}/clang-tools-extra-{{ version }}.src.tar.xz
+    sha256: ea1c86ce352992d7b6f6649bc622f6a2707b9f8b7153e9f9181a35c76aa3ac10
+    folder: tools/extra
 
 build:
   number: {{ build_number }}
@@ -181,6 +185,7 @@ outputs:
     test:
       commands:
         - clang-check --version
+        - clang-tidy --version
 
   - name: python-clang
     build:
