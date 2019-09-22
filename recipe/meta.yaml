@@ -138,8 +138,8 @@ outputs:
         - test -f "$PREFIX/lib/libclang-cpp.so"                     # [linux]
         - test -f "$PREFIX/lib/libclang-cpp.so.{{major_version}}"   # [linux]
         - test -f "$PREFIX/lib/libclang-cpp.dylib"                  # [osx]
-        - test -f "$PREFIX/lib/clang/{{ version }}/include/stdatomic.h"             # [unix]
-        - if not exist %LIBRARY_LIB%\\clang\\{{ version }}\\include\\stdatomic.h    # [win]
+        - test -f "$PREFIX/lib/clang/{{ version }}/include/stdatomic.h"                    # [unix]
+        - if not exist %LIBRARY_LIB%\\clang\\{{ version }}\\include\\stdatomic.h exit 1    # [win]
 
   # Defaults provides this, so let's do the same in conda-forge
   - name: clangxx
