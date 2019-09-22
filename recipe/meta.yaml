@@ -1,14 +1,14 @@
-{% set version = "8.0.1" %}
+{% set version = "9.0.0" %}
 {% set major_version = version.split(".")[0] %}
-{% set sha256 = "70effd69f7a8ab249f66b0a68aba8b08af52aa2ab710dfb8a0fba102685b1646" %}
-{% set build_number = 1 %}
+{% set sha256 = "7ba81eef7c22ca5da688fdf9d88c20934d2d6b40bfe150ffd338900890aa4610" %}
+{% set build_number = 0 %}
 
 package:
   name: clang_packages
   version: {{ version }}
 
 source:
-  url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version }}/cfe-{{ version }}.src.tar.xz
+  url: http://releases.llvm.org/{{ version }}/cfe-{{ version }}.src.tar.xz
   sha256: {{ sha256 }}
   patches:
     - patches/0001-Find-conda-gcc-installation.patch
@@ -19,12 +19,11 @@ source:
 
 build:
   number: {{ build_number }}
-  skip: True  # [win and py<35]
+  skip: True  # [win and vc<14]
 
 requirements:
   build:
-    - {{ compiler('cxx') }}    # [not osx]
-    - clang_bootstrap_osx-64   # [osx]
+    - {{ compiler('cxx') }}
     - cmake >=3.4.3
     # Needed to unpack the source tarball
     - m2w64-xz  # [win]
@@ -39,8 +38,7 @@ requirements:
 
 test:
   requires:
-    - {{ compiler('cxx') }}    # [not osx]
-    - clang_bootstrap_osx-64   # [osx]
+    - {{ compiler('cxx') }}
     - cmake >=3.4.3
   files:
     - mytest.c
@@ -63,8 +61,7 @@ outputs:
     script: install_clangdev.bat   # [win]
     requirements:
       build:
-        - {{ compiler('cxx') }}    # [not osx]
-        - clang_bootstrap_osx-64   # [osx]
+        - {{ compiler('cxx') }}
         - cmake >=3.4.3
         - ninja  # [win]
         - make   # [unix]
@@ -94,8 +91,7 @@ outputs:
     script: install_libclang.bat   # [win]
     requirements:
       build:
-        - {{ compiler('cxx') }}    # [not osx]
-        - clang_bootstrap_osx-64   # [osx]
+        - {{ compiler('cxx') }}
         - cmake >=3.4.3
         - ninja  # [win]
         - make   # [unix]
@@ -103,6 +99,7 @@ outputs:
         - libcxx {{cxx_compiler_version}}  # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
+        - {{ pin_subpackage("clang", exact=True) }}
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
     test:
@@ -117,8 +114,7 @@ outputs:
     script: install_clang.bat      # [win]
     requirements:
       build:
-        - {{ compiler('cxx') }}    # [not osx]
-        - clang_bootstrap_osx-64   # [osx]
+        - {{ compiler('cxx') }}
         - libcxx                   # [osx]
         - cmake >=3.4.3
         - ninja  # [win]
@@ -139,6 +135,11 @@ outputs:
         - clang-cl --version
         - clang-cpp --version
         - clang-{{major_version}} --version   # [unix]
+        - test -f "$PREFIX/lib/libclang-cpp.so"                     # [linux]
+        - test -f "$PREFIX/lib/libclang-cpp.so.{{major_version}}"   # [linux]
+        - test -f "$PREFIX/lib/libclang-cpp.dylib"                  # [osx]
+        - test -f "$PREFIX/lib/clang/{{ version }}/include/stdatomic.h"                    # [unix]
+        - if not exist %LIBRARY_LIB%\\clang\\{{ version }}\\include\\stdatomic.h exit 1    # [win]
 
   # Defaults provides this, so let's do the same in conda-forge
   - name: clangxx
@@ -160,14 +161,14 @@ outputs:
       build:
         # "compiling .pyc files" fails without this
         - python >3
-        - {{ compiler('cxx') }}    # [not osx]
-        - clang_bootstrap_osx-64   # [osx]
+        - {{ compiler('cxx') }}
         - cmake >=3.4.3
         - ninja  # [win]
         - make   # [unix]
       host:
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clangxx", exact=True) }}
+        - {{ pin_subpackage("libclang", exact=True) }}
         - libcxx {{cxx_compiler_version}}  # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
