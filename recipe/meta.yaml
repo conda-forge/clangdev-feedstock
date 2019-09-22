@@ -19,12 +19,11 @@ source:
 
 build:
   number: {{ build_number }}
-  skip: True  # [win and py<35]
+  skip: True  # [win and vc<14]
 
 requirements:
   build:
-    - {{ compiler('cxx') }}    # [not osx]
-    - clang_bootstrap_osx-64   # [osx]
+    - {{ compiler('cxx') }}
     - cmake >=3.4.3
     # Needed to unpack the source tarball
     - m2w64-xz  # [win]
@@ -39,8 +38,7 @@ requirements:
 
 test:
   requires:
-    - {{ compiler('cxx') }}    # [not osx]
-    - clang_bootstrap_osx-64   # [osx]
+    - {{ compiler('cxx') }}
     - cmake >=3.4.3
   files:
     - mytest.c
@@ -63,8 +61,7 @@ outputs:
     script: install_clangdev.bat   # [win]
     requirements:
       build:
-        - {{ compiler('cxx') }}    # [not osx]
-        - clang_bootstrap_osx-64   # [osx]
+        - {{ compiler('cxx') }}
         - cmake >=3.4.3
         - ninja  # [win]
         - make   # [unix]
@@ -94,8 +91,7 @@ outputs:
     script: install_libclang.bat   # [win]
     requirements:
       build:
-        - {{ compiler('cxx') }}    # [not osx]
-        - clang_bootstrap_osx-64   # [osx]
+        - {{ compiler('cxx') }}
         - cmake >=3.4.3
         - ninja  # [win]
         - make   # [unix]
@@ -118,8 +114,7 @@ outputs:
     script: install_clang.bat      # [win]
     requirements:
       build:
-        - {{ compiler('cxx') }}    # [not osx]
-        - clang_bootstrap_osx-64   # [osx]
+        - {{ compiler('cxx') }}
         - libcxx                   # [osx]
         - cmake >=3.4.3
         - ninja  # [win]
@@ -167,8 +162,7 @@ outputs:
       build:
         # "compiling .pyc files" fails without this
         - python >3
-        - {{ compiler('cxx') }}    # [not osx]
-        - clang_bootstrap_osx-64   # [osx]
+        - {{ compiler('cxx') }}
         - cmake >=3.4.3
         - ninja  # [win]
         - make   # [unix]
