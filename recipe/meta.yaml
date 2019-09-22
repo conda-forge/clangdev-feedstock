@@ -138,7 +138,6 @@ outputs:
         - test -f "$PREFIX/lib/libclang-cpp.so"                     # [linux]
         - test -f "$PREFIX/lib/libclang-cpp.so.{{major_version}}"   # [linux]
         - test -f "$PREFIX/lib/libclang-cpp.dylib"                  # [osx]
-        - if not exist %LIBRARY_BIN%\\libclang-cpp.dll exit 1       # [win]
         - test -f "$PREFIX/lib/clang/{{ version }}/include/stdatomic.h"             # [unix]
         - if not exist %LIBRARY_LIB%\\clang\\{{ version }}\\include\\stdatomic.h    # [win]
 
