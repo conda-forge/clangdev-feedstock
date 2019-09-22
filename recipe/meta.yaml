@@ -103,6 +103,7 @@ outputs:
         - libcxx {{cxx_compiler_version}}  # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
+        - {{ pin_subpackage("clang", exact=True) }}
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
     test:
@@ -139,6 +140,12 @@ outputs:
         - clang-cl --version
         - clang-cpp --version
         - clang-{{major_version}} --version   # [unix]
+        - test -f "$PREFIX/lib/libclang-cpp.so"                     # [linux]
+        - test -f "$PREFIX/lib/libclang-cpp.so.{{major_version}}"   # [linux]
+        - test -f "$PREFIX/lib/libclang-cpp.dylib"                  # [osx]
+        - if not exist %LIBRARY_BIN%\\libclang-cpp.dll exit 1       # [win]
+        - test -f "$PREFIX/lib/clang/{{ version }}/include/stdatomic.h"             # [unix]
+        - if not exist %LIBRARY_LIB%\\clang\\{{ version }}\\include\\stdatomic.h    # [win]
 
   # Defaults provides this, so let's do the same in conda-forge
   - name: clangxx
@@ -168,6 +175,7 @@ outputs:
       host:
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clangxx", exact=True) }}
+        - {{ pin_subpackage("libclang", exact=True) }}
         - libcxx {{cxx_compiler_version}}  # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}

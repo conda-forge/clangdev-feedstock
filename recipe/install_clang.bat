@@ -12,4 +12,5 @@ mkdir bin
 move bin2\clang.exe bin\
 move bin2\clang-cl.exe bin\
 move bin2\clang-cpp.exe bin\
+move bin2\libclang-cpp.dll bin\
 rmdir /s /q bin2
