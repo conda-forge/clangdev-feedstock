@@ -1,14 +1,18 @@
 About clang_packages
 ====================
 
-Home: http://llvm.org/
+Home: https://clang.llvm.org/
 
 Package license: NCSA
 
 Feedstock license: BSD 3-Clause
 
-Summary: Development headers and libraries for Clang
+Summary: The Clang compiler for the C language family
 
+Clang is a language front-end for languages in the C language family
+(C, C++, Objective C/C++, OpenCL, CUDA, and RenderScript) for the LLVM
+project. Both a GCC-compatible compiler driver (clang) and an
+MSVC-compatible compiler driver (clang-cl.exe) are provided.
 
 
 Current build status
@@ -165,4 +169,5 @@ Feedstock Maintainers
 * [@isuruf](https://github.com/isuruf/)
 * [@jakirkham](https://github.com/jakirkham/)
 * [@mattwala](https://github.com/mattwala/)
+* [@saraedum](https://github.com/saraedum/)
 
