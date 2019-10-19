@@ -1,14 +1,14 @@
 {% set version = "9.0.0" %}
 {% set major_version = version.split(".")[0] %}
 {% set sha256 = "7ba81eef7c22ca5da688fdf9d88c20934d2d6b40bfe150ffd338900890aa4610" %}
-{% set build_number = 1 %}
+{% set build_number = 2 %}
 
 package:
   name: clang_packages
   version: {{ version }}
 
 source:
-  - url: http://releases.llvm.org/{{ version }}/cfe-{{ version }}.src.tar.xz
+  - url: https://releases.llvm.org/{{ version }}/cfe-{{ version }}.src.tar.xz
     sha256: {{ sha256 }}
     patches:
       - patches/0001-Find-conda-gcc-installation.patch
@@ -17,7 +17,7 @@ source:
       - patches/0003-clang-Fix-normalizeProgramName-s-handling-of-dots-ou.patch
       - patches/0001-Set-VERSION-in-osx-as-well.patch
     folder: .
-  - url: http://releases.llvm.org/{{ version }}/clang-tools-extra-{{ version }}.src.tar.xz
+  - url: https://releases.llvm.org/{{ version }}/clang-tools-extra-{{ version }}.src.tar.xz
     sha256: ea1c86ce352992d7b6f6649bc622f6a2707b9f8b7153e9f9181a35c76aa3ac10
     folder: tools/extra
 
@@ -58,6 +58,15 @@ test:
     - test -f $PREFIX/include/clang/Lex/Lexer.h      # [unix]
     - test -f $PREFIX/lib/libclangBasic.a            # [unix]
 
+about: &about
+  home: https://clang.llvm.org/
+  license: NCSA
+  license_file: LICENSE.TXT
+  summary: The Clang project
+  description: |
+    The Clang project provides a language front-end and tooling infrastructure
+    for languages in the C language family (C, C++, Objective C/C++, OpenCL,
+    CUDA, and RenderScript) for the LLVM project.
 
 outputs:
   - name: clangdev
@@ -89,6 +98,9 @@ outputs:
         - test -f "$PREFIX/lib/libclangAST.a"               # [unix]
         - if not exist %LIBRARY_INC%\\clang/Config/config.h exit 1   # [win]
         - if not exist %LIBRARY_LIB%\\clangAST.lib exit 1            # [win]
+    about:
+      <<: *about
+      summary: The Clang project's compilers, libraries, development headers, and tooling
 
   - name: libclang
     script: install_libclang.sh    # [unix]
@@ -112,6 +124,16 @@ outputs:
         - test -f "$PREFIX/lib/libclang.so.{{major_version}}"   # [linux]
         - test -f "$PREFIX/lib/libclang.dylib"                  # [osx]
         - if not exist %LIBRARY_BIN%\\libclang.dll exit 1       # [win]
+    about:
+      <<: *about
+      summary: C Interface to Clang
+      description: |
+        Runtime dependencies for libclang, the C Interface to Clang.  It
+        provides an API that exposes facilities for parsing source code into an
+        abstract syntax tree (AST), loading already-parsed ASTs, traversing the
+        AST, associating physical source locations with elements within the
+        AST, and other facilities that support Clang-based development tools.
+      doc_url: https://clang.llvm.org/doxygen/group__CINDEX.html
 
   - name: clang
     script: install_clang.sh       # [unix]
@@ -144,8 +166,15 @@ outputs:
         - test -f "$PREFIX/lib/libclang-cpp.dylib"                  # [osx]
         - test -f "$PREFIX/lib/clang/{{ version }}/include/stdatomic.h"                    # [unix]
         - if not exist %LIBRARY_LIB%\\clang\\{{ version }}\\include\\stdatomic.h exit 1    # [win]
+    about:
+      <<: *about
+      summary: The Clang compiler for the C language family
+      description: |
+        Clang is a language front-end for languages in the C language family
+        (C, C++, Objective C/C++, OpenCL, CUDA, and RenderScript) for the LLVM
+        project. Both a GCC-compatible compiler driver (clang) and an
+        MSVC-compatible compiler driver (clang-cl.exe) are provided.
 
-  # Defaults provides this, so let's do the same in conda-forge
   - name: clangxx
     script: install_clangxx.sh       # [unix]
     script: install_clangxx.bat      # [win]
@@ -157,6 +186,12 @@ outputs:
     test:
       commands:
         - clang++ --version
+    about:
+      <<: *about
+      summary: The clang++ compiler from Clang
+      description: |
+        This is just a symlink to clang which can compile C++. It's provided
+        for symmetry with the packages from defaults.
 
   - name: clang-tools
     script: install_clang_tools.sh    # [unix]
@@ -186,6 +221,13 @@ outputs:
       commands:
         - clang-check --version
         - clang-tidy --version
+    about:
+      <<: *about
+      summary: Tooling for languages in the C language family
+      description: |
+        Development tools from the Clang project such as clang-tidy and
+        clang-check.
+      doc_url: https://clang.llvm.org/docs/ClangTools.html
 
   - name: python-clang
     build:
@@ -213,12 +255,9 @@ outputs:
         - cd bindings/python
         - cp tests/cindex/util.py tests
         - nosetests -v
-
-about:
-  home: http://llvm.org/
-  license: NCSA
-  license_file: LICENSE.TXT
-  summary: Development headers and libraries for Clang
+    about:
+      <<: *about
+      summary: Clang Python bindings
 
 extra:
   recipe-maintainers:
@@ -227,3 +266,4 @@ extra:
     - jakirkham
     - mattwala
     - SylvainCorlay
+    - saraedum
