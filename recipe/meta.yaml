@@ -58,16 +58,6 @@ test:
     - test -f $PREFIX/include/clang/Lex/Lexer.h      # [unix]
     - test -f $PREFIX/lib/libclangBasic.a            # [unix]
 
-about: &about
-  home: https://clang.llvm.org/
-  license: NCSA
-  license_file: LICENSE.TXT
-  summary: The Clang project
-  description: |
-    The Clang project provides a language front-end and tooling infrastructure
-    for languages in the C language family (C, C++, Objective C/C++, OpenCL,
-    CUDA, and RenderScript) for the LLVM project.
-
 outputs:
   - name: clangdev
     script: install_clangdev.sh    # [unix]
@@ -98,6 +88,15 @@ outputs:
         - test -f "$PREFIX/lib/libclangAST.a"               # [unix]
         - if not exist %LIBRARY_INC%\\clang/Config/config.h exit 1   # [win]
         - if not exist %LIBRARY_LIB%\\clangAST.lib exit 1            # [win]
+    about: &about
+      home: https://clang.llvm.org/
+      license: NCSA
+      license_file: LICENSE.TXT
+      summary: The Clang project
+      description: |
+        The Clang project provides a language front-end and tooling infrastructure
+        for languages in the C language family (C, C++, Objective C/C++, OpenCL,
+        CUDA, and RenderScript) for the LLVM project.
     about:
       <<: *about
       summary: The Clang project's compilers, libraries, development headers, and tooling
@@ -258,6 +257,9 @@ outputs:
     about:
       <<: *about
       summary: Clang Python bindings
+
+about:
+  <<: *about
 
 extra:
   recipe-maintainers:
