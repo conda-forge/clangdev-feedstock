@@ -1,0 +1,594 @@
+diff --git a/include/clang/Basic/DiagnosticSemaKinds.td b/include/clang/Basic/DiagnosticSemaKinds.td
+index 275c4e4365..62134fffbd 100644
+--- a/include/clang/Basic/DiagnosticSemaKinds.td
++++ b/include/clang/Basic/DiagnosticSemaKinds.td
+@@ -7300,8 +7300,9 @@ def err_cuda_device_exceptions : Error<
+ def err_dynamic_var_init : Error<
+     "dynamic initialization is not supported for "
+     "__device__, __constant__, and __shared__ variables.">;
+-def err_shared_var_init : Error<
+-    "initialization is not supported for __shared__ variables.">;
++def warn_shared_var_init : Warning<
++    "initialization is not supported for __shared__ variables.">,
++    InGroup<DiagGroup<"cuda-shared-init">>, DefaultError;
+ def err_device_static_local_var : Error<
+     "within a %select{__device__|__global__|__host__|__host__ __device__}0 "
+     "function, only __shared__ variables or const variables without device "
+diff --git a/include/clang/CodeGen/BackendUtil.h b/include/clang/CodeGen/BackendUtil.h
+index 01b1f5bbd6..5b9f61c104 100644
+--- a/include/clang/CodeGen/BackendUtil.h
++++ b/include/clang/CodeGen/BackendUtil.h
+@@ -41,11 +41,20 @@ namespace clang {
+                          const TargetOptions &TOpts, const LangOptions &LOpts,
+                          const llvm::DataLayout &TDesc, llvm::Module *M,
+                          BackendAction Action,
+-                         std::unique_ptr<raw_pwrite_stream> OS);
++                         std::unique_ptr<raw_pwrite_stream> OS,
++                         bool SetLLVMOpts = true);
+ 
+   void EmbedBitcode(llvm::Module *M, const CodeGenOptions &CGOpts,
+                     llvm::MemoryBufferRef Buf);
+ 
++  void PerformPrelinkPasses(DiagnosticsEngine &Diags,
++                            const HeaderSearchOptions &HeaderSearchOpts,
++                            const CodeGenOptions &CGOpts,
++                            const TargetOptions &TOpts,
++                            const LangOptions &LOpts,
++                            const llvm::DataLayout &TDesc, llvm::Module *M,
++                            BackendAction Action);
++
+   llvm::Expected<llvm::BitcodeModule>
+   FindThinLTOModule(llvm::MemoryBufferRef MBRef);
+   llvm::BitcodeModule *
+diff --git a/lib/AST/ASTContext.cpp b/lib/AST/ASTContext.cpp
+index 93bdaafc2a..8aa9840951 100644
+--- a/lib/AST/ASTContext.cpp
++++ b/lib/AST/ASTContext.cpp
+@@ -3098,6 +3098,7 @@ QualType ASTContext::getConstantArrayType(QualType EltTy,
+   llvm::APInt ArySize(ArySizeIn);
+   ArySize = ArySize.zextOrTrunc(Target->getMaxPointerWidth());
+ 
++
+   llvm::FoldingSetNodeID ID;
+   ConstantArrayType::Profile(ID, EltTy, ArySize, ASM, IndexTypeQuals);
+ 
+diff --git a/lib/Basic/Targets/AMDGPU.cpp b/lib/Basic/Targets/AMDGPU.cpp
+index b5c82e2885..59320cbcb6 100644
+--- a/lib/Basic/Targets/AMDGPU.cpp
++++ b/lib/Basic/Targets/AMDGPU.cpp
+@@ -288,6 +288,12 @@ AMDGPUTargetInfo::AMDGPUTargetInfo(const llvm::Triple &Triple,
+   }
+ 
+   MaxAtomicPromoteWidth = MaxAtomicInlineWidth = 64;
++  // This is a workaround for HIP to get things going until
++  // https://reviews.llvm.org/D57831 is committed.
++#if _WIN32
++  WCharType = UnsignedShort;
++  WIntType = UnsignedShort;
++#endif
+ }
+ 
+ void AMDGPUTargetInfo::adjust(LangOptions &Opts) {
+diff --git a/lib/CodeGen/BackendUtil.cpp b/lib/CodeGen/BackendUtil.cpp
+index 497652e85b..46f892a68a 100644
+--- a/lib/CodeGen/BackendUtil.cpp
++++ b/lib/CodeGen/BackendUtil.cpp
+@@ -86,8 +86,10 @@ class EmitAssemblyHelper {
+   const LangOptions &LangOpts;
+   Module *TheModule;
+ 
++  Timer PreLinkTime;
+   Timer CodeGenerationTime;
+ 
++  mutable legacy::PassManager *PreLinkPasses;
+   std::unique_ptr<raw_pwrite_stream> OS;
+ 
+   TargetIRAnalysis getTargetIRAnalysis() const {
+@@ -97,6 +99,15 @@ class EmitAssemblyHelper {
+     return TargetIRAnalysis();
+   }
+ 
++  legacy::PassManager *getPreLinkPasses() const {
++    if (!PreLinkPasses) {
++      PreLinkPasses = new legacy::PassManager();
++      PreLinkPasses->add(
++          createTargetTransformInfoWrapperPass(getTargetIRAnalysis()));
++    }
++    return PreLinkPasses;
++  }
++
+   void CreatePasses(legacy::PassManager &MPM, legacy::FunctionPassManager &FPM);
+ 
+   /// Generates the TargetMachine.
+@@ -126,6 +137,9 @@ class EmitAssemblyHelper {
+     return F;
+   }
+ 
++  /// Add target specific pre-linking passes.
++  void AddPreLinkPasses();
++
+ public:
+   EmitAssemblyHelper(DiagnosticsEngine &_Diags,
+                      const HeaderSearchOptions &HeaderSearchOpts,
+@@ -134,9 +148,12 @@ public:
+                      const LangOptions &LOpts, Module *M)
+       : Diags(_Diags), HSOpts(HeaderSearchOpts), CodeGenOpts(CGOpts),
+         TargetOpts(TOpts), LangOpts(LOpts), TheModule(M),
+-        CodeGenerationTime("codegen", "Code Generation Time") {}
++        PreLinkTime("prelink", "Pre-Linking Passes Time"),
++        CodeGenerationTime("codegen", "Code Generation Time"),
++        PreLinkPasses(nullptr) {}
+ 
+   ~EmitAssemblyHelper() {
++    delete PreLinkPasses;
+     if (CodeGenOpts.DisableFree)
+       BuryPointer(std::move(TM));
+   }
+@@ -148,6 +165,12 @@ public:
+ 
+   void EmitAssemblyWithNewPassManager(BackendAction Action,
+                                       std::unique_ptr<raw_pwrite_stream> OS);
++
++  void DoPreLinkPasses();
++
++  /// Set up target for target specific pre-linking passes and LLVM code
++  /// generation.
++  void setTarget(BackendAction Action);
+ };
+ 
+ // We need this wrapper to access LangOpts and CGOpts from extension functions
+@@ -737,6 +760,14 @@ static void setCommandLineOpts(const CodeGenOptions &CodeGenOpts) {
+                                     BackendArgs.data());
+ }
+ 
++void EmitAssemblyHelper::setTarget(BackendAction Action) {
++  bool UsesCodeGen = (Action != Backend_EmitNothing &&
++                      Action != Backend_EmitBC &&
++                      Action != Backend_EmitLL);
++  if (!TM)
++    CreateTargetMachine(UsesCodeGen);
++}
++
+ void EmitAssemblyHelper::CreateTargetMachine(bool MustCreateTM) {
+   // Create the TargetMachine for generating code.
+   std::string Error;
+@@ -789,6 +820,11 @@ bool EmitAssemblyHelper::AddEmitPasses(legacy::PassManager &CodeGenPasses,
+   return true;
+ }
+ 
++void EmitAssemblyHelper::AddPreLinkPasses() {
++  legacy::PassManager *PM = getPreLinkPasses();
++  TM->addPreLinkPasses(*PM);
++}
++
+ void EmitAssemblyHelper::EmitAssembly(BackendAction Action,
+                                       std::unique_ptr<raw_pwrite_stream> OS) {
+   TimeRegion Region(FrontendTimesIsEnabled ? &CodeGenerationTime : nullptr);
+@@ -798,7 +834,6 @@ void EmitAssemblyHelper::EmitAssembly(BackendAction Action,
+   bool UsesCodeGen = (Action != Backend_EmitNothing &&
+                       Action != Backend_EmitBC &&
+                       Action != Backend_EmitLL);
+-  CreateTargetMachine(UsesCodeGen);
+ 
+   if (UsesCodeGen && !TM)
+     return;
+@@ -904,6 +939,23 @@ void EmitAssemblyHelper::EmitAssembly(BackendAction Action,
+     DwoOS->keep();
+ }
+ 
++void EmitAssemblyHelper::DoPreLinkPasses() {
++  TimeRegion Region(llvm::TimePassesIsEnabled ? &PreLinkTime : nullptr);
++
++  if (!TM)
++    return;
++
++  AddPreLinkPasses();
++
++  // Before executing passes, print the final values of the LLVM options.
++  cl::PrintOptionValues();
++
++  if (PreLinkPasses) {
++    PrettyStackTraceString CrashInfo("Pre-linking passes");
++    PreLinkPasses->run(*TheModule);
++  }
++}
++
+ static PassBuilder::OptimizationLevel mapToLevel(const CodeGenOptions &Opts) {
+   switch (Opts.OptimizationLevel) {
+   default:
+@@ -1449,7 +1501,8 @@ void clang::EmitBackendOutput(DiagnosticsEngine &Diags,
+                               const LangOptions &LOpts,
+                               const llvm::DataLayout &TDesc, Module *M,
+                               BackendAction Action,
+-                              std::unique_ptr<raw_pwrite_stream> OS) {
++                              std::unique_ptr<raw_pwrite_stream> OS,
++                              bool SetLLVMOpts) {
+ 
+   llvm::TimeTraceScope TimeScope("Backend", StringRef(""));
+ 
+@@ -1492,6 +1545,10 @@ void clang::EmitBackendOutput(DiagnosticsEngine &Diags,
+ 
+   EmitAssemblyHelper AsmHelper(Diags, HeaderOpts, CGOpts, TOpts, LOpts, M);
+ 
++  if (SetLLVMOpts)
++    setCommandLineOpts(CGOpts);
++  AsmHelper.setTarget(Action);
++
+   if (CGOpts.ExperimentalNewPassManager)
+     AsmHelper.EmitAssemblyWithNewPassManager(Action, std::move(OS));
+   else
+@@ -1510,6 +1567,20 @@ void clang::EmitBackendOutput(DiagnosticsEngine &Diags,
+   }
+ }
+ 
++void clang::PerformPrelinkPasses(DiagnosticsEngine &Diags,
++                                 const HeaderSearchOptions &HeaderSearchOpts,
++                                 const CodeGenOptions &CGOpts,
++                                 const clang::TargetOptions &TOpts,
++                                 const LangOptions &LOpts, const llvm::DataLayout &TDesc,
++                                 Module *M, BackendAction Action) {
++  EmitAssemblyHelper AsmHelper(Diags, HeaderSearchOpts, CGOpts, TOpts, LOpts,
++                               M);
++
++  setCommandLineOpts(CGOpts);
++  AsmHelper.setTarget(Action);
++  AsmHelper.DoPreLinkPasses();
++}
++
+ static const char* getSectionNameForBitcode(const Triple &T) {
+   switch (T.getObjectFormat()) {
+   case Triple::MachO:
+diff --git a/lib/CodeGen/CGCUDANV.cpp b/lib/CodeGen/CGCUDANV.cpp
+index 4d4038dae9..5d4d467cca 100644
+--- a/lib/CodeGen/CGCUDANV.cpp
++++ b/lib/CodeGen/CGCUDANV.cpp
+@@ -344,13 +344,21 @@ void CGNVCUDARuntime::emitDeviceStubBodyLegacy(CodeGenFunction &CGF,
+   llvm::BasicBlock *EndBlock = CGF.createBasicBlock("setup.end");
+   CharUnits Offset = CharUnits::Zero();
+   for (const VarDecl *A : Args) {
++    auto *Arg = CGF.GetAddrOfLocalVar(A).getPointer();
+     CharUnits TyWidth, TyAlign;
+-    std::tie(TyWidth, TyAlign) =
+-        CGM.getContext().getTypeInfoInChars(A->getType());
++    auto *Aux = CGM.getContext().getAuxTargetInfo();
++    if (Aux && Aux->getTriple().getArch() == llvm::Triple::amdgcn) {
++      auto *ArgTy = Arg->getType()->getPointerElementType();
++      auto &DL = CGM.getDataLayout();
++      TyWidth = CharUnits::fromQuantity(DL.getTypeStoreSize(ArgTy));
++      TyAlign = CharUnits::fromQuantity(DL.getABITypeAlignment(ArgTy));
++    } else {
++      std::tie(TyWidth, TyAlign) =
++               CGM.getContext().getTypeInfoInChars(A->getType());
++    }
+     Offset = Offset.alignTo(TyAlign);
+     llvm::Value *Args[] = {
+-        CGF.Builder.CreatePointerCast(CGF.GetAddrOfLocalVar(A).getPointer(),
+-                                      VoidPtrTy),
++        CGF.Builder.CreatePointerCast(Arg, VoidPtrTy),
+         llvm::ConstantInt::get(SizeTy, TyWidth.getQuantity()),
+         llvm::ConstantInt::get(SizeTy, Offset.getQuantity()),
+     };
+@@ -795,7 +803,7 @@ llvm::Function *CGNVCUDARuntime::makeModuleDtorFunction() {
+ std::string CGNVCUDARuntime::getDeviceStubName(llvm::StringRef Name) const {
+   if (!CGM.getLangOpts().HIP)
+     return Name;
+-  return (Name + ".stub").str();
++  return ("__device_stub_" + Name).str();
+ }
+ 
+ CGCUDARuntime *CodeGen::CreateNVCUDARuntime(CodeGenModule &CGM) {
+diff --git a/lib/CodeGen/CodeGenAction.cpp b/lib/CodeGen/CodeGenAction.cpp
+index 0ae9ea427d..1ca4414149 100644
+--- a/lib/CodeGen/CodeGenAction.cpp
++++ b/lib/CodeGen/CodeGenAction.cpp
+@@ -263,6 +263,10 @@ namespace clang {
+       Ctx.setDiagnosticHandler(llvm::make_unique<ClangDiagnosticHandler>(
+         CodeGenOpts, this));
+ 
++      PerformPrelinkPasses(Diags, HeaderSearchOpts, CodeGenOpts, TargetOpts,
++                           LangOpts, C.getTargetInfo().getDataLayout(),
++                           getModule(), Action);
++
+       Expected<std::unique_ptr<llvm::ToolOutputFile>> OptRecordFileOrErr =
+           setupOptimizationRemarks(Ctx, CodeGenOpts.OptRecordFile,
+                                    CodeGenOpts.OptRecordPasses,
+@@ -302,7 +306,8 @@ namespace clang {
+ 
+       EmitBackendOutput(Diags, HeaderSearchOpts, CodeGenOpts, TargetOpts,
+                         LangOpts, C.getTargetInfo().getDataLayout(),
+-                        getModule(), Action, std::move(AsmOutStream));
++                        getModule(), Action, std::move(AsmOutStream),
++                        false /* SetLLVMOpts */);
+ 
+       Ctx.setInlineAsmDiagnosticHandler(OldHandler, OldContext);
+ 
+diff --git a/lib/CodeGen/CodeGenModule.cpp b/lib/CodeGen/CodeGenModule.cpp
+index 1fd4e4cf8b..a22275503b 100644
+--- a/lib/CodeGen/CodeGenModule.cpp
++++ b/lib/CodeGen/CodeGenModule.cpp
+@@ -445,7 +445,10 @@ void CodeGenModule::Release() {
+   if (SanStats)
+     SanStats->finish();
+ 
++  // Disable linker.options for HIP device compilation. This is a workaround
++  // to get things going until https://reviews.llvm.org/D57829 is committed.
+   if (CodeGenOpts.Autolink &&
++      !(Context.getLangOpts().CUDAIsDevice && Context.getLangOpts().HIP) &&
+       (Context.getLangOpts().Modules || !LinkerOptionsMetadata.empty())) {
+     EmitModuleLinkOptions();
+   }
+diff --git a/lib/CodeGen/TargetInfo.cpp b/lib/CodeGen/TargetInfo.cpp
+index 1e1038dbfe..af374566f0 100644
+--- a/lib/CodeGen/TargetInfo.cpp
++++ b/lib/CodeGen/TargetInfo.cpp
+@@ -7653,6 +7653,8 @@ public:
+   ABIArgInfo classifyArgumentType(QualType Ty, unsigned &NumRegsLeft) const;
+ 
+   void computeInfo(CGFunctionInfo &FI) const override;
++  Address EmitVAArg(CodeGenFunction &CGF, Address VAListAddr,
++                    QualType Ty) const override;
+ };
+ 
+ bool AMDGPUABIInfo::isHomogeneousAggregateBaseType(QualType Ty) const {
+@@ -7716,6 +7718,11 @@ void AMDGPUABIInfo::computeInfo(CGFunctionInfo &FI) const {
+   }
+ }
+ 
++Address AMDGPUABIInfo::EmitVAArg(CodeGenFunction &CGF, Address VAListAddr,
++                                 QualType Ty) const {
++  llvm_unreachable("AMDGPU does not support varargs");
++}
++
+ ABIArgInfo AMDGPUABIInfo::classifyReturnType(QualType RetTy) const {
+   if (isAggregateTypeForABI(RetTy)) {
+     // Records with non-trivial destructors/copy-constructors should not be
+@@ -8037,7 +8044,7 @@ AMDGPUTargetCodeGenInfo::getLLVMSyncScopeID(const LangOptions &LangOpts,
+     Name = "wavefront";
+   }
+ 
+-  if (Ordering != llvm::AtomicOrdering::SequentiallyConsistent) {
++  if(Ordering != llvm::AtomicOrdering::SequentiallyConsistent) {
+     if (!Name.empty())
+       Name = Twine(Twine(Name) + Twine("-")).str();
+ 
+diff --git a/lib/Driver/ToolChains/Clang.cpp b/lib/Driver/ToolChains/Clang.cpp
+index dd461a1976..109e44c6e8 100644
+--- a/lib/Driver/ToolChains/Clang.cpp
++++ b/lib/Driver/ToolChains/Clang.cpp
+@@ -5300,6 +5300,9 @@ void Clang::ConstructJob(Compilation &C, const JobAction &JA,
+       CmdArgs.push_back("-fcuda-short-ptr");
+   }
+ 
++  if (IsHIP)
++    CmdArgs.push_back("-fcuda-allow-variadic-functions");
++
+   // OpenMP offloading device jobs take the argument -fopenmp-host-ir-file-path
+   // to specify the result of the compile phase on the host, so the meaningful
+   // device declarations can be identified. Also, -fopenmp-is-device is passed
+diff --git a/lib/Driver/ToolChains/HIP.cpp b/lib/Driver/ToolChains/HIP.cpp
+index 2ec97e798f..e800f0a23b 100644
+--- a/lib/Driver/ToolChains/HIP.cpp
++++ b/lib/Driver/ToolChains/HIP.cpp
+@@ -126,8 +126,12 @@ const char *AMDGCN::Linker::constructLlcCommand(
+     const llvm::opt::ArgList &Args, llvm::StringRef SubArchName,
+     llvm::StringRef OutputFilePrefix, const char *InputFileName) const {
+   // Construct llc command.
++  // FIXME: -disable-promote-alloca-to-lds is a workaround for issues in
++  // AMDGPUPromoteAlloca pass which cause invalid memory access in PyTorch.
++  // Remove this once the issue is fixed.
+   ArgStringList LlcArgs{InputFileName, "-mtriple=amdgcn-amd-amdhsa",
+                         "-filetype=obj",
++                        "-disable-promote-alloca-to-lds",
+                         Args.MakeArgString("-mcpu=" + SubArchName)};
+ 
+   // Extract all the -m options
+@@ -279,6 +283,8 @@ void HIPToolChain::addClangTargetOptions(
+                          false))
+     CC1Args.push_back("-fgpu-rdc");
+ 
++  CC1Args.push_back("-fcuda-allow-variadic-functions");
++
+   // Default to "hidden" visibility, as object level linking will not be
+   // supported for the foreseeable future.
+   if (!DriverArgs.hasArg(options::OPT_fvisibility_EQ,
+diff --git a/lib/Sema/SemaCUDA.cpp b/lib/Sema/SemaCUDA.cpp
+index 203c09c571..67b697922c 100644
+--- a/lib/Sema/SemaCUDA.cpp
++++ b/lib/Sema/SemaCUDA.cpp
+@@ -499,7 +499,7 @@ void Sema::checkAllowedCUDAInitializer(VarDecl *VD) {
+ 
+     if (!AllowedInit) {
+       Diag(VD->getLocation(), VD->hasAttr<CUDASharedAttr>()
+-                                  ? diag::err_shared_var_init
++                                  ? diag::warn_shared_var_init
+                                   : diag::err_dynamic_var_init)
+           << Init->getSourceRange();
+       VD->setInvalidDecl();
+diff --git a/test/CodeGenCUDA/kernel-args-alignment.cu b/test/CodeGenCUDA/kernel-args-alignment.cu
+index 2bfd098a85..0aea943051 100644
+--- a/test/CodeGenCUDA/kernel-args-alignment.cu
++++ b/test/CodeGenCUDA/kernel-args-alignment.cu
+@@ -3,10 +3,17 @@
+ //
+ // RUN: %clang_cc1 --std=c++11 -triple x86_64-unknown-linux-gnu -emit-llvm \
+ // RUN:    -target-sdk-version=8.0 -o - %s \
+-// RUN:  | FileCheck -check-prefixes=HOST-OLD,CHECK %s
++// RUN:  | FileCheck -check-prefixes=HOST-OLD,HOST-OLD-NV,CHECK %s
+ 
+ // RUN: %clang_cc1 --std=c++11 -fcuda-is-device -triple nvptx64-nvidia-cuda \
+-// RUN:   -emit-llvm -o - %s | FileCheck -check-prefixes=DEVICE,CHECK %s
++// RUN:   -emit-llvm -o - %s | FileCheck -check-prefixes=DEVICE,DEVICE-NV,CHECK %s
++
++// RUN: %clang_cc1 --std=c++11 -triple x86_64-unknown-linux-gnu -x hip \
++// RUN:  -aux-triple amdgcn-amd-amdhsa -emit-llvm -o - %s | \
++// RUN:  FileCheck -check-prefixes=HOST-OLD,HOST-OLD-AMD,CHECK %s
++
++// RUN: %clang_cc1 --std=c++11 -fcuda-is-device -triple amdgcn-amd-amdhsa \
++// RUN:  -x hip -emit-llvm -o - %s | FileCheck -check-prefixes=DEVICE,DEVICE-AMD,CHECK %s
+ 
+ #include "Inputs/cuda.h"
+ 
+@@ -27,14 +34,25 @@ struct S {
+ static_assert(alignof(S) == 8, "Unexpected alignment.");
+ 
+ // HOST-LABEL: @_Z6kernelc1SPi
+-// Marshalled kernel args should be:
++// For NVPTX backend, marshalled kernel args should be:
+ //   1. offset 0, width 1
+ //   2. offset 8 (because alignof(S) == 8), width 16
+ //   3. offset 24, width 8
+-// HOST-OLD: call i32 @cudaSetupArgument({{[^,]*}}, i64 1, i64 0)
+-// HOST-OLD: call i32 @cudaSetupArgument({{[^,]*}}, i64 16, i64 8)
+-// HOST-OLD: call i32 @cudaSetupArgument({{[^,]*}}, i64 8, i64 24)
++// HOST-NV-OLD: call i32 @cudaSetupArgument({{[^,]*}}, i64 1, i64 0)
++// HOST-NV-OLD: call i32 @cudaSetupArgument({{[^,]*}}, i64 16, i64 8)
++// HOST-NV-OLD: call i32 @cudaSetupArgument({{[^,]*}}, i64 8, i64 24)
++// AMDGPU backend assumes struct type kernel arguments are passed directly,
++// not byval. It lays out kernel arguments by size and alignment in IR.
++// Packed struct type in IR always has ABI alignment of 1.
++// For AMDGPU backend, marshalled kernel args should be:
++//   1. offset 0, width 1
++//   2. offset 1 (because ABI alignment of S is 1), width 16
++//   3. offset 24, width 8
++// HOST-AMD: call i32 @hipSetupArgument({{[^,]*}}, i64 1, i64 0)
++// HOST-AMD: call i32 @hipSetupArgument({{[^,]*}}, i64 16, i64 1)
++// HOST-AMD: call i32 @hipSetupArgument({{[^,]*}}, i64 8, i64 24)
+ 
+ // DEVICE-LABEL: @_Z6kernelc1SPi
+-// DEVICE-SAME: i8{{[^,]*}}, %struct.S* byval(%struct.S) align 8{{[^,]*}}, i32*
++// DEVICE-NV-SAME: i8{{[^,]*}}, %struct.S* byval(%struct.S) align 8{{[^,]*}}, i32*
++// DEVICE-AMD-SAME: i8{{[^,]*}}, %struct.S{{[^,*]*}}, i32*
+ __global__ void kernel(char a, S s, int *b) {}
+diff --git a/test/CodeGenCUDA/kernel-stub-name.cu b/test/CodeGenCUDA/kernel-stub-name.cu
+index 539d7eec1b..a16592602d 100644
+--- a/test/CodeGenCUDA/kernel-stub-name.cu
++++ b/test/CodeGenCUDA/kernel-stub-name.cu
+@@ -10,7 +10,7 @@ template<class T>
+ __global__ void kernelfunc() {}
+ 
+ // CHECK-LABEL: define{{.*}}@_Z8hostfuncv()
+-// CHECK: call void @[[STUB:_Z10kernelfuncIiEvv.stub]]()
++// CHECK: call void @[[STUB:__device_stub__Z10kernelfuncIiEvv]]()
+ void hostfunc(void) { kernelfunc<int><<<1, 1>>>(); }
+ 
+ // CHECK: define{{.*}}@[[STUB]]
+diff --git a/test/CodeGenCUDA/linker-options.cu b/test/CodeGenCUDA/linker-options.cu
+new file mode 100644
+index 0000000000..4b2e6bdde6
+--- /dev/null
++++ b/test/CodeGenCUDA/linker-options.cu
+@@ -0,0 +1,4 @@
++// RUN: %clang_cc1 -emit-llvm -o - -fcuda-is-device -x hip %s | FileCheck %s
++
++// CHECK-NOT: llvm.linker.options
++#pragma comment(lib, "a.so")
+diff --git a/test/CodeGenOpenCL/convergent.cl b/test/CodeGenOpenCL/convergent.cl
+index 193d391ced..577ab07c8a 100644
+--- a/test/CodeGenOpenCL/convergent.cl
++++ b/test/CodeGenOpenCL/convergent.cl
+@@ -66,7 +66,7 @@ void test_merge_if(int a) {
+ // CHECK: br i1 %[[tobool]], label %[[if_end:.+]], label %[[if_then:.+]]
+ // CHECK: [[if_then]]:
+ // CHECK: tail call spir_func void @f()
+-// CHECK-NOT: call spir_func void @convfun()
++// CHECK-NOT: call spir_func void @non_convfun()
+ // CHECK-NOT: call spir_func void @g()
+ // CHECK: br label %[[if_end]]
+ // CHECK: [[if_end]]:
+diff --git a/test/Driver/hip-toolchain-no-rdc.hip b/test/Driver/hip-toolchain-no-rdc.hip
+index 540b932860..74b53caaaa 100644
+--- a/test/Driver/hip-toolchain-no-rdc.hip
++++ b/test/Driver/hip-toolchain-no-rdc.hip
+@@ -20,7 +20,7 @@
+ // CHECK-SAME: "-aux-triple" "x86_64-unknown-linux-gnu"
+ // CHECK-SAME: "-emit-llvm-bc"
+ // CHECK-SAME: {{.*}} "-main-file-name" "a.cu" {{.*}} "-target-cpu" "gfx803"
+-// CHECK-SAME: "-fcuda-is-device" "-fvisibility" "hidden"
++// CHECK-SAME: "-fcuda-is-device" "-fcuda-allow-variadic-functions" "-fvisibility" "hidden"
+ // CHECK-SAME: "-fapply-global-visibility-to-externs"
+ // CHECK-SAME: "{{.*}}lib1.bc" "{{.*}}lib2.bc"
+ // CHECK-SAME: {{.*}} "-o" [[A_BC_803:".*bc"]] "-x" "hip"
+@@ -48,7 +48,7 @@
+ // CHECK-SAME: "-aux-triple" "x86_64-unknown-linux-gnu"
+ // CHECK-SAME: "-emit-llvm-bc"
+ // CHECK-SAME: {{.*}} "-main-file-name" "a.cu" {{.*}} "-target-cpu" "gfx900"
+-// CHECK-SAME: "-fcuda-is-device" "-fvisibility" "hidden"
++// CHECK-SAME: "-fcuda-is-device" "-fcuda-allow-variadic-functions" "-fvisibility" "hidden"
+ // CHECK-SAME: "-fapply-global-visibility-to-externs"
+ // CHECK-SAME: "{{.*}}lib1.bc" "{{.*}}lib2.bc"
+ // CHECK-SAME: {{.*}} "-o" [[A_BC_900:".*bc"]] "-x" "hip"
+@@ -92,7 +92,7 @@
+ // CHECK-SAME: "-aux-triple" "x86_64-unknown-linux-gnu"
+ // CHECK-SAME: "-emit-llvm-bc"
+ // CHECK-SAME: {{.*}} "-main-file-name" "b.hip" {{.*}} "-target-cpu" "gfx803"
+-// CHECK-SAME: "-fcuda-is-device" "-fvisibility" "hidden"
++// CHECK-SAME: "-fcuda-is-device" "-fcuda-allow-variadic-functions" "-fvisibility" "hidden"
+ // CHECK-SAME: "-fapply-global-visibility-to-externs"
+ // CHECK-SAME: "{{.*}}lib1.bc" "{{.*}}lib2.bc"
+ // CHECK-SAME: {{.*}} "-o" [[B_BC_803:".*bc"]] "-x" "hip"
+@@ -120,7 +120,7 @@
+ // CHECK-SAME: "-aux-triple" "x86_64-unknown-linux-gnu"
+ // CHECK-SAME: "-emit-llvm-bc"
+ // CHECK-SAME: {{.*}} "-main-file-name" "b.hip" {{.*}} "-target-cpu" "gfx900"
+-// CHECK-SAME: "-fcuda-is-device" "-fvisibility" "hidden"
++// CHECK-SAME: "-fcuda-is-device" "-fcuda-allow-variadic-functions" "-fvisibility" "hidden"
+ // CHECK-SAME: "-fapply-global-visibility-to-externs"
+ // CHECK-SAME: "{{.*}}lib1.bc" "{{.*}}lib2.bc"
+ // CHECK-SAME: {{.*}} "-o" [[B_BC_900:".*bc"]] "-x" "hip"
+diff --git a/test/Driver/hip-toolchain-rdc.hip b/test/Driver/hip-toolchain-rdc.hip
+index 15ac5f1931..fc440a085e 100644
+--- a/test/Driver/hip-toolchain-rdc.hip
++++ b/test/Driver/hip-toolchain-rdc.hip
+@@ -16,7 +16,7 @@
+ // CHECK-SAME: "-aux-triple" "x86_64-unknown-linux-gnu"
+ // CHECK-SAME: "-emit-llvm-bc"
+ // CHECK-SAME: {{.*}} "-main-file-name" "a.cu" {{.*}} "-target-cpu" "gfx803"
+-// CHECK-SAME: "-fcuda-is-device" "-fgpu-rdc" "-fvisibility" "hidden"
++// CHECK-SAME: "-fcuda-is-device" "-fgpu-rdc" "-fcuda-allow-variadic-functions" "-fvisibility" "hidden"
+ // CHECK-SAME: "-fapply-global-visibility-to-externs"
+ // CHECK-SAME: "{{.*}}lib1.bc" "{{.*}}lib2.bc"
+ // CHECK-SAME: {{.*}} "-o" [[A_BC:".*bc"]] "-x" "hip"
+@@ -26,7 +26,7 @@
+ // CHECK-SAME: "-aux-triple" "x86_64-unknown-linux-gnu"
+ // CHECK-SAME: "-emit-llvm-bc"
+ // CHECK-SAME: {{.*}} "-main-file-name" "b.hip" {{.*}} "-target-cpu" "gfx803"
+-// CHECK-SAME: "-fcuda-is-device" "-fgpu-rdc" "-fvisibility" "hidden"
++// CHECK-SAME: "-fcuda-is-device" "-fgpu-rdc" "-fcuda-allow-variadic-functions" "-fvisibility" "hidden"
+ // CHECK-SAME: "-fapply-global-visibility-to-externs"
+ // CHECK-SAME: "{{.*}}lib1.bc" "{{.*}}lib2.bc"
+ // CHECK-SAME: {{.*}} "-o" [[B_BC:".*bc"]] "-x" "hip"
+@@ -50,7 +50,7 @@
+ // CHECK-SAME: "-aux-triple" "x86_64-unknown-linux-gnu"
+ // CHECK-SAME: "-emit-llvm-bc"
+ // CHECK-SAME: {{.*}} "-main-file-name" "a.cu" {{.*}} "-target-cpu" "gfx900"
+-// CHECK-SAME: "-fcuda-is-device" "-fgpu-rdc"
++// CHECK-SAME: "-fcuda-is-device" "-fgpu-rdc" "-fcuda-allow-variadic-functions"
+ // CHECK-SAME: "{{.*}}lib1.bc" "{{.*}}lib2.bc"
+ // CHECK-SAME: {{.*}} "-o" [[A_BC:".*bc"]] "-x" "hip"
+ // CHECK-SAME: {{.*}} [[A_SRC]]
+@@ -59,7 +59,7 @@
+ // CHECK-SAME: "-aux-triple" "x86_64-unknown-linux-gnu"
+ // CHECK-SAME: "-emit-llvm-bc"
+ // CHECK-SAME: {{.*}} "-main-file-name" "b.hip" {{.*}} "-target-cpu" "gfx900"
+-// CHECK-SAME: "-fcuda-is-device" "-fgpu-rdc"
++// CHECK-SAME: "-fcuda-is-device" "-fgpu-rdc" "-fcuda-allow-variadic-functions"
+ // CHECK-SAME: "{{.*}}lib1.bc" "{{.*}}lib2.bc"
+ // CHECK-SAME: {{.*}} "-o" [[B_BC:".*bc"]] "-x" "hip"
+ // CHECK-SAME: {{.*}} [[B_SRC]]
+diff --git a/test/SemaCXX/amdgpu-wchar.cxx b/test/SemaCXX/amdgpu-wchar.cxx
+new file mode 100644
+index 0000000000..3d5141fd49
+--- /dev/null
++++ b/test/SemaCXX/amdgpu-wchar.cxx
+@@ -0,0 +1,11 @@
++// RUN: %clang_cc1 -triple amdgcn -std=c++11 %s
++
++typedef __WINT_TYPE__ wint_t;
++
++#if _WIN32
++static_assert(sizeof(wchar_t)==2, "fail");
++static_assert(sizeof(wint_t)==2, "fail");
++#else
++static_assert(sizeof(wchar_t)==4, "fail");
++static_assert(sizeof(wint_t)==4, "fail");
++#endif

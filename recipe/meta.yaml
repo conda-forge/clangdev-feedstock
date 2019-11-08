@@ -1,7 +1,7 @@
 {% set version = "9.0.0" %}
 {% set major_version = version.split(".")[0] %}
 {% set sha256 = "7ba81eef7c22ca5da688fdf9d88c20934d2d6b40bfe150ffd338900890aa4610" %}
-{% set build_number = 1 %}
+{% set build_number = 2 %}
 
 package:
   name: clang_packages
@@ -16,6 +16,7 @@ source:
       - patches/0002-clang-add-conda-specific-env-var-CONDA_BUILD_SYSROOT.patch
       - patches/0003-clang-Fix-normalizeProgramName-s-handling-of-dots-ou.patch
       - patches/0001-Set-VERSION-in-osx-as-well.patch
+      - patches/amd-roc-2.7.0.diff
     folder: .
   - url: http://releases.llvm.org/{{ version }}/clang-tools-extra-{{ version }}.src.tar.xz
     sha256: ea1c86ce352992d7b6f6649bc622f6a2707b9f8b7153e9f9181a35c76aa3ac10
