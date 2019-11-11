@@ -1,7 +1,7 @@
 {% set version = "9.0.0" %}
 {% set major_version = version.split(".")[0] %}
 {% set sha256 = "7ba81eef7c22ca5da688fdf9d88c20934d2d6b40bfe150ffd338900890aa4610" %}
-{% set build_number = 2 %}
+{% set build_number = 3 %}
 
 package:
   name: clang_packages
@@ -16,7 +16,8 @@ source:
       - patches/0002-clang-add-conda-specific-env-var-CONDA_BUILD_SYSROOT.patch
       - patches/0003-clang-Fix-normalizeProgramName-s-handling-of-dots-ou.patch
       - patches/0001-Set-VERSION-in-osx-as-well.patch
-      - patches/amd-roc-2.7.0.diff
+      - patches/amd-roc-2.7.0.diff   # [variant != "hcc"]
+      - patches/amd-roc-hcc-2.7.0.diff  # [variant == "hcc"]
     folder: .
   - url: http://releases.llvm.org/{{ version }}/clang-tools-extra-{{ version }}.src.tar.xz
     sha256: ea1c86ce352992d7b6f6649bc622f6a2707b9f8b7153e9f9181a35c76aa3ac10
@@ -64,6 +65,10 @@ outputs:
   - name: clangdev
     script: install_clangdev.sh    # [unix]
     script: install_clangdev.bat   # [win]
+    build:
+      track_features:
+        - hcc          # [variant=="hcc"]
+      string: "{{ variant }}_h{{ PKG_HASH }}_{{ build_number }}"
     requirements:
       build:
         - {{ compiler('cxx') }}
@@ -94,6 +99,10 @@ outputs:
   - name: libclang
     script: install_libclang.sh    # [unix]
     script: install_libclang.bat   # [win]
+    build:
+      track_features:
+        - hcc          # [variant=="hcc"]
+      string: "{{ variant }}_h{{ PKG_HASH }}_{{ build_number }}"
     requirements:
       build:
         - {{ compiler('cxx') }}
@@ -117,6 +126,10 @@ outputs:
   - name: clang
     script: install_clang.sh       # [unix]
     script: install_clang.bat      # [win]
+    build:
+      track_features:
+        - hcc          # [variant=="hcc"]
+      string: "{{ variant }}_h{{ PKG_HASH }}_{{ build_number }}"
     requirements:
       build:
         - {{ compiler('cxx') }}
@@ -150,6 +163,10 @@ outputs:
   - name: clangxx
     script: install_clangxx.sh       # [unix]
     script: install_clangxx.bat      # [win]
+    build:
+      track_features:
+        - hcc          # [variant=="hcc"]
+      string: "{{ variant }}_h{{ PKG_HASH }}_{{ build_number }}"
     requirements:
       host:
         - {{ pin_subpackage("clang", exact=True) }}
@@ -162,6 +179,10 @@ outputs:
   - name: clang-tools
     script: install_clang_tools.sh    # [unix]
     script: install_clang_tools.bat   # [win]
+    build:
+      track_features:
+        - hcc          # [variant=="hcc"]
+      string: "{{ variant }}_h{{ PKG_HASH }}_{{ build_number }}"
     requirements:
       build:
         # "compiling .pyc files" fails without this
@@ -194,6 +215,9 @@ outputs:
       # Building this output using this recipe is only supported on unix
       # It can still be installed on Windows as it is marked as `noarch: python`
       skip: true  # [win]
+      track_features:
+        - hcc          # [variant=="hcc"]
+      string: "{{ variant }}_h{{ PKG_HASH }}_{{ build_number }}"
     script: build_python_bindings.sh
     requirements:
       host:
