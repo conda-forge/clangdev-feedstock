@@ -173,6 +173,8 @@ outputs:
       run:
         - {{ pin_subpackage("clang", exact=True) }}
     test:
+      requires:
+        - {{ compiler("cxx") }}
       files:
         - mytest.cxx
       commands:
