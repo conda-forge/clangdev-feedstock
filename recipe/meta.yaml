@@ -173,8 +173,13 @@ outputs:
       run:
         - {{ pin_subpackage("clang", exact=True) }}
     test:
+      requires:
+        - {{ compiler("cxx") }}
+      files:
+        - mytest.cxx
       commands:
         - clang++ --version
+        - clang++ -v -c mytest.cxx
 
   - name: clang-tools
     script: install_clang_tools.sh    # [unix]
