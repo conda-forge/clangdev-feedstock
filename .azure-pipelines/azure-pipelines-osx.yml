@@ -12,13 +12,13 @@ jobs:
     matrix:
       osx_clang_variantcling_v0.6:
         CONFIG: osx_clang_variantcling_v0.6
-        UPLOAD_PACKAGES: False
+        UPLOAD_PACKAGES: True
       osx_clang_variantdefault:
         CONFIG: osx_clang_variantdefault
-        UPLOAD_PACKAGES: False
+        UPLOAD_PACKAGES: True
       osx_clang_variantroot_v6.18.02:
         CONFIG: osx_clang_variantroot_v6.18.02
-        UPLOAD_PACKAGES: False
+        UPLOAD_PACKAGES: True
 
   steps:
   # TODO: Fast finish on azure pipelines?
@@ -76,7 +76,7 @@ jobs:
       source activate base
       export GIT_BRANCH=$BUILD_SOURCEBRANCHNAME
       upload_package ./ ./recipe ./.ci_support/${CONFIG}.yaml
-    displayName: Upload recipe
+    displayName: Upload package
     env:
       BINSTAR_TOKEN: $(BINSTAR_TOKEN)
     condition: not(eq(variables['UPLOAD_PACKAGES'], 'False'))
