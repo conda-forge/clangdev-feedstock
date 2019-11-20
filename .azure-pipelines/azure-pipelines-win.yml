@@ -10,12 +10,16 @@ jobs:
   strategy:
     maxParallel: 4
     matrix:
-      win_clang_variantcling_6.18.00cxx_compilervs2015:
-        CONFIG: win_clang_variantcling_6.18.00cxx_compilervs2015
+      win_clang_variantcling_v0.6cxx_compilervs2015:
+        CONFIG: win_clang_variantcling_v0.6cxx_compilervs2015
         CONDA_BLD_PATH: D:\\bld\\
         UPLOAD_PACKAGES: False
       win_clang_variantdefaultcxx_compilervs2015:
         CONFIG: win_clang_variantdefaultcxx_compilervs2015
+        CONDA_BLD_PATH: D:\\bld\\
+        UPLOAD_PACKAGES: False
+      win_clang_variantroot_v6.18.02cxx_compilervs2015:
+        CONFIG: win_clang_variantroot_v6.18.02cxx_compilervs2015
         CONDA_BLD_PATH: D:\\bld\\
         UPLOAD_PACKAGES: False
   steps:
@@ -99,6 +103,7 @@ jobs:
       condition: not(contains(variables['CONFIG'], 'vs2008'))
 
     - script: |
+        set "GIT_BRANCH=%BUILD_SOURCEBRANCHNAME%"
         upload_package .\ .\recipe .ci_support\%CONFIG%.yaml
       env:
         BINSTAR_TOKEN: $(BINSTAR_TOKEN)

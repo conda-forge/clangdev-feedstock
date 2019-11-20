@@ -1,6 +1,6 @@
 set -x
 
-if [[ "${clang_variant}" != "default" ]]; then
+if [[ "${clang_variant}" == root* ]]; then
   # For the cling variants we use the sources from the ROOT fork
   cd root-source/interpreter/llvm/src/tools/clang
 fi
