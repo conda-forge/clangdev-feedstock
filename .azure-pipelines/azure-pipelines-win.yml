@@ -10,16 +10,16 @@ jobs:
   strategy:
     maxParallel: 4
     matrix:
-      win_clang_variantcling_v0.6cxx_compilervs2015:
-        CONFIG: win_clang_variantcling_v0.6cxx_compilervs2015
+      win_clang_variantcling_v0.6cxx_compilervs2015vc14:
+        CONFIG: win_clang_variantcling_v0.6cxx_compilervs2015vc14
         CONDA_BLD_PATH: D:\\bld\\
         UPLOAD_PACKAGES: True
-      win_clang_variantdefaultcxx_compilervs2015:
-        CONFIG: win_clang_variantdefaultcxx_compilervs2015
+      win_clang_variantdefaultcxx_compilervs2015vc14:
+        CONFIG: win_clang_variantdefaultcxx_compilervs2015vc14
         CONDA_BLD_PATH: D:\\bld\\
         UPLOAD_PACKAGES: True
-      win_clang_variantroot_v6.18.02cxx_compilervs2015:
-        CONFIG: win_clang_variantroot_v6.18.02cxx_compilervs2015
+      win_clang_variantroot_20191220cxx_compilervs2015vc14:
+        CONFIG: win_clang_variantroot_20191220cxx_compilervs2015vc14
         CONDA_BLD_PATH: D:\\bld\\
         UPLOAD_PACKAGES: True
   steps:

@@ -16,8 +16,8 @@ jobs:
       osx_clang_variantdefault:
         CONFIG: osx_clang_variantdefault
         UPLOAD_PACKAGES: True
-      osx_clang_variantroot_v6.18.02:
-        CONFIG: osx_clang_variantroot_v6.18.02
+      osx_clang_variantroot_20191220:
+        CONFIG: osx_clang_variantroot_20191220
         UPLOAD_PACKAGES: True
 
   steps:

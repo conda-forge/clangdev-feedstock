@@ -18,8 +18,8 @@ jobs:
         CONFIG: linux_clang_variantdefault
         UPLOAD_PACKAGES: True
         DOCKER_IMAGE: condaforge/linux-anvil-comp7
-      linux_clang_variantroot_v6.18.02:
-        CONFIG: linux_clang_variantroot_v6.18.02
+      linux_clang_variantroot_20191220:
+        CONFIG: linux_clang_variantroot_20191220
         UPLOAD_PACKAGES: True
         DOCKER_IMAGE: condaforge/linux-anvil-comp7
   steps:
