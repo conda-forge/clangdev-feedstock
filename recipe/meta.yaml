@@ -1,6 +1,5 @@
 {% set version = "9.0.1" %}
 {% set major_version = version.split(".")[0] %}
-{% set sha256 = "5778512b2e065c204010f88777d44b95250671103e434f9dc7363ab2e3804253" %}
 {% set build_number = 0 %}
 
 package:
@@ -9,7 +8,7 @@ package:
 
 source:
   - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version }}/clang-{{ version }}.src.tar.xz
-    sha256: {{ sha256 }}
+    sha256: 5778512b2e065c204010f88777d44b95250671103e434f9dc7363ab2e3804253
     patches:
       - patches/0001-Find-conda-gcc-installation.patch
       - patches/0002-Fix-sysroot-detection-for-linux.patch
@@ -19,8 +18,8 @@ source:
       - patches/amd-roc-2.7.0.diff   # [variant != "hcc"]
       - patches/amd-roc-hcc-2.7.0.diff  # [variant == "hcc"]
     folder: .
-  - url: http://releases.llvm.org/{{ version }}/clang-tools-extra-{{ version }}.src.tar.xz
-    sha256: ea1c86ce352992d7b6f6649bc622f6a2707b9f8b7153e9f9181a35c76aa3ac10
+  - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version }}/clang-tools-extra-{{ version }}.src.tar.xz
+    sha256: b26fd72a78bd7db998a26270ec9ec6a01346651d88fa87b4b323e13049fb6f07
     folder: tools/extra
 
 build:
