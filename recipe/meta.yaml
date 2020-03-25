@@ -1,4 +1,4 @@
-{% set version = "9.0.1" %}
+{% set version = "10.0.0" %}
 {% set major_version = version.split(".")[0] %}
 {% set build_number = 0 %}
 
@@ -8,7 +8,7 @@ package:
 
 source:
   - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version }}/clang-{{ version }}.src.tar.xz
-    sha256: 5778512b2e065c204010f88777d44b95250671103e434f9dc7363ab2e3804253
+    sha256: 885b062b00e903df72631c5f98b9579ed1ed2790f74e5646b4234fa084eacb21
     patches:
       - patches/0001-Find-conda-gcc-installation.patch
       - patches/0002-Fix-sysroot-detection-for-linux.patch
@@ -19,12 +19,12 @@ source:
       - patches/amd-roc-hcc-2.7.0.diff  # [variant == "hcc"]
     folder: .
   - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version }}/clang-tools-extra-{{ version }}.src.tar.xz
-    sha256: b26fd72a78bd7db998a26270ec9ec6a01346651d88fa87b4b323e13049fb6f07
+    sha256: acdf8cf6574b40e6b1dabc93e76debb84a9feb6f22970126b04d4ba18b92911c
     folder: tools/extra
 
 build:
   number: {{ build_number }}
-  skip: True  # [win and vc<14]
+  skip: true  # [win and vc<14]
 
 requirements:
   build:
@@ -53,7 +53,7 @@ test:
     - $PREFIX/bin/clang-check --version  # [unix]
 
     - $PREFIX/bin/clang -v -c mytest.c      # [unix]
-    - "%LIBRARY_BIN%/clang -v -c mytest.c"  # [win]
+    - '%LIBRARY_BIN%/clang -v -c mytest.c'  # [win]
 
     - if not exist %LIBRARY_INC%\\clang\\Lex\\Lexer.h exit 1  # [win]
     - test -f $PREFIX/include/clang/Lex/Lexer.h      # [unix]
@@ -62,12 +62,12 @@ test:
 
 outputs:
   - name: clangdev
-    script: install_clangdev.sh    # [unix]
-    script: install_clangdev.bat   # [win]
+    script: install_clangdev.sh  # [unix]
+    script: install_clangdev.bat  # [win]
     build:
       track_features:
         - hcc          # [variant=="hcc"]
-      string: "{{ variant }}_h{{ PKG_HASH }}_{{ build_number }}"
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       build:
         - {{ compiler('cxx') }}
@@ -96,12 +96,12 @@ outputs:
         - if not exist %LIBRARY_LIB%\\clangAST.lib exit 1            # [win]
 
   - name: libclang
-    script: install_libclang.sh    # [unix]
-    script: install_libclang.bat   # [win]
+    script: install_libclang.sh  # [unix]
+    script: install_libclang.bat  # [win]
     build:
       track_features:
         - hcc          # [variant=="hcc"]
-      string: "{{ variant }}_h{{ PKG_HASH }}_{{ build_number }}"
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       build:
         - {{ compiler('cxx') }}
@@ -123,12 +123,12 @@ outputs:
         - if not exist %LIBRARY_BIN%\\libclang.dll exit 1       # [win]
 
   - name: clang
-    script: install_clang.sh       # [unix]
-    script: install_clang.bat      # [win]
+    script: install_clang.sh  # [unix]
+    script: install_clang.bat  # [win]
     build:
       track_features:
         - hcc          # [variant=="hcc"]
-      string: "{{ variant }}_h{{ PKG_HASH }}_{{ build_number }}"
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       build:
         - {{ compiler('cxx') }}
@@ -160,12 +160,12 @@ outputs:
 
   # Defaults provides this, so let's do the same in conda-forge
   - name: clangxx
-    script: install_clangxx.sh       # [unix]
-    script: install_clangxx.bat      # [win]
+    script: install_clangxx.sh  # [unix]
+    script: install_clangxx.bat  # [win]
     build:
       track_features:
         - hcc          # [variant=="hcc"]
-      string: "{{ variant }}_h{{ PKG_HASH }}_{{ build_number }}"
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       host:
         - {{ pin_subpackage("clang", exact=True) }}
@@ -181,12 +181,12 @@ outputs:
         - clang++ -v -c mytest.cxx
 
   - name: clang-tools
-    script: install_clang_tools.sh    # [unix]
-    script: install_clang_tools.bat   # [win]
+    script: install_clang_tools.sh  # [unix]
+    script: install_clang_tools.bat  # [win]
     build:
       track_features:
         - hcc          # [variant=="hcc"]
-      string: "{{ variant }}_h{{ PKG_HASH }}_{{ build_number }}"
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       build:
         # "compiling .pyc files" fails without this
@@ -221,7 +221,7 @@ outputs:
       skip: true  # [win]
       track_features:
         - hcc          # [variant=="hcc"]
-      string: "{{ variant }}_h{{ PKG_HASH }}_{{ build_number }}"
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     script: build_python_bindings.sh
     requirements:
       host:
