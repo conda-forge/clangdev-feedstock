@@ -17,7 +17,7 @@ source:
       - patches/0001-Set-VERSION-in-osx-as-well.patch
     folder: .
   - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version }}/clang-tools-extra-{{ version }}.src.tar.xz
-    sha256: b26fd72a78bd7db998a26270ec9ec6a01346651d88fa87b4b323e13049fb6f07
+    sha256: 187179b617e4f07bb605cc215da0527e64990b4a7dd5cbcc452a16b64e02c3e1
     folder: tools/extra
 
 build:
