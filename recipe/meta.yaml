@@ -1,6 +1,6 @@
 {% set version = "9.0.1" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 0 %}
+{% set build_number = 1 %}
 
 package:
   name: clang_packages
@@ -21,6 +21,8 @@ source:
   - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version }}/clang-tools-extra-{{ version }}.src.tar.xz
     sha256: b26fd72a78bd7db998a26270ec9ec6a01346651d88fa87b4b323e13049fb6f07
     folder: tools/extra
+    patches:
+      - patches/0001-clang-tools-extra-cmake-Link-against-libclang-cpp-wh.patch
 
 build:
   number: {{ build_number }}
