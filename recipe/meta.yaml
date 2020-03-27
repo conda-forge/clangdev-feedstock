@@ -22,7 +22,8 @@ source:
     sha256: b26fd72a78bd7db998a26270ec9ec6a01346651d88fa87b4b323e13049fb6f07
     folder: tools/extra
     patches:
-      - patches/0001-clang-tools-extra-cmake-Link-against-libclang-cpp-wh.patch
+      - patches/0001-clang-tools-extra-cmake-Use-add_clang_tool-to-instal.patch
+      - patches/0002-clang-tools-extra-cmake-Link-against-libclang-cpp.patch
 
 build:
   number: {{ build_number }}

@@ -1,0 +1,138 @@
+From 43fd338f79ea149e361c6cf7672313abf02ea9a3 Mon Sep 17 00:00:00 2001
+From: Michal Gorny <mgorny@gentoo.org>
+Date: Fri, 4 Oct 2019 05:40:29 +0000
+Subject: [PATCH] [clang-tools-extra] [cmake] Use add_clang_tool() to install
+ tools
+
+Replace add_clang_executable() calls with add_clang_tool() that takes
+care of creating correct, distribution-friendly install target.  While
+at it, remove redundant install calls.
+
+This change also causes clang-move and pp-trace to be installed.
+
+Differential Revision: https://reviews.llvm.org/D68423
+
+git-svn-id: https://llvm.org/svn/llvm-project/clang-tools-extra/trunk@373694 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ clang-apply-replacements/tool/CMakeLists.txt             | 3 ---
+ clang-change-namespace/tool/CMakeLists.txt               | 5 +----
+ clang-include-fixer/find-all-symbols/tool/CMakeLists.txt | 5 +----
+ clang-include-fixer/tool/CMakeLists.txt                  | 3 ---
+ clang-move/tool/CMakeLists.txt                           | 2 +-
+ clang-query/tool/CMakeLists.txt                          | 4 +---
+ pp-trace/CMakeLists.txt                                  | 2 +-
+ 7 files changed, 5 insertions(+), 19 deletions(-)
+
+diff --git a/clang-apply-replacements/tool/CMakeLists.txt b/clang-apply-replacements/tool/CMakeLists.txt
+index 26aa760c7..d15a8b1af 100644
+--- a/clang-apply-replacements/tool/CMakeLists.txt
++++ b/clang-apply-replacements/tool/CMakeLists.txt
+@@ -14,6 +14,3 @@ target_link_libraries(clang-apply-replacements
+   clangToolingCore
+   clangToolingRefactoring
+   )
+-
+-install(TARGETS clang-apply-replacements
+-  RUNTIME DESTINATION bin)
+diff --git a/clang-change-namespace/tool/CMakeLists.txt b/clang-change-namespace/tool/CMakeLists.txt
+index be4b830e5..702bad368 100644
+--- a/clang-change-namespace/tool/CMakeLists.txt
++++ b/clang-change-namespace/tool/CMakeLists.txt
+@@ -4,7 +4,7 @@ set(LLVM_LINK_COMPONENTS
+   Support
+   )
+ 
+-add_clang_executable(clang-change-namespace
++add_clang_tool(clang-change-namespace
+   ClangChangeNamespace.cpp
+   )
+ target_link_libraries(clang-change-namespace
+@@ -20,6 +20,3 @@ target_link_libraries(clang-change-namespace
+   clangTooling
+   clangToolingCore
+   )
+-
+-install(TARGETS clang-change-namespace
+-  RUNTIME DESTINATION bin)
+diff --git a/clang-include-fixer/find-all-symbols/tool/CMakeLists.txt b/clang-include-fixer/find-all-symbols/tool/CMakeLists.txt
+index 64278ad18..7f101ebd9 100644
+--- a/clang-include-fixer/find-all-symbols/tool/CMakeLists.txt
++++ b/clang-include-fixer/find-all-symbols/tool/CMakeLists.txt
+@@ -1,6 +1,6 @@
+ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
+ 
+-add_clang_executable(find-all-symbols
++add_clang_tool(find-all-symbols
+   FindAllSymbolsMain.cpp
+   )
+ 
+@@ -16,9 +16,6 @@ target_link_libraries(find-all-symbols
+   findAllSymbols
+   )
+ 
+-install(TARGETS find-all-symbols
+-  RUNTIME DESTINATION bin)
+-
+ install(PROGRAMS run-find-all-symbols.py
+   DESTINATION share/clang
+   COMPONENT find-all-symbols)
+diff --git a/clang-include-fixer/tool/CMakeLists.txt b/clang-include-fixer/tool/CMakeLists.txt
+index 207995aa6..5b600a463 100644
+--- a/clang-include-fixer/tool/CMakeLists.txt
++++ b/clang-include-fixer/tool/CMakeLists.txt
+@@ -17,9 +17,6 @@ target_link_libraries(clang-include-fixer
+   findAllSymbols
+   )
+ 
+-install(TARGETS clang-include-fixer
+-  RUNTIME DESTINATION bin)
+-
+ install(PROGRAMS clang-include-fixer.el
+   DESTINATION share/clang
+   COMPONENT clang-include-fixer)
+diff --git a/clang-move/tool/CMakeLists.txt b/clang-move/tool/CMakeLists.txt
+index 7bc4f30d9..b6051e4fa 100644
+--- a/clang-move/tool/CMakeLists.txt
++++ b/clang-move/tool/CMakeLists.txt
+@@ -1,6 +1,6 @@
+ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
+ 
+-add_clang_executable(clang-move
++add_clang_tool(clang-move
+   ClangMove.cpp
+   )
+ 
+diff --git a/clang-query/tool/CMakeLists.txt b/clang-query/tool/CMakeLists.txt
+index d6ac0ae78..7071c94cf 100644
+--- a/clang-query/tool/CMakeLists.txt
++++ b/clang-query/tool/CMakeLists.txt
+@@ -1,6 +1,6 @@
+ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
+ 
+-add_clang_executable(clang-query
++add_clang_tool(clang-query
+   ClangQuery.cpp
+   )
+ target_link_libraries(clang-query
+@@ -14,5 +14,3 @@ target_link_libraries(clang-query
+   clangSerialization
+   clangTooling
+   )
+-
+-install(TARGETS clang-query RUNTIME DESTINATION bin)
+diff --git a/pp-trace/CMakeLists.txt b/pp-trace/CMakeLists.txt
+index faa1d51a0..11b45ac63 100644
+--- a/pp-trace/CMakeLists.txt
++++ b/pp-trace/CMakeLists.txt
+@@ -2,7 +2,7 @@ set(LLVM_LINK_COMPONENTS
+   Support
+   )
+ 
+-add_clang_executable(pp-trace
++add_clang_tool(pp-trace
+   PPTrace.cpp
+   PPCallbacksTracker.cpp
+   )
+-- 
+2.21.1 (Apple Git-122.3)
+
