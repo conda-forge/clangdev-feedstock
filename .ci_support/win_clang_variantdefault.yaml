@@ -3,7 +3,7 @@ channel_sources:
 channel_targets:
 - conda-forge main
 clang_variant:
-- cling_v0.6
+- default
 cxx_compiler:
 - vs2015
 pin_run_as_build:
@@ -11,6 +11,3 @@ pin_run_as_build:
     max_pin: x
 vc:
 - '14'
-zip_keys:
-- - vc
-  - cxx_compiler

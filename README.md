@@ -1,5 +1,5 @@
-About clangdev
-==============
+About clangdev_and_clangvariant
+===============================
 
 Home: http://llvm.org/
 
@@ -71,24 +71,24 @@ Current build status
                 </a>
               </td>
             </tr><tr>
-              <td>win_clang_variantcling_v0.6cxx_compilervs2015vc14</td>
+              <td>win_clang_variantcling_v0.6</td>
               <td>
                 <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=master">
-                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=master&jobName=win&configuration=win_clang_variantcling_v0.6cxx_compilervs2015vc14" alt="variant">
+                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=master&jobName=win&configuration=win_clang_variantcling_v0.6" alt="variant">
                 </a>
               </td>
             </tr><tr>
-              <td>win_clang_variantdefaultcxx_compilervs2015vc14</td>
+              <td>win_clang_variantdefault</td>
               <td>
                 <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=master">
-                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=master&jobName=win&configuration=win_clang_variantdefaultcxx_compilervs2015vc14" alt="variant">
+                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=master&jobName=win&configuration=win_clang_variantdefault" alt="variant">
                 </a>
               </td>
             </tr><tr>
-              <td>win_clang_variantroot_20191220cxx_compilervs2015vc14</td>
+              <td>win_clang_variantroot_20191220</td>
               <td>
                 <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=master">
-                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=master&jobName=win&configuration=win_clang_variantroot_20191220cxx_compilervs2015vc14" alt="variant">
+                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=master&jobName=win&configuration=win_clang_variantroot_20191220" alt="variant">
                 </a>
               </td>
             </tr>
@@ -113,10 +113,10 @@ Current release info
 | [![Conda Recipe](https://img.shields.io/badge/recipe-clang_variant-green.svg)](https://anaconda.org/conda-forge/clang_variant) | [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/clang_variant.svg)](https://anaconda.org/conda-forge/clang_variant) | [![Conda Version](https://img.shields.io/conda/vn/conda-forge/clang_variant.svg)](https://anaconda.org/conda-forge/clang_variant) | [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/clang_variant.svg)](https://anaconda.org/conda-forge/clang_variant) |
 | [![Conda Recipe](https://img.shields.io/badge/recipe-clangdev-green.svg)](https://anaconda.org/conda-forge/clangdev) | [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/clangdev.svg)](https://anaconda.org/conda-forge/clangdev) | [![Conda Version](https://img.shields.io/conda/vn/conda-forge/clangdev.svg)](https://anaconda.org/conda-forge/clangdev) | [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/clangdev.svg)](https://anaconda.org/conda-forge/clangdev) |
 
-Installing clangdev
-===================
+Installing clangdev_and_clangvariant
+====================================
 
-Installing `clangdev` from the `conda-forge` channel can be achieved by adding `conda-forge` to your channels with:
+Installing `clangdev_and_clangvariant` from the `conda-forge` channel can be achieved by adding `conda-forge` to your channels with:
 
 ```
 conda config --add channels conda-forge
@@ -173,17 +173,17 @@ Terminology
                   produce the finished article (built conda distributions)
 
 
-Updating clangdev-feedstock
-===========================
+Updating clangdev_and_clangvariant-feedstock
+============================================
 
-If you would like to improve the clangdev recipe or build a new
+If you would like to improve the clangdev_and_clangvariant recipe or build a new
 package version, please fork this repository and submit a PR. Upon submission,
 your changes will be run on the appropriate platforms to give the reviewer an
 opportunity to confirm that the changes result in a successful build. Once
 merged, the recipe will be re-built and uploaded automatically to the
 `conda-forge` channel, whereupon the built conda packages will be available for
 everybody to install and use from the `conda-forge` channel.
-Note that all branches in the conda-forge/clangdev-feedstock are
+Note that all branches in the conda-forge/clangdev_and_clangvariant-feedstock are
 immediately built and any created packages are uploaded, so PRs should be based
 on branches in forks and branches in the main repository should only be used to
 build distinct package versions.
