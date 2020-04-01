@@ -24,7 +24,6 @@ source:
 
 build:
   number: {{ build_number }}
-  skip: True  # [win and vc<14]
 
 requirements:
   build:
