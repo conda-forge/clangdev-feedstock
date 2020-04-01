@@ -1,21 +1,24 @@
 {% set version = "8.0.1" %}
 {% set major_version = version.split(".")[0] %}
-{% set sha256 = "70effd69f7a8ab249f66b0a68aba8b08af52aa2ab710dfb8a0fba102685b1646" %}
-{% set build_number = 1 %}
+{% set build_number = 2 %}
 
 package:
   name: clang_packages
   version: {{ version }}
 
 source:
-  url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version }}/cfe-{{ version }}.src.tar.xz
-  sha256: {{ sha256 }}
-  patches:
-    - patches/0001-Find-conda-gcc-installation.patch
-    - patches/0002-Fix-sysroot-detection-for-linux.patch
-    - patches/0002-clang-add-conda-specific-env-var-CONDA_BUILD_SYSROOT.patch
-    - patches/0003-clang-Fix-normalizeProgramName-s-handling-of-dots-ou.patch
-    - patches/0001-Set-VERSION-in-osx-as-well.patch
+  - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version }}/cfe-{{ version }}.src.tar.xz
+    sha256: 70effd69f7a8ab249f66b0a68aba8b08af52aa2ab710dfb8a0fba102685b1646
+    patches:
+      - patches/0001-Find-conda-gcc-installation.patch
+      - patches/0002-Fix-sysroot-detection-for-linux.patch
+      - patches/0002-clang-add-conda-specific-env-var-CONDA_BUILD_SYSROOT.patch
+      - patches/0003-clang-Fix-normalizeProgramName-s-handling-of-dots-ou.patch
+      - patches/0001-Set-VERSION-in-osx-as-well.patch
+    folder: .
+  - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version }}/clang-tools-extra-{{ version }}.src.tar.xz
+    sha256: 187179b617e4f07bb605cc215da0527e64990b4a7dd5cbcc452a16b64e02c3e1
+    folder: tools/extra
 
 build:
   number: {{ build_number }}
@@ -180,6 +183,7 @@ outputs:
     test:
       commands:
         - clang-check --version
+        - clang-tidy --version
 
   - name: python-clang
     build:
