@@ -12,11 +12,7 @@ pin_run_as_build:
   python:
     min_pin: x.x
     max_pin: x.x
-  vc:
-    max_pin: x
 python:
 - '3.7'
 variant:
 - default
-vc:
-- '14'
