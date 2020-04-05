@@ -11,6 +11,3 @@ variant:
 - default
 vc:
 - '14'
-zip_keys:
-- - vc
-  - cxx_compiler

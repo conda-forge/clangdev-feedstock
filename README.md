@@ -172,4 +172,5 @@ Feedstock Maintainers
 * [@isuruf](https://github.com/isuruf/)
 * [@jakirkham](https://github.com/jakirkham/)
 * [@mattwala](https://github.com/mattwala/)
+* [@timsnyder](https://github.com/timsnyder/)
 
