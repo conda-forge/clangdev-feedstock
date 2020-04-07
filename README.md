@@ -3,7 +3,7 @@ About clang_packages
 
 Home: http://llvm.org/
 
-Package license: NCSA
+Package license: Apache-2.0 WITH LLVM-exception
 
 Feedstock license: BSD 3-Clause
 
@@ -33,13 +33,6 @@ Current build status
               <td>
                 <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=master">
                   <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=master&jobName=linux&configuration=linux_variantdefault" alt="variant">
-                </a>
-              </td>
-            </tr><tr>
-              <td>linux_varianthcc</td>
-              <td>
-                <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=master">
-                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=master&jobName=linux&configuration=linux_varianthcc" alt="variant">
                 </a>
               </td>
             </tr><tr>
