@@ -24,7 +24,7 @@ source:
 
 build:
   number: {{ build_number }}
-  skip: true  # [win and vc<14]
+  skip: true  # [(win and vc<14) or variant=="hcc"]
 
 requirements:
   build:
@@ -218,7 +218,7 @@ outputs:
       noarch: python
       # Building this output using this recipe is only supported on unix
       # It can still be installed on Windows as it is marked as `noarch: python`
-      skip: true  # [win]
+      skip: true  # [win or variant=="hcc"]
       track_features:
         - hcc          # [variant=="hcc"]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
