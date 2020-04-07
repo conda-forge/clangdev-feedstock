@@ -3,7 +3,7 @@ About clang_packages
 
 Home: http://llvm.org/
 
-Package license: NCSA
+Package license: Apache-2.0 WITH LLVM-exception
 
 Feedstock license: BSD 3-Clause
 
