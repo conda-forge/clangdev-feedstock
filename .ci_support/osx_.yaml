@@ -14,3 +14,5 @@ macos_min_version:
 - '10.9'
 variant:
 - default
+vc:
+- '14'

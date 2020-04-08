@@ -6,3 +6,5 @@ cxx_compiler:
 - vs2017
 variant:
 - default
+vc:
+- '14'
