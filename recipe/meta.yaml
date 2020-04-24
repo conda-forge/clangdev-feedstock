@@ -1,6 +1,6 @@
 {% set version = "10.0.0" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 0 %}
+{% set build_number = 1 %}
 
 package:
   name: clang_packages
@@ -146,6 +146,7 @@ outputs:
         - clangdev {{ version }}
         - clangxx {{ version }}
         - clang-tools {{ version }}
+        - llvm-tools {{ version }}
     test:
       commands:
         - clang --version
