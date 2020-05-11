@@ -3,16 +3,13 @@ channel_sources:
 channel_targets:
 - conda-forge main
 cxx_compiler:
-- vs2015
+- gxx
+cxx_compiler_version:
+- '7'
+docker_image:
+- condaforge/linux-anvil-comp7
 libxml2:
 - '2.9'
 pin_run_as_build:
   libxml2:
     max_pin: x.x
-  vc:
-    max_pin: x
-vc:
-- '14'
-zip_keys:
-- - vc
-  - cxx_compiler
