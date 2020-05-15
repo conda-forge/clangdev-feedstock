@@ -5,3 +5,4 @@ travis:
 provider:
   win: azure
 # aarch64 and ppc64le are built manually because they don't fit in the CI timeouts
+conda_forge_output_validation: true
