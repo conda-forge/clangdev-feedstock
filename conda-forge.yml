@@ -9,3 +9,4 @@ provider:
   linux: azure
   osx: azure
   win: azure
+conda_forge_output_validation: true
