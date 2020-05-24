@@ -16,7 +16,7 @@ index 2ad45097..1ad905a4 100644
    static const char *const AArch64Triples[] = {
        "aarch64-none-linux-gnu", "aarch64-linux-gnu", "aarch64-redhat-linux",
 -      "aarch64-suse-linux", "aarch64-linux-android"};
-+      "aarch64-suse-linux", "aarch64-linux-android", "aarch64-conda_cos7-linux-gnu"};
++      "aarch64-suse-linux", "aarch64-linux-android", "aarch64-conda_cos7-linux-gnu", "aarch64-conda-linux-gnu"};
    static const char *const AArch64beLibDirs[] = {"/lib"};
    static const char *const AArch64beTriples[] = {"aarch64_be-none-linux-gnu",
                                                   "aarch64_be-linux-gnu"};
@@ -26,7 +26,7 @@ index 2ad45097..1ad905a4 100644
        "x86_64-slackware-linux", "x86_64-unknown-linux",
 -      "x86_64-amazon-linux",    "x86_64-linux-android"};
 +      "x86_64-amazon-linux",    "x86_64-linux-android",
-+      "x86_64-conda_cos6-linux-gnu", "x86_64-conda_cos7-linux-gnu"};
++      "x86_64-conda_cos6-linux-gnu", "x86_64-conda_cos7-linux-gnu", "x86_64-conda-linux-gnu"};
    static const char *const X32LibDirs[] = {"/libx32"};
    static const char *const X86LibDirs[] = {"/lib32", "/lib"};
    static const char *const X86Triples[] = {
@@ -35,7 +35,7 @@ index 2ad45097..1ad905a4 100644
    static const char *const PPC64LETriples[] = {
        "powerpc64le-linux-gnu", "powerpc64le-unknown-linux-gnu",
 -      "powerpc64le-suse-linux", "ppc64le-redhat-linux"};
-+      "powerpc64le-suse-linux", "ppc64le-redhat-linux", "powerpc64le-conda_cos7-linux-gnu"};
++      "powerpc64le-suse-linux", "ppc64le-redhat-linux", "powerpc64le-conda_cos7-linux-gnu", "powerpc64le-conda-linux-gnu"};
  
    static const char *const RISCV32LibDirs[] = {"/lib", "/lib32"};
    static const char *const RISCVTriples[] = {"riscv32-unknown-linux-gnu",
