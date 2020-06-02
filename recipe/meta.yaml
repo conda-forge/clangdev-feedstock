@@ -1,7 +1,7 @@
 {% set version = "5.0.0" %}
 {% set sha256 = "019f23c2192df793ac746595e94a403908749f8e0c484b403476d2611dd20970" %}
 
-{% set build_number = "1006" %}
+{% set build_number = "1007" %}
 
 {% if not clang_variant %}
 {% set clang_variant = "default" %}
@@ -20,7 +20,7 @@ source:
   git_rev: {{ clang_variant|replace('cling_', 'cling-') }}
 {% elif clang_variant.startswith("root") %}
   git_url: https://github.com/root-project/root.git
-  sha256: fde5aa88ea02dfcd9fe20c346ece1c2b6aabfe6d
+  sha256: c100d61bd56d05058843da021cf1f740166aad38
   folder: root-source
 {% endif %}
 
