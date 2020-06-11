@@ -20,7 +20,7 @@ source:
   git_rev: {{ clang_variant|replace('cling_', 'cling-') }}
 {% elif clang_variant.startswith("root") %}
   git_url: https://github.com/root-project/root.git
-  sha256: c100d61bd56d05058843da021cf1f740166aad38
+  git_rev: c100d61bd56d05058843da021cf1f740166aad38
   folder: root-source
 {% endif %}
 
