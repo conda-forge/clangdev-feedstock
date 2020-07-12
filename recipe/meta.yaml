@@ -131,8 +131,10 @@ outputs:
       track_features:
         - hcc          # [variant=="hcc"]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
-      run_exports:
+      {% if not win %}
+      run_exports:                                                              # [unix]
         - {{ pin_subpackage("libclang-cpp" + major_version, max_pin="x.x") }}   # [unix]
+      {% endif %}
     requirements:
       build:
         - {{ compiler('cxx') }}
