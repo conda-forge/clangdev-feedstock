@@ -79,6 +79,7 @@ outputs:
         - {{ pin_subpackage("clangxx", exact=True) }}
         - {{ pin_subpackage("clang-tools", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
+        - {{ pin_subpackage("libclang-cpp", exact=True) }}
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
       run:
@@ -86,6 +87,7 @@ outputs:
         - {{ pin_subpackage("clangxx", exact=True) }}
         - {{ pin_subpackage("clang-tools", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
+        - {{ pin_subpackage("libclang-cpp", exact=True) }}
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
         - llvmdev =={{ version }}
     test:
@@ -96,7 +98,36 @@ outputs:
         - if not exist %LIBRARY_LIB%\\clangAST.lib exit 1            # [win]
 
   - name: libclang-cpp{{ major_version }}
-    script: install_libclang.sh  # [unix]
+    script: install_libclang_cpp.sh  # [unix]
+    build:
+      track_features:
+        - hcc          # [variant=="hcc"]
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+      run_exports:
+        - {{ pin_subpackage("libclang-cpp" + major_version, max_pin="x.x") }}   # [unix]
+      skip: True  # [win]
+    requirements:
+      build:
+        - {{ compiler('cxx') }}
+        - cmake >=3.4.3
+        - ninja  # [win]
+        - make   # [unix]
+      host:
+        - libcxx {{ cxx_compiler_version }}  # [osx]
+        - llvmdev =={{ version }}
+        - llvm =={{ version }}
+        - {{ pin_subpackage("clang", exact=True) }}
+      run:
+        - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
+    test:
+      commands:
+        - test ! -f "$PREFIX/lib/libclang-cpp.so"                           # [linux]
+        - test -f "$PREFIX/lib/libclang-cpp.so.{{ major_version }}"         # [linux]
+        - test ! -f "$PREFIX/lib/libclang-cpp.dylib"                        # [osx]
+        - test -f "$PREFIX/lib/libclang-cpp.{{ major_version }}.dylib"      # [osx]
+
+  - name: libclang-cpp
+    script: install_libclang_cpp.sh  # [unix]
     build:
       track_features:
         - hcc          # [variant=="hcc"]
@@ -114,12 +145,13 @@ outputs:
         - llvmdev =={{ version }}
         - llvm =={{ version }}
         - {{ pin_subpackage("clang", exact=True) }}
+        - {{ pin_subpackage("libclang-cpp" + major_version, exact=True) }}  # [unix]
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
+        - {{ pin_subpackage("libclang-cpp" + major_version, exact=True) }}  # [unix]
     test:
       commands:
         - test -f "$PREFIX/lib/libclang-cpp.so"                     # [linux]
-        - test -f "$PREFIX/lib/libclang-cpp.so.{{ major_version }}"   # [linux]
         - test -f "$PREFIX/lib/libclang-cpp.dylib"                  # [osx]
         - if not exist %LIBRARY_BIN%\\libclang-cpp.dll exit 1       # [win]
 
