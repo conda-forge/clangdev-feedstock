@@ -153,7 +153,7 @@ outputs:
       commands:
         - test -f "$PREFIX/lib/libclang-cpp.so"                     # [linux]
         - test -f "$PREFIX/lib/libclang-cpp.dylib"                  # [osx]
-        - if not exist %LIBRARY_BIN%\\libclang-cpp.dll exit 1       # [win]
+        - if exist %LIBRARY_BIN%\\libclang-cpp.dll exit 1           # [win]
 
   - name: libclang
     script: install_libclang.sh  # [unix]
