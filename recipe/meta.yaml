@@ -1,6 +1,6 @@
 {% set version = "10.0.0" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 2 %}
+{% set build_number = 3 %}
 
 package:
   name: clang_packages
@@ -79,6 +79,7 @@ outputs:
         - {{ pin_subpackage("clangxx", exact=True) }}
         - {{ pin_subpackage("clang-tools", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
+        - {{ pin_subpackage("libclang-cpp", exact=True) }}
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
       run:
@@ -86,6 +87,7 @@ outputs:
         - {{ pin_subpackage("clangxx", exact=True) }}
         - {{ pin_subpackage("clang-tools", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
+        - {{ pin_subpackage("libclang-cpp", exact=True) }}
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
         - llvmdev =={{ version }}
     test:
@@ -94,6 +96,64 @@ outputs:
         - test -f "$PREFIX/lib/libclangAST.a"               # [unix]
         - if not exist %LIBRARY_INC%\\clang/Config/config.h exit 1   # [win]
         - if not exist %LIBRARY_LIB%\\clangAST.lib exit 1            # [win]
+
+  - name: libclang-cpp{{ major_version }}
+    script: install_libclang_cpp.sh  # [unix]
+    build:
+      track_features:
+        - hcc          # [variant=="hcc"]
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+      run_exports:
+        - {{ pin_subpackage("libclang-cpp" + major_version, max_pin="x.x") }}   # [unix]
+      skip: True  # [win]
+    requirements:
+      build:
+        - {{ compiler('cxx') }}
+        - cmake >=3.4.3
+        - ninja  # [win]
+        - make   # [unix]
+      host:
+        - libcxx {{ cxx_compiler_version }}  # [osx]
+        - llvmdev =={{ version }}
+        - llvm =={{ version }}
+      run:
+        - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
+    test:
+      commands:
+        - test ! -f "$PREFIX/lib/libclang-cpp.so"                           # [linux]
+        - test -f "$PREFIX/lib/libclang-cpp.so.{{ major_version }}"         # [linux]
+        - test ! -f "$PREFIX/lib/libclang-cpp.dylib"                        # [osx]
+        - test -f "$PREFIX/lib/libclang-cpp.{{ major_version }}.dylib"      # [osx]
+
+  - name: libclang-cpp
+    script: install_libclang_cpp.sh  # [unix]
+    build:
+      track_features:
+        - hcc          # [variant=="hcc"]
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+      {% if not win %}
+      run_exports:                                                              # [unix]
+        - {{ pin_subpackage("libclang-cpp" + major_version, max_pin="x.x") }}   # [unix]
+      {% endif %}
+    requirements:
+      build:
+        - {{ compiler('cxx') }}
+        - cmake >=3.4.3
+        - ninja  # [win]
+        - make   # [unix]
+      host:
+        - libcxx {{ cxx_compiler_version }}  # [osx]
+        - llvmdev =={{ version }}
+        - llvm =={{ version }}
+        - {{ pin_subpackage("libclang-cpp" + major_version, exact=True) }}  # [unix]
+      run:
+        - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
+        - {{ pin_subpackage("libclang-cpp" + major_version, exact=True) }}  # [unix]
+    test:
+      commands:
+        - test -f "$PREFIX/lib/libclang-cpp.so"                     # [linux]
+        - test -f "$PREFIX/lib/libclang-cpp.dylib"                  # [osx]
+        - if exist %LIBRARY_BIN%\\libclang-cpp.dll exit 1           # [win]
 
   - name: libclang
     script: install_libclang.sh  # [unix]
@@ -140,8 +200,10 @@ outputs:
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
+        - {{ pin_compatible("libclang-cpp" + major_version, exact=True) }}  # [unix]
       run:
-        - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
+        - {{ pin_compatible("libcxx", max_pin=None) }}      # [osx]
+        - {{ pin_compatible("libclang-cpp" + major_version, exact=True) }}  # [unix]
       run_constrained:
         - clangdev {{ version }}
         - clangxx {{ version }}
