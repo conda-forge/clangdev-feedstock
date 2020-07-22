@@ -1,6 +1,6 @@
-{% set version = "10.0.0" %}
+{% set version = "10.0.1" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 3 %}
+{% set build_number = 0 %}
 
 package:
   name: clang_packages
@@ -8,7 +8,7 @@ package:
 
 source:
   - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version }}/clang-{{ version }}.src.tar.xz
-    sha256: 885b062b00e903df72631c5f98b9579ed1ed2790f74e5646b4234fa084eacb21
+    sha256: f99afc382b88e622c689b6d96cadfa6241ef55dca90e87fc170352e12ddb2b24
     patches:
       - patches/0001-Find-conda-gcc-installation.patch
       - patches/0002-Fix-sysroot-detection-for-linux.patch
@@ -19,7 +19,7 @@ source:
       #- patches/amd-roc-hcc-2.7.0.diff  # [variant == "hcc"]
     folder: .
   - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version }}/clang-tools-extra-{{ version }}.src.tar.xz
-    sha256: acdf8cf6574b40e6b1dabc93e76debb84a9feb6f22970126b04d4ba18b92911c
+    sha256: d093782bcfcd0c3f496b67a5c2c997ab4b85816b62a7dd5b27026634ccf5c11a
     folder: tools/extra
 
 build:
@@ -105,7 +105,7 @@ outputs:
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:
         - {{ pin_subpackage("libclang-cpp" + major_version, max_pin="x.x") }}   # [unix]
-      skip: True  # [win]
+      skip: true  # [win]
     requirements:
       build:
         - {{ compiler('cxx') }}
@@ -132,7 +132,7 @@ outputs:
         - hcc          # [variant=="hcc"]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       {% if not win %}
-      run_exports:                                                              # [unix]
+      run_exports:   # [unix]
         - {{ pin_subpackage("libclang-cpp" + major_version, max_pin="x.x") }}   # [unix]
       {% endif %}
     requirements:
