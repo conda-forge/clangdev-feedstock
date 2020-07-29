@@ -3,8 +3,10 @@ channel_sources:
 channel_targets:
 - conda-forge main
 clang_variant:
-- cling_v0.6
+- root_20200518
 cxx_compiler:
 - vs2017
+target_platform:
+- win-64
 vc:
 - '14'

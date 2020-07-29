@@ -3,10 +3,10 @@ channel_sources:
 channel_targets:
 - conda-forge main
 clang_variant:
-- root_20200518
+- root_20190625
 cxx_compiler:
-- gxx
-cxx_compiler_version:
-- '7'
-docker_image:
-- condaforge/linux-anvil-comp7
+- vs2017
+target_platform:
+- win-64
+vc:
+- '14'

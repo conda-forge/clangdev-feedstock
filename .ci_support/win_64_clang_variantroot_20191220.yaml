@@ -3,14 +3,10 @@ channel_sources:
 channel_targets:
 - conda-forge main
 clang_variant:
-- default
+- root_20191220
 cxx_compiler:
-- vs2015
-pin_run_as_build:
-  vc:
-    max_pin: x
+- vs2017
+target_platform:
+- win-64
 vc:
 - '14'
-zip_keys:
-- - vc
-  - cxx_compiler
