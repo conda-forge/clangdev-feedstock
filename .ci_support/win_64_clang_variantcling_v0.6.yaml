@@ -5,12 +5,8 @@ channel_targets:
 clang_variant:
 - cling_v0.6
 cxx_compiler:
-- vs2015
-pin_run_as_build:
-  vc:
-    max_pin: x
+- vs2017
+target_platform:
+- win-64
 vc:
 - '14'
-zip_keys:
-- - vc
-  - cxx_compiler

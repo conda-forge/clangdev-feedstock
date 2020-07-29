@@ -5,11 +5,11 @@ channel_sources:
 channel_targets:
 - conda-forge main
 clang_variant:
-- root_20191220
+- default
 cxx_compiler:
 - clangxx
 cxx_compiler_version:
-- '9'
+- '10'
 libxml2:
 - '2.9'
 macos_machine:
@@ -19,7 +19,5 @@ macos_min_version:
 pin_run_as_build:
   libxml2:
     max_pin: x.x
-  zlib:
-    max_pin: x.x
-zlib:
-- '1.2'
+target_platform:
+- osx-64

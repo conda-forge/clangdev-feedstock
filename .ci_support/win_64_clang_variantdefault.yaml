@@ -5,8 +5,8 @@ channel_targets:
 clang_variant:
 - default
 cxx_compiler:
-- gxx
-cxx_compiler_version:
-- '7'
-docker_image:
-- condaforge/linux-anvil-comp7
+- vs2017
+target_platform:
+- win-64
+vc:
+- '14'
