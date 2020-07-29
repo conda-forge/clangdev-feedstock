@@ -15,10 +15,10 @@ if [[ "$(uname)" == "Darwin" ]]; then
 fi
 
 if [[ "$(uname)" == "Linux" && "$cxx_compiler" == "gxx" ]]; then
-    sed -i.bak -e 's@SYSROOT_PATH_TO_BE_REPLACED_WITH_SED@'"${PREFIX}/${HOST}/sysroot"'@g' \
+    sed -i.bak -e 's@SYSROOT_PATH_TO_BE_REPLACED_WITH_SED@'"${CONDA_BUILD_SYSROOT}"'@g' \
         lib/Driver/ToolChains/Linux_sysroot.cc && rm $_.bak
 
-    sed -i.bak -e 's@AddPath("/usr/local/include", System, false);@AddPath("'"${PREFIX}/${HOST}/sysroot/usr/include"'", System, false);@g' \
+    sed -i.bak -e 's@AddPath("/usr/local/include", System, false);@AddPath("'"${CONDA_BUILD_SYSROOT}"'", System, false);@g' \
         lib/Frontend/InitHeaderSearch.cpp && rm $_.bak
 fi
 
