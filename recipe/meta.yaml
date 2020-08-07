@@ -76,6 +76,7 @@ outputs:
         - cmake >=3.4.3
         - ninja  # [win]
         - make   # [unix]
+        - llvmdev =={{ version }}    # [build_platform != target_platform]
       host:
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clangxx", exact=True) }}
@@ -114,6 +115,7 @@ outputs:
         - cmake >=3.4.3
         - ninja  # [win]
         - make   # [unix]
+        - llvmdev =={{ version }}    # [build_platform != target_platform]
       host:
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
@@ -143,6 +145,7 @@ outputs:
         - cmake >=3.4.3
         - ninja  # [win]
         - make   # [unix]
+        - llvmdev =={{ version }}    # [build_platform != target_platform]
       host:
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
@@ -170,6 +173,7 @@ outputs:
         - cmake >=3.4.3
         - ninja  # [win]
         - make   # [unix]
+        - llvmdev =={{ version }}    # [build_platform != target_platform]
       host:
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
@@ -198,6 +202,7 @@ outputs:
         - cmake >=3.4.3
         - ninja  # [win]
         - make   # [unix]
+        - llvmdev =={{ version }}    # [build_platform != target_platform]
       host:
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
@@ -260,6 +265,7 @@ outputs:
         - cmake >=3.4.3
         - ninja  # [win]
         - make   # [unix]
+        - llvmdev =={{ version }}    # [build_platform != target_platform]
       host:
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clangxx", exact=True) }}
