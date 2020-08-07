@@ -4,9 +4,6 @@ IFS='.' read -r -a PKG_VER_ARRAY <<< "${PKG_VERSION}"
 
 sed -i.bak "s/libLTO.dylib/libLTO.${PKG_VER_ARRAY[0]}.dylib/g" lib/Driver/ToolChains/Darwin.cpp
 
-mkdir build
-cd build
-
 if [[ "$variant" == "hcc" ]]; then
   CMAKE_ARGS="$CMAKE_ARGS -DKALMAR_BACKEND=HCC_BACKEND_AMDGPU -DHCC_VERSION_STRING=2.7-19365-24e69cd8-24e69cd8-24e69cd8"
   CMAKE_ARGS="$CMAKE_ARGS -DHCC_VERSION_MAJOR=2 -DHCC_VERSION_MINOR=7 -DHCC_VERSION_PATCH=19365"
@@ -14,13 +11,12 @@ if [[ "$variant" == "hcc" ]]; then
 fi
 
 if [[ "$CC_FOR_BUILD" != "" && "$CC_FOR_BUILD" != "$CC" ]]; then
-  # This is a really convoluted way to cross compile.
-  # We are going to ask clang to build the native tools with host compiler
-  # and since we have QEMU, it's going to work.
-  # Correct way would be to build `llvm-tblgen` and `clang-tblgen` for the
-  # native platform and use them, but who has time?
-  CMAKE_ARGS="${CMAKE_ARGS} -DLLVM_USE_HOST_TOOLS=ON"
+  CMAKE_ARGS="${CMAKE_ARGS} -DLLVM_TABLEGEN_EXE=$BUILD_PREFIX/bin/llvm-tblgen -DNATIVE_LLVM_DIR=$BUILD_PREFIX/lib/cmake/llvm"
+  CMAKE_ARGS="${CMAKE_ARGS} -DCROSS_TOOLCHAIN_FLAGS_NATIVE=-DCMAKE_C_COMPILER=$CC_FOR_BUILD;-DCMAKE_CXX_COMPILER=$CXX_FOR_BUILD;-DCMAKE_C_FLAGS=-O2;-DCMAKE_CXX_FLAGS=-O2;-DCMAKE_EXE_LINKER_FLAGS=;-DCMAKE_MODULE_LINKER_FLAGS=;-DCMAKE_SHARED_LINKER_FLAGS=;-DCMAKE_STATIC_LINKER_FLAGS=;"
 fi
+
+mkdir build
+cd build
 
 cmake \
   -DCMAKE_INSTALL_PREFIX=$PREFIX \

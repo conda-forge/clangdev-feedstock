@@ -1,13 +1,19 @@
---- CMakeLists.txt      2020-08-07 20:15:39.605174899 +0000
-+++ CMakeLists.txt      2020-08-07 20:15:14.288910164 +0000
-@@ -111,6 +111,10 @@
+--- CMakeLists.txt.old  2020-08-07 20:15:39.605174899 +0000
++++ CMakeLists.txt      2020-08-07 20:20:01.383910098 +0000
+@@ -111,6 +111,16 @@
    option(LLVM_ENABLE_LIBXML2 "Use libxml2 if available." ON)
  
    include(AddLLVM)
-+  if(LLVM_USE_HOST_TOOLS)
++  if(CMAKE_CROSSCOMPILING)
++    set(LLVM_USE_HOST_TOOLS ON)
 +    include(CrossCompile)
-+    llvm_create_cross_target(Clang NATIVE "" Release)
-+  endif(LLVM_USE_HOST_TOOLS)
++    if (NOT NATIVE_LLVM_DIR)
++      message(FATAL_ERROR
++       "Crosscompiling standalone requires the variable NATIVE_LLVM_DIR
++       for building the native lldb-tblgen used during the build process.")
++    endif()
++    llvm_create_cross_target(Clang NATIVE "" Release -DLLVM_DIR=${NATIVE_LLVM_DIR})
++  endif()
    include(TableGen)
    include(HandleLLVMOptions)
    include(VersionFromVCS)

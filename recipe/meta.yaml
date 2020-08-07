@@ -15,7 +15,7 @@ source:
       - patches/0002-clang-add-conda-specific-env-var-CONDA_BUILD_SYSROOT.patch
       - patches/0003-clang-Fix-normalizeProgramName-s-handling-of-dots-ou.patch
       - patches/0001-Set-VERSION-in-osx-as-well.patch
-      - patches/cross-compile.patch
+      - patches/cross-compile.diff
       #- patches/amd-roc-2.7.0.diff   # [variant != "hcc"]
       #- patches/amd-roc-hcc-2.7.0.diff  # [variant == "hcc"]
     folder: .
@@ -38,6 +38,7 @@ requirements:
     # Building with ninja on windows for parallel builds
     - ninja  # [win]
     - make   # [unix]
+    - llvmdev =={{ version }}    # [build_platform != target_platform]
   host:
     - libcxx {{ cxx_compiler_version }}  # [osx]
     - llvmdev =={{ version }}
