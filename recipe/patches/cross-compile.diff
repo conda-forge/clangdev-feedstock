@@ -1,0 +1,13 @@
+--- CMakeLists.txt      2020-08-07 20:15:39.605174899 +0000
++++ CMakeLists.txt      2020-08-07 20:15:14.288910164 +0000
+@@ -111,6 +111,10 @@
+   option(LLVM_ENABLE_LIBXML2 "Use libxml2 if available." ON)
+ 
+   include(AddLLVM)
++  if(LLVM_USE_HOST_TOOLS)
++    include(CrossCompile)
++    llvm_create_cross_target(Clang NATIVE "" Release)
++  endif(LLVM_USE_HOST_TOOLS)
+   include(TableGen)
+   include(HandleLLVMOptions)
+   include(VersionFromVCS)

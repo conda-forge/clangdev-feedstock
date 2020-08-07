@@ -14,7 +14,12 @@ if [[ "$variant" == "hcc" ]]; then
 fi
 
 if [[ "$CC_FOR_BUILD" != "" && "$CC_FOR_BUILD" != "$CC" ]]; then
-  CMAKE_ARGS="${CMAKE_ARGS} -DCROSS_TOOLCHAIN_FLAGS_NATIVE=-DCMAKE_C_COMPILER=$CC_FOR_BUILD;-DCMAKE_CXX_COMPILER=$CXX_FOR_BUILD;-DCMAKE_C_FLAGS=-O2;-DCMAKE_CXX_FLAGS=-O2"
+  # This is a really convoluted way to cross compile.
+  # We are going to ask clang to build the native tools with host compiler
+  # and since we have QEMU, it's going to work.
+  # Correct way would be to build `llvm-tblgen` and `clang-tblgen` for the
+  # native platform and use them, but who has time?
+  CMAKE_ARGS="${CMAKE_ARGS} -DLLVM_USE_HOST_TOOLS=ON"
 fi
 
 cmake \
