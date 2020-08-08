@@ -1,15 +1,15 @@
 channel_sources:
-- conda-forge,defaults
+- conda-forge/label/llvm_rc,conda-forge,defaults
 channel_targets:
-- conda-forge main
+- conda-forge llvm_rc
 cxx_compiler:
 - gxx
 cxx_compiler_version:
-- '7'
+- '8'
 docker_image:
 - condaforge/linux-anvil-comp7
 target_platform:
-- linux-64
+- linux-ppc64le
 variant:
 - default
 vc:
