@@ -18,10 +18,10 @@ x86_64-apple-darwin13.4
  1 file changed, 22 insertions(+), 1 deletion(-)
 
 diff --git a/lib/Driver/ToolChain.cpp b/lib/Driver/ToolChain.cpp
-index cf3db34..31b093b 100644
+index b8c12fc9..e6eb95fa 100644
 --- a/lib/Driver/ToolChain.cpp
 +++ b/lib/Driver/ToolChain.cpp
-@@ -49,6 +49,7 @@ using namespace driver;
+@@ -50,6 +50,7 @@ using namespace driver;
  using namespace tools;
  using namespace llvm;
  using namespace llvm::opt;
@@ -29,7 +29,7 @@ index cf3db34..31b093b 100644
  
  static llvm::opt::Arg *GetRTTIArgument(const ArgList &Args) {
    return Args.getLastArg(options::OPT_mkernel, options::OPT_fapple_kext,
-@@ -154,10 +155,30 @@ static const DriverSuffix *FindDriverSuffix(StringRef ProgName, size_t &Pos) {
+@@ -165,10 +166,30 @@ static const DriverSuffix *FindDriverSuffix(StringRef ProgName, size_t &Pos) {
    return nullptr;
  }
  
@@ -56,11 +56,8 @@ index cf3db34..31b093b 100644
  /// Normalize the program name from argv[0] by stripping the file extension if
  /// present and lower-casing the string on Windows.
  static std::string normalizeProgramName(llvm::StringRef Argv0) {
--  std::string ProgName = llvm::sys::path::stem(Argv0);
-+  std::string ProgName = program_name_stem(Argv0);
+-  std::string ProgName = std::string(llvm::sys::path::stem(Argv0));
++  std::string ProgName = std::string(program_name_stem(Argv0));
  #ifdef _WIN32
    // Transform to lowercase for case insensitive file systems.
    std::transform(ProgName.begin(), ProgName.end(), ProgName.begin(), ::tolower);
--- 
-2.5.4 (Apple Git-61)
-
