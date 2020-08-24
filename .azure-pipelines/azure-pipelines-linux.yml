@@ -12,6 +12,10 @@ jobs:
         CONFIG: linux_64_clang_variantcling_v0.6
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: condaforge/linux-anvil-comp7
+      linux_64_clang_variantcling_v0.7:
+        CONFIG: linux_64_clang_variantcling_v0.7
+        UPLOAD_PACKAGES: 'True'
+        DOCKER_IMAGE: condaforge/linux-anvil-comp7
       linux_64_clang_variantdefault:
         CONFIG: linux_64_clang_variantdefault
         UPLOAD_PACKAGES: 'True'

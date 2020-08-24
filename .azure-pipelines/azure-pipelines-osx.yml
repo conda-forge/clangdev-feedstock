@@ -5,11 +5,14 @@
 jobs:
 - job: osx
   pool:
-    vmImage: macOS-10.14
+    vmImage: macOS-10.15
   strategy:
     matrix:
       osx_64_clang_variantcling_v0.6:
         CONFIG: osx_64_clang_variantcling_v0.6
+        UPLOAD_PACKAGES: 'True'
+      osx_64_clang_variantcling_v0.7:
+        CONFIG: osx_64_clang_variantcling_v0.7
         UPLOAD_PACKAGES: 'True'
       osx_64_clang_variantdefault:
         CONFIG: osx_64_clang_variantdefault
