@@ -5,17 +5,29 @@ Home: http://llvm.org/
 
 Package license: NCSA
 
-Feedstock license: BSD-3-Clause
+Feedstock license: [BSD-3-Clause](https://github.com/conda-forge/clangdev-feedstock/blob/master/LICENSE.txt)
 
 Summary: Development headers and libraries for Clang
-
-
 
 Current build status
 ====================
 
 
-<table>
+<table><tr>
+    <td>Travis</td>
+    <td>
+      <a href="https://travis-ci.com/conda-forge/clangdev-feedstock">
+        <img alt="macOS" src="https://img.shields.io/travis/com/conda-forge/clangdev-feedstock/master.svg?label=macOS">
+      </a>
+    </td>
+  </tr><tr>
+    <td>Drone</td>
+    <td>
+      <a href="https://cloud.drone.io/conda-forge/clangdev-feedstock">
+        <img alt="linux" src="https://img.shields.io/drone/build/conda-forge/clangdev-feedstock/master.svg?label=Linux">
+      </a>
+    </td>
+  </tr>
     
   <tr>
     <td>Azure</td>
@@ -68,6 +80,90 @@ Current build status
               <td>
                 <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=master">
                   <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=master&jobName=linux&configuration=linux_64_clang_variantroot_20200518" alt="variant">
+                </a>
+              </td>
+            </tr><tr>
+              <td>linux_aarch64_clang_variantcling_v0.6</td>
+              <td>
+                <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=master">
+                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=master&jobName=linux&configuration=linux_aarch64_clang_variantcling_v0.6" alt="variant">
+                </a>
+              </td>
+            </tr><tr>
+              <td>linux_aarch64_clang_variantcling_v0.7</td>
+              <td>
+                <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=master">
+                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=master&jobName=linux&configuration=linux_aarch64_clang_variantcling_v0.7" alt="variant">
+                </a>
+              </td>
+            </tr><tr>
+              <td>linux_aarch64_clang_variantdefault</td>
+              <td>
+                <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=master">
+                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=master&jobName=linux&configuration=linux_aarch64_clang_variantdefault" alt="variant">
+                </a>
+              </td>
+            </tr><tr>
+              <td>linux_aarch64_clang_variantroot_20190625</td>
+              <td>
+                <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=master">
+                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=master&jobName=linux&configuration=linux_aarch64_clang_variantroot_20190625" alt="variant">
+                </a>
+              </td>
+            </tr><tr>
+              <td>linux_aarch64_clang_variantroot_20191220</td>
+              <td>
+                <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=master">
+                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=master&jobName=linux&configuration=linux_aarch64_clang_variantroot_20191220" alt="variant">
+                </a>
+              </td>
+            </tr><tr>
+              <td>linux_aarch64_clang_variantroot_20200518</td>
+              <td>
+                <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=master">
+                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=master&jobName=linux&configuration=linux_aarch64_clang_variantroot_20200518" alt="variant">
+                </a>
+              </td>
+            </tr><tr>
+              <td>linux_ppc64le_clang_variantcling_v0.6</td>
+              <td>
+                <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=master">
+                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=master&jobName=linux&configuration=linux_ppc64le_clang_variantcling_v0.6" alt="variant">
+                </a>
+              </td>
+            </tr><tr>
+              <td>linux_ppc64le_clang_variantcling_v0.7</td>
+              <td>
+                <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=master">
+                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=master&jobName=linux&configuration=linux_ppc64le_clang_variantcling_v0.7" alt="variant">
+                </a>
+              </td>
+            </tr><tr>
+              <td>linux_ppc64le_clang_variantdefault</td>
+              <td>
+                <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=master">
+                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=master&jobName=linux&configuration=linux_ppc64le_clang_variantdefault" alt="variant">
+                </a>
+              </td>
+            </tr><tr>
+              <td>linux_ppc64le_clang_variantroot_20190625</td>
+              <td>
+                <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=master">
+                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=master&jobName=linux&configuration=linux_ppc64le_clang_variantroot_20190625" alt="variant">
+                </a>
+              </td>
+            </tr><tr>
+              <td>linux_ppc64le_clang_variantroot_20191220</td>
+              <td>
+                <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=master">
+                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=master&jobName=linux&configuration=linux_ppc64le_clang_variantroot_20191220" alt="variant">
+                </a>
+              </td>
+            </tr><tr>
+              <td>linux_ppc64le_clang_variantroot_20200518</td>
+              <td>
+                <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=master">
+                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=master&jobName=linux&configuration=linux_ppc64le_clang_variantroot_20200518" alt="variant">
                 </a>
               </td>
             </tr><tr>
