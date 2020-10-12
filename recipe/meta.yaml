@@ -60,6 +60,7 @@ outputs:
         # "compiling .pyc files" fails without this
         - python >3
         - llvmdev =={{ version }}    # [build_platform != target_platform]
+        - make
       host:
         - llvmdev =={{ version }}
         - libxml2  # [osx]

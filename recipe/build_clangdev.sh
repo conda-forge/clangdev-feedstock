@@ -9,6 +9,7 @@ if [[ "$(uname)" == "Linux" ]]; then
   patch -p0 -i "${RECIPE_DIR}/disable-libxml2-detection.patch"
   patch -p1 -i "${RECIPE_DIR}/Manually-set-linux-sysroot-for-conda.patch"
   patch -p1 -i "${RECIPE_DIR}/Use-external-char-instead-of-std-string-to-avoid-pre.patch"
+  patch -p0 -i "${RECIPE_DIR}/cross-compile.diff"
 fi
 if [[ "$(uname)" == "Darwin" ]]; then
   patch -p1 -i "${RECIPE_DIR}/Improve-logic-for-finding-the-macos-sysroot-for-cond.patch"
