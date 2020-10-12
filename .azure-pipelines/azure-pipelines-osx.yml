@@ -26,7 +26,6 @@ jobs:
       osx_64_clang_variantroot_20200518:
         CONFIG: osx_64_clang_variantroot_20200518
         UPLOAD_PACKAGES: 'True'
-    maxParallel: 8
   timeoutInMinutes: 360
 
   steps:
