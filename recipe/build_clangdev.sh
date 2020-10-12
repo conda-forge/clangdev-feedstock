@@ -29,6 +29,11 @@ if [[ "$(uname)" == "Darwin" ]]; then
         lib/Driver/ToolChains/Darwin.cpp && rm $_.bak
 fi
 
+if [[ "$CC_FOR_BUILD" != "" && "$CC_FOR_BUILD" != "$CC" ]]; then
+  CMAKE_ARGS="${CMAKE_ARGS} -DLLVM_TABLEGEN_EXE=$BUILD_PREFIX/bin/llvm-tblgen -DNATIVE_LLVM_DIR=$BUILD_PREFIX/lib/cmake/llvm"
+  CMAKE_ARGS="${CMAKE_ARGS} -DCROSS_TOOLCHAIN_FLAGS_NATIVE=-DCMAKE_C_COMPILER=$CC_FOR_BUILD;-DCMAKE_CXX_COMPILER=$CXX_FOR_BUILD;-DCMAKE_C_FLAGS=-O2;-DCMAKE_CXX_FLAGS=-O2;-DCMAKE_EXE_LINKER_FLAGS=;-DCMAKE_MODULE_LINKER_FLAGS=;-DCMAKE_SHARED_LINKER_FLAGS=;-DCMAKE_STATIC_LINKER_FLAGS=;"
+fi
+
 mkdir build
 cd build
 
@@ -43,6 +48,7 @@ cmake \
   -DLLVM_INCLUDE_DOCS=OFF \
   -DCMAKE_OSX_SYSROOT="${CONDA_BUILD_SYSROOT}" \
   -DLLVM_CONFIG="${PREFIX}/bin/llvm-config" \
+  ${CMAKE_ARGS} \
   ..
 
 make -j${CPU_COUNT}
