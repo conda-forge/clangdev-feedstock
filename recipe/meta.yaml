@@ -59,6 +59,7 @@ outputs:
         - m2w64-xz  # [win]
         # "compiling .pyc files" fails without this
         - python >3
+        - llvmdev =={{ version }}    # [build_platform != target_platform]
       host:
         - llvmdev =={{ version }}
         - libxml2  # [osx]
