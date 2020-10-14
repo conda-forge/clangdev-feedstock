@@ -12,3 +12,5 @@ docker_image:
 - condaforge/linux-anvil-comp7
 target_platform:
 - linux-ppc64le
+build_platform:
+- linux-64
