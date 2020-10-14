@@ -8,6 +8,10 @@ jobs:
     vmImage: ubuntu-16.04
   strategy:
     matrix:
+      linux_64_clang_variantcling_v0.6target_platformlinux-64:
+        CONFIG: linux_64_clang_variantcling_v0.6target_platformlinux-64
+        UPLOAD_PACKAGES: 'True'
+        DOCKER_IMAGE: condaforge/linux-anvil-comp7
       linux_64_clang_variantcling_v0.7target_platformlinux-64:
         CONFIG: linux_64_clang_variantcling_v0.7target_platformlinux-64
         UPLOAD_PACKAGES: 'True'
@@ -16,8 +20,20 @@ jobs:
         CONFIG: linux_64_clang_variantdefaulttarget_platformlinux-64
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: condaforge/linux-anvil-comp7
+      linux_64_clang_variantroot_20190625target_platformlinux-64:
+        CONFIG: linux_64_clang_variantroot_20190625target_platformlinux-64
+        UPLOAD_PACKAGES: 'True'
+        DOCKER_IMAGE: condaforge/linux-anvil-comp7
+      linux_64_clang_variantroot_20191220target_platformlinux-64:
+        CONFIG: linux_64_clang_variantroot_20191220target_platformlinux-64
+        UPLOAD_PACKAGES: 'True'
+        DOCKER_IMAGE: condaforge/linux-anvil-comp7
       linux_64_clang_variantroot_20200518target_platformlinux-64:
         CONFIG: linux_64_clang_variantroot_20200518target_platformlinux-64
+        UPLOAD_PACKAGES: 'True'
+        DOCKER_IMAGE: condaforge/linux-anvil-comp7
+      linux_ppc64le_clang_variantcling_v0.6target_platformlinux-ppc64le:
+        CONFIG: linux_ppc64le_clang_variantcling_v0.6target_platformlinux-ppc64le
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: condaforge/linux-anvil-comp7
       linux_ppc64le_clang_variantcling_v0.7target_platformlinux-ppc64le:
@@ -26,6 +42,14 @@ jobs:
         DOCKER_IMAGE: condaforge/linux-anvil-comp7
       linux_ppc64le_clang_variantdefaulttarget_platformlinux-ppc64le:
         CONFIG: linux_ppc64le_clang_variantdefaulttarget_platformlinux-ppc64le
+        UPLOAD_PACKAGES: 'True'
+        DOCKER_IMAGE: condaforge/linux-anvil-comp7
+      linux_ppc64le_clang_variantroot_20190625target_platformlinux-ppc64le:
+        CONFIG: linux_ppc64le_clang_variantroot_20190625target_platformlinux-ppc64le
+        UPLOAD_PACKAGES: 'True'
+        DOCKER_IMAGE: condaforge/linux-anvil-comp7
+      linux_ppc64le_clang_variantroot_20191220target_platformlinux-ppc64le:
+        CONFIG: linux_ppc64le_clang_variantroot_20191220target_platformlinux-ppc64le
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: condaforge/linux-anvil-comp7
       linux_ppc64le_clang_variantroot_20200518target_platformlinux-ppc64le:

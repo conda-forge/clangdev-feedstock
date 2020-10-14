@@ -8,11 +8,20 @@ jobs:
     vmImage: vs2017-win2016
   strategy:
     matrix:
+      win_64_clang_variantcling_v0.6target_platformwin-64:
+        CONFIG: win_64_clang_variantcling_v0.6target_platformwin-64
+        UPLOAD_PACKAGES: 'True'
       win_64_clang_variantcling_v0.7target_platformwin-64:
         CONFIG: win_64_clang_variantcling_v0.7target_platformwin-64
         UPLOAD_PACKAGES: 'True'
       win_64_clang_variantdefaulttarget_platformwin-64:
         CONFIG: win_64_clang_variantdefaulttarget_platformwin-64
+        UPLOAD_PACKAGES: 'True'
+      win_64_clang_variantroot_20190625target_platformwin-64:
+        CONFIG: win_64_clang_variantroot_20190625target_platformwin-64
+        UPLOAD_PACKAGES: 'True'
+      win_64_clang_variantroot_20191220target_platformwin-64:
+        CONFIG: win_64_clang_variantroot_20191220target_platformwin-64
         UPLOAD_PACKAGES: 'True'
       win_64_clang_variantroot_20200518target_platformwin-64:
         CONFIG: win_64_clang_variantroot_20200518target_platformwin-64

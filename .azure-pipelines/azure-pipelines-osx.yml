@@ -8,11 +8,20 @@ jobs:
     vmImage: macOS-10.15
   strategy:
     matrix:
+      osx_64_clang_variantcling_v0.6target_platformosx-64:
+        CONFIG: osx_64_clang_variantcling_v0.6target_platformosx-64
+        UPLOAD_PACKAGES: 'True'
       osx_64_clang_variantcling_v0.7target_platformosx-64:
         CONFIG: osx_64_clang_variantcling_v0.7target_platformosx-64
         UPLOAD_PACKAGES: 'True'
       osx_64_clang_variantdefaulttarget_platformosx-64:
         CONFIG: osx_64_clang_variantdefaulttarget_platformosx-64
+        UPLOAD_PACKAGES: 'True'
+      osx_64_clang_variantroot_20190625target_platformosx-64:
+        CONFIG: osx_64_clang_variantroot_20190625target_platformosx-64
+        UPLOAD_PACKAGES: 'True'
+      osx_64_clang_variantroot_20191220target_platformosx-64:
+        CONFIG: osx_64_clang_variantroot_20191220target_platformosx-64
         UPLOAD_PACKAGES: 'True'
       osx_64_clang_variantroot_20200518target_platformosx-64:
         CONFIG: osx_64_clang_variantroot_20200518target_platformosx-64
