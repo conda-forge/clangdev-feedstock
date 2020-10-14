@@ -34,20 +34,6 @@ Current build status
                 </a>
               </td>
             </tr><tr>
-              <td>linux_aarch64_target_platformlinux-aarch64variantdefault</td>
-              <td>
-                <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=master">
-                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=master&jobName=linux&configuration=linux_aarch64_target_platformlinux-aarch64variantdefault" alt="variant">
-                </a>
-              </td>
-            </tr><tr>
-              <td>linux_ppc64le_target_platformlinux-ppc64levariantdefault</td>
-              <td>
-                <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=master">
-                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=master&jobName=linux&configuration=linux_ppc64le_target_platformlinux-ppc64levariantdefault" alt="variant">
-                </a>
-              </td>
-            </tr><tr>
               <td>osx_64_target_platformosx-64</td>
               <td>
                 <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=master">
