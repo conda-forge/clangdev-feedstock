@@ -9,7 +9,7 @@ clang_variant:
 cxx_compiler:
 - clangxx
 cxx_compiler_version:
-- '10'
+- '9'
 libxml2:
 - '2.9'
 macos_machine:
