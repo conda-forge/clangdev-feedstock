@@ -19,16 +19,13 @@ source:
   git_url: http://root.cern.ch/git/clang.git
   git_rev: {{ clang_variant|replace('cling_', 'cling-') }}
 {% elif clang_variant.startswith("root_20190625") %}
-  git_url: https://github.com/root-project/root.git
-  git_rev: 6b8f54808eb13103e87cae19c642aec474270422
+  url: https://github.com/root-project/root/archive/6b8f54808eb13103e87cae19c642aec474270422.zip
   folder: root-source
 {% elif clang_variant.startswith("root_20191220") %}
-  git_url: https://github.com/root-project/root.git
-  git_rev: fde5aa88ea02dfcd9fe20c346ece1c2b6aabfe6d
+  url: https://github.com/root-project/root/archive/fde5aa88ea02dfcd9fe20c346ece1c2b6aabfe6d.zip
   folder: root-source
 {% elif clang_variant.startswith("root") %}
-  git_url: https://github.com/root-project/root.git
-  git_rev: c100d61bd56d05058843da021cf1f740166aad38
+  url: https://github.com/root-project/root/archive/c100d61bd56d05058843da021cf1f740166aad38.zip
   folder: root-source
 {% endif %}
 
