@@ -9,6 +9,7 @@ if [[ "$(uname)" == "Linux" ]]; then
   patch -p0 -i "${RECIPE_DIR}/disable-libxml2-detection.patch"
   patch -p1 -i "${RECIPE_DIR}/Manually-set-linux-sysroot-for-conda.patch"
   patch -p1 -i "${RECIPE_DIR}/Use-external-char-instead-of-std-string-to-avoid-pre.patch"
+  patch -p0 -i "${RECIPE_DIR}/cross-compile.diff"
 fi
 if [[ "$(uname)" == "Darwin" ]]; then
   patch -p1 -i "${RECIPE_DIR}/Improve-logic-for-finding-the-macos-sysroot-for-cond.patch"
@@ -29,6 +30,16 @@ if [[ "$(uname)" == "Darwin" ]]; then
         lib/Driver/ToolChains/Darwin.cpp && rm $_.bak
 fi
 
+if [[ "$CC_FOR_BUILD" != "" && "$CC_FOR_BUILD" != "$CC" ]]; then
+  CMAKE_ARGS="${CMAKE_ARGS} -DLLVM_TABLEGEN_EXE=$BUILD_PREFIX/bin/llvm-tblgen -DNATIVE_LLVM_DIR=$BUILD_PREFIX/lib/cmake/llvm"
+  CMAKE_ARGS="${CMAKE_ARGS} -DCROSS_TOOLCHAIN_FLAGS_NATIVE=-DCMAKE_C_COMPILER=$CC_FOR_BUILD;-DCMAKE_CXX_COMPILER=$CXX_FOR_BUILD;-DCMAKE_C_FLAGS=-O2;-DCMAKE_CXX_FLAGS=-O2;-DCMAKE_EXE_LINKER_FLAGS=;-DCMAKE_MODULE_LINKER_FLAGS=;-DCMAKE_SHARED_LINKER_FLAGS=;-DCMAKE_STATIC_LINKER_FLAGS=;"
+  # HACK: This should be fixed in llvmdev
+  (cd "${PREFIX}/lib/cmake/llvm/" && patch -p4) < "${RECIPE_DIR}/0001-Apply-https-reviews.llvm.org-D39299.patch"
+  patch -p6 < "${RECIPE_DIR}/dont-use-llvm-config.patch"
+else
+  CMAKE_ARGS="${CMAKE_ARGS} -DLLVM_CONFIG=${PREFIX}/bin/llvm-config"
+fi
+
 mkdir build
 cd build
 
@@ -42,7 +53,7 @@ cmake \
   -DLLVM_INCLUDE_TESTS=OFF \
   -DLLVM_INCLUDE_DOCS=OFF \
   -DCMAKE_OSX_SYSROOT="${CONDA_BUILD_SYSROOT}" \
-  -DLLVM_CONFIG="${PREFIX}/bin/llvm-config" \
+  ${CMAKE_ARGS} \
   ..
 
 make -j${CPU_COUNT}

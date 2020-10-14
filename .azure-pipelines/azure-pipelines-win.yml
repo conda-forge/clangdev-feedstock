@@ -8,25 +8,24 @@ jobs:
     vmImage: vs2017-win2016
   strategy:
     matrix:
-      win_64_clang_variantcling_v0.6:
-        CONFIG: win_64_clang_variantcling_v0.6
+      win_64_clang_variantcling_v0.6target_platformwin-64:
+        CONFIG: win_64_clang_variantcling_v0.6target_platformwin-64
         UPLOAD_PACKAGES: 'True'
-      win_64_clang_variantcling_v0.7:
-        CONFIG: win_64_clang_variantcling_v0.7
+      win_64_clang_variantcling_v0.7target_platformwin-64:
+        CONFIG: win_64_clang_variantcling_v0.7target_platformwin-64
         UPLOAD_PACKAGES: 'True'
-      win_64_clang_variantdefault:
-        CONFIG: win_64_clang_variantdefault
+      win_64_clang_variantdefaulttarget_platformwin-64:
+        CONFIG: win_64_clang_variantdefaulttarget_platformwin-64
         UPLOAD_PACKAGES: 'True'
-      win_64_clang_variantroot_20190625:
-        CONFIG: win_64_clang_variantroot_20190625
+      win_64_clang_variantroot_20190625target_platformwin-64:
+        CONFIG: win_64_clang_variantroot_20190625target_platformwin-64
         UPLOAD_PACKAGES: 'True'
-      win_64_clang_variantroot_20191220:
-        CONFIG: win_64_clang_variantroot_20191220
+      win_64_clang_variantroot_20191220target_platformwin-64:
+        CONFIG: win_64_clang_variantroot_20191220target_platformwin-64
         UPLOAD_PACKAGES: 'True'
-      win_64_clang_variantroot_20200518:
-        CONFIG: win_64_clang_variantroot_20200518
+      win_64_clang_variantroot_20200518target_platformwin-64:
+        CONFIG: win_64_clang_variantroot_20200518target_platformwin-64
         UPLOAD_PACKAGES: 'True'
-    maxParallel: 4
   timeoutInMinutes: 360
   variables:
     CONDA_BLD_PATH: D:\\bld\\
@@ -68,7 +67,7 @@ jobs:
 
     - task: CondaEnvironment@1
       inputs:
-        packageSpecs: 'python=3.6 conda-build conda conda-forge::conda-forge-ci-setup=3 pip' # Optional
+        packageSpecs: 'python=3.6 conda-build conda "conda-forge-ci-setup=3" pip' # Optional
         installOptions: "-c conda-forge"
         updateConda: true
       displayName: Install conda-build and activate environment

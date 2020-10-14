@@ -1,0 +1,14 @@
+channel_sources:
+- conda-forge,defaults
+channel_targets:
+- conda-forge main
+clang_variant:
+- cling_v0.7
+cxx_compiler:
+- gxx
+cxx_compiler_version:
+- '8'
+docker_image:
+- condaforge/linux-anvil-comp7
+target_platform:
+- linux-ppc64le
