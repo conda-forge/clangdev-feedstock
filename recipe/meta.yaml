@@ -1,6 +1,6 @@
 {% set version = "11.0.0" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 0 %}
+{% set build_number = 1 %}
 
 package:
   name: clang_packages
@@ -228,7 +228,6 @@ outputs:
         - test -f "$PREFIX/lib/clang/{{ '.'.join(version.split('.')[:3]) }}/include/stdatomic.h"                    # [unix]
         - if not exist %LIBRARY_LIB%\\clang\\{{ '.'.join(version.split('.')[:3]) }}\\include\\stdatomic.h exit 1    # [win]
 
-  # Defaults provides this, so let's do the same in conda-forge
   - name: clangxx
     script: install_clangxx.sh  # [unix]
     script: install_clangxx.bat  # [win]
@@ -237,6 +236,8 @@ outputs:
         - hcc          # [variant=="hcc"]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
+      build:
+        - {{ compiler('c') }}
       host:
         - {{ pin_subpackage("clang", exact=True) }}
       run:

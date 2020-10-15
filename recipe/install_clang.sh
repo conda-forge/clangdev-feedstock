@@ -19,3 +19,4 @@ rm -rf lib2
 ln -s "${PREFIX}/bin/clang-${maj_version}" "${PREFIX}/bin/clang-cl"
 ln -s "${PREFIX}/bin/clang-${maj_version}" "${PREFIX}/bin/clang-cpp"
 ln -s "${PREFIX}/bin/clang-${maj_version}" "${PREFIX}/bin/clang"
+ln -s "${PREFIX}/bin/clang-${maj_version}" "${PREFIX}/bin/$HOST-clang"
