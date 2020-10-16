@@ -1,6 +1,6 @@
 {% set version = "11.0.0" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 0 %}
+{% set build_number = 1 %}
 
 package:
   name: clang_packages
@@ -188,7 +188,7 @@ outputs:
         - test -f "$PREFIX/lib/libclang.dylib"                  # [osx]
         - if not exist %LIBRARY_BIN%\\libclang.dll exit 1       # [win]
 
-  - name: clang
+  - name: clang-{{ major_version }}
     script: install_clang.sh  # [unix]
     script: install_clang.bat  # [win]
     build:
@@ -218,17 +218,31 @@ outputs:
         - llvm-tools {{ version }}
     test:
       commands:
-        - clang --version
-        - clang-cl --version
-        - clang-cpp --version
-        - clang-{{ major_version }} --version   # [unix]
-        - test -f "$PREFIX/lib/libclang-cpp.so"                     # [linux]
+        - clang-{{ major_version }} --version
+        - test ! -f "$PREFIX/bin/clang"   # [unix]
+        - test ! -f "$PREFIX/bin/clang-cl"   # [unix]
+        - test ! -f "$PREFIX/bin/clang-cpp"   # [unix]
+        - if exist %LIBRARY_BIN%\\clang.exe exit 1   # [win]
+        - if exist %LIBRARY_BIN%\\clang-cl.exe exit 1   # [win]
+        - if exist %LIBRARY_BIN%\\clang-cpp.exe exit 1   # [win]
+        - test ! -f "$PREFIX/lib/libclang-cpp.so"                     # [linux]
         - test -f "$PREFIX/lib/libclang-cpp.so.{{ major_version }}"   # [linux]
         - test -f "$PREFIX/lib/libclang-cpp.dylib"                  # [osx]
         - test -f "$PREFIX/lib/clang/{{ '.'.join(version.split('.')[:3]) }}/include/stdatomic.h"                    # [unix]
         - if not exist %LIBRARY_LIB%\\clang\\{{ '.'.join(version.split('.')[:3]) }}\\include\\stdatomic.h exit 1    # [win]
 
-  # Defaults provides this, so let's do the same in conda-forge
+  - name: clang
+    script: install_clang_symlinks.sh  # [unix]
+    script: install_clang_symlinks.bat  # [win]
+    requirements:
+      - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+      - gcc_impl_{{ target_platform }}  # [linux]
+    test:
+      commands:
+        - clang --version
+        - clang-cl --version
+        - clang-cpp --version
+
   - name: clangxx
     script: install_clangxx.sh  # [unix]
     script: install_clangxx.bat  # [win]

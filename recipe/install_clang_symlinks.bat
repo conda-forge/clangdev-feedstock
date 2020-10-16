@@ -9,8 +9,7 @@ move bin bin2
 
 mkdir bin
 
-setlocal enabledelayedexpansion
-for /f "tokens=1 delims=." %%a in ("%PKG_VERSION%") do (
-  move bin2\clang-%%a.exe bin\
-)
+move bin2\clang.exe bin\
+move bin2\clang-cl.exe bin\
+move bin2\clang-cpp.exe bin\
 rmdir /s /q bin2
