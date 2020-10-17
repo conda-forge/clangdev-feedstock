@@ -11,6 +11,6 @@ mkdir bin
 
 setlocal enabledelayedexpansion
 for /f "tokens=1 delims=." %%a in ("%PKG_VERSION%") do (
-  move bin2\clang-%%a.exe bin\
+  move bin2\clang.exe bin\clang-%%a.exe
 )
 rmdir /s /q bin2

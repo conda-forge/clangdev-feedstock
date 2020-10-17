@@ -227,7 +227,7 @@ outputs:
         - if exist %LIBRARY_BIN%\\clang-cpp.exe exit 1   # [win]
         - test ! -f "$PREFIX/lib/libclang-cpp.so"                     # [linux]
         - test -f "$PREFIX/lib/libclang-cpp.so.{{ major_version }}"   # [linux]
-        - test -f "$PREFIX/lib/libclang-cpp.dylib"                  # [osx]
+        - test ! -f "$PREFIX/lib/libclang-cpp.dylib"                  # [osx]
         - test -f "$PREFIX/lib/clang/{{ '.'.join(version.split('.')[:3]) }}/include/stdatomic.h"                    # [unix]
         - if not exist %LIBRARY_LIB%\\clang\\{{ '.'.join(version.split('.')[:3]) }}\\include\\stdatomic.h exit 1    # [win]
 
