@@ -1,15 +1,7 @@
-cd %SRC_DIR%\build
-ninja install
-cd %LIBRARY_PREFIX%
-rmdir /s /q lib\cmake libexec share include
-
-del /q /f lib\*.lib
-
-move bin bin2
-
-mkdir bin
-
-move bin2\clang.exe bin\
-move bin2\clang-cl.exe bin\
-move bin2\clang-cpp.exe bin\
-rmdir /s /q bin2
+cd %LIBRARY_BIN%
+setlocal enabledelayedexpansion
+for /f "tokens=1 delims=." %%a in ("%PKG_VERSION%") do (
+   copy clang-%%a.exe clang.exe
+   copy clang-%%a.exe clang-cl.exe
+   copy clang-%%a.exe clang-cpp.exe
+)
