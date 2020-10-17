@@ -17,6 +17,10 @@ else
   rm -rf $BUILD_PREFIX/bin/llvm-tblgen
 fi
 
+if [[ "$target_platform" == osx* ]]; then
+  export CXXFLAGS="$CXXFLAGS -DTARGET_OS_OSX=1"
+fi
+
 mkdir build
 cd build
 
