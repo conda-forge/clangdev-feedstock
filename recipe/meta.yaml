@@ -17,6 +17,7 @@ source:
       - patches/0001-Set-VERSION-in-osx-as-well.patch
       - patches/cross-compile.diff
       # Disable -Werror,-Wundef-prefix=TARGET_OS as they are not yet defined in the 10.9 SDK used for osx-64
+      # Only enable it for TARGET_OS_OSX.
       - patches/disable-wundef-prefix.patch  # [osx and x86_64]
       #- patches/amd-roc-2.7.0.diff   # [variant != "hcc"]
       #- patches/amd-roc-hcc-2.7.0.diff  # [variant == "hcc"]

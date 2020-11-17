@@ -1,13 +1,11 @@
---- lib/Driver/ToolChains/Darwin.cpp.orig	2020-11-17 11:41:09.000000000 +0100
-+++ lib/Driver/ToolChains/Darwin.cpp	2020-11-17 11:41:20.000000000 +0100
-@@ -959,10 +959,6 @@
-     : Darwin(D, Triple, Args) {}
+--- lib/Driver/ToolChains/Darwin.cpp.orig	2020-11-17 21:12:24.000000000 +0100
++++ lib/Driver/ToolChains/Darwin.cpp	2020-11-17 21:12:37.000000000 +0100
+@@ -960,7 +960,7 @@
  
  void DarwinClang::addClangWarningOptions(ArgStringList &CC1Args) const {
--  // Always error about undefined 'TARGET_OS_*' macros.
+   // Always error about undefined 'TARGET_OS_*' macros.
 -  CC1Args.push_back("-Wundef-prefix=TARGET_OS_");
--  CC1Args.push_back("-Werror=undef-prefix");
--
++  CC1Args.push_back("-Wundef-prefix=TARGET_OS_OSX");
+   CC1Args.push_back("-Werror=undef-prefix");
+ 
    // For modern targets, promote certain warnings to errors.
-   if (isTargetWatchOSBased() || getTriple().isArch64Bit()) {
-     // Always enable -Wdeprecated-objc-isa-usage and promote it
