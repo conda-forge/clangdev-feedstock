@@ -8,23 +8,23 @@ jobs:
     vmImage: vs2017-win2016
   strategy:
     matrix:
-      win_64_clang_variantcling_v0.6target_platformwin-64:
-        CONFIG: win_64_clang_variantcling_v0.6target_platformwin-64
+      win_64_clang_variantcling_v0.6:
+        CONFIG: win_64_clang_variantcling_v0.6
         UPLOAD_PACKAGES: 'True'
-      win_64_clang_variantcling_v0.7target_platformwin-64:
-        CONFIG: win_64_clang_variantcling_v0.7target_platformwin-64
+      win_64_clang_variantcling_v0.7:
+        CONFIG: win_64_clang_variantcling_v0.7
         UPLOAD_PACKAGES: 'True'
-      win_64_clang_variantdefaulttarget_platformwin-64:
-        CONFIG: win_64_clang_variantdefaulttarget_platformwin-64
+      win_64_clang_variantdefault:
+        CONFIG: win_64_clang_variantdefault
         UPLOAD_PACKAGES: 'True'
-      win_64_clang_variantroot_20190625target_platformwin-64:
-        CONFIG: win_64_clang_variantroot_20190625target_platformwin-64
+      win_64_clang_variantroot_20190625:
+        CONFIG: win_64_clang_variantroot_20190625
         UPLOAD_PACKAGES: 'True'
-      win_64_clang_variantroot_20191220target_platformwin-64:
-        CONFIG: win_64_clang_variantroot_20191220target_platformwin-64
+      win_64_clang_variantroot_20191220:
+        CONFIG: win_64_clang_variantroot_20191220
         UPLOAD_PACKAGES: 'True'
-      win_64_clang_variantroot_20200518target_platformwin-64:
-        CONFIG: win_64_clang_variantroot_20200518target_platformwin-64
+      win_64_clang_variantroot_20200518:
+        CONFIG: win_64_clang_variantroot_20200518
         UPLOAD_PACKAGES: 'True'
   timeoutInMinutes: 360
   variables:
