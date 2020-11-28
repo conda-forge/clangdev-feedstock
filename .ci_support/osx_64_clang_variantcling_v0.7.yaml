@@ -5,11 +5,11 @@ channel_sources:
 channel_targets:
 - conda-forge main
 clang_variant:
-- root_20191220
+- cling_v0.7
 cxx_compiler:
 - clangxx
 cxx_compiler_version:
-- '9'
+- '11'
 libxml2:
 - '2.9'
 macos_machine:
