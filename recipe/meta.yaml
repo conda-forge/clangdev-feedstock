@@ -24,6 +24,9 @@ source:
 {% elif clang_variant.startswith("root_20191220") %}
   url: https://github.com/root-project/root/archive/fde5aa88ea02dfcd9fe20c346ece1c2b6aabfe6d.zip
   folder: root-source
+{% elif clang_variant.startswith("root_20201127") %}
+  url: https://github.com/root-project/root/archive/46db25e518e17a4e8619bbf0ad1c0533e28e6882.zip
+  folder: root-source
 {% elif clang_variant.startswith("root") %}
   url: https://github.com/root-project/root/archive/c100d61bd56d05058843da021cf1f740166aad38.zip
   folder: root-source

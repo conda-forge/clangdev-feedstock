@@ -1,7 +1,8 @@
 clang_variant:
   - default
-  - cling_v0.6       # tag is cling-v0.6
+  # - cling_v0.6       # tag is cling-v0.6
   - cling_v0.7       # tag is cling-v0.7
-  - root_20190625    # tag is for 6.18.04
-  - root_20191220    # tag is for 6.20.00
-  - root_20200518    # tag is for 6.22.00
+  # - root_20190625    # tag is for 6.18.04
+  # - root_20191220    # tag is for 6.20.00
+  # - root_20200518    # tag is for 6.22.00
+  - root_20201127    # tag is for 6.22.06
