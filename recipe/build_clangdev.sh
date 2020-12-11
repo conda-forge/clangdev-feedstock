@@ -9,6 +9,8 @@ if [[ "$(uname)" == "Linux" ]]; then
   patch -p0 -i "${RECIPE_DIR}/disable-libxml2-detection.patch"
   patch -p1 -i "${RECIPE_DIR}/Manually-set-linux-sysroot-for-conda.patch"
   patch -p1 -i "${RECIPE_DIR}/Use-external-char-instead-of-std-string-to-avoid-pre.patch"
+fi
+if [[ "$CONDA_BUILD_CROSS_COMPILATION" == "1" ]]; then
   patch -p0 -i "${RECIPE_DIR}/cross-compile.diff"
 fi
 patch -p1 -i "${RECIPE_DIR}/0001-Apply-https-reviews.llvm.org-D82428-and-support-macO.patch"
@@ -32,8 +34,19 @@ if [[ "$(uname)" == "Darwin" ]]; then
 fi
 
 if [[ "$CONDA_BUILD_CROSS_COMPILATION" == "1" ]]; then
-  CMAKE_ARGS="${CMAKE_ARGS} -DLLVM_TABLEGEN_EXE=$BUILD_PREFIX/bin/llvm-tblgen -DNATIVE_LLVM_DIR=$BUILD_PREFIX/lib/cmake/llvm"
-  CMAKE_ARGS="${CMAKE_ARGS} -DCROSS_TOOLCHAIN_FLAGS_NATIVE=-DCMAKE_C_COMPILER=$CC_FOR_BUILD;-DCMAKE_CXX_COMPILER=$CXX_FOR_BUILD;-DCMAKE_C_FLAGS=-O2;-DCMAKE_CXX_FLAGS=-O2;-DCMAKE_EXE_LINKER_FLAGS=;-DCMAKE_MODULE_LINKER_FLAGS=;-DCMAKE_SHARED_LINKER_FLAGS=;-DCMAKE_STATIC_LINKER_FLAGS=;"
+  if [[ "${target_platform}" == "osx-arm64" ]]; then
+    # It's impossible to install llvm==5 in the build environment with the default macOS compiler
+    conda create --yes --prefix $SRC_DIR/llvm-native-env "llvmdev=5"
+    LLVM_TABLEGEN_EXE=$SRC_DIR/llvm-native-env/bin/llvm-tblgen
+    NATIVE_LLVM_DIR=$SRC_DIR/llvm-native-env/lib/cmake/llvm
+    export LLVM_BUILD_PREFIX=$SRC_DIR/llvm-native-env
+  else
+    LLVM_TABLEGEN_EXE=$BUILD_PREFIX/bin/llvm-tblgen
+    NATIVE_LLVM_DIR=$BUILD_PREFIX/lib/cmake/llvm
+    export LLVM_BUILD_PREFIX=$BUILD_PREFIX
+  fi
+  CMAKE_ARGS="${CMAKE_ARGS} -DLLVM_TABLEGEN_EXE=$LLVM_TABLEGEN_EXE -DNATIVE_LLVM_DIR=$NATIVE_LLVM_DIR"
+  CMAKE_ARGS="${CMAKE_ARGS} -DCROSS_TOOLCHAIN_FLAGS_NATIVE=-DCMAKE_C_COMPILER=$CC_FOR_BUILD;-DCMAKE_CXX_COMPILER=$CXX_FOR_BUILD;-DCMAKE_C_FLAGS=-O2;-DCMAKE_CXX_FLAGS=-O2;-DCMAKE_EXE_LINKER_FLAGS=;-DCMAKE_MODULE_LINKER_FLAGS=;-DCMAKE_SHARED_LINKER_FLAGS=;-DCMAKE_STATIC_LINKER_FLAGS=;-DLLVM_TABLEGEN_EXE=$LLVM_TABLEGEN_EXE;-DLLVM_ROOT=$NATIVE_LLVM_DIR;-DLLVM_CONFIG=${LLVM_BUILD_PREFIX}/bin/llvm-config;"
   # HACK: This should be fixed in llvmdev
   (cd "${PREFIX}/lib/cmake/llvm/" && patch -p4) < "${RECIPE_DIR}/0001-Apply-https-reviews.llvm.org-D39299.patch"
   patch -p6 < "${RECIPE_DIR}/dont-use-llvm-config.patch"
