@@ -1,0 +1,41 @@
+From e72298a9def80deaf6dd895c4ef999ce08f2bac1 Mon Sep 17 00:00:00 2001
+From: Chris Burr <christopher.burr@cern.ch>
+Date: Fri, 11 Dec 2020 12:59:18 +0100
+Subject: [PATCH] Apply https://reviews.llvm.org/D82428 and support macOS 11
+
+---
+ lib/Driver/ToolChains/Darwin.cpp | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/lib/Driver/ToolChains/Darwin.cpp b/lib/Driver/ToolChains/Darwin.cpp
+index 847c083..f1d0020 100644
+--- a/lib/Driver/ToolChains/Darwin.cpp
++++ b/lib/Driver/ToolChains/Darwin.cpp
+@@ -1339,8 +1339,13 @@ void Darwin::AddDeploymentTarget(DerivedArgList &Args) const {
+         OSTy = getTriple().getOS();
+       } else {
+         StringRef MachOArchName = getMachOArchName(Args);
+-        if (MachOArchName == "armv7" || MachOArchName == "armv7s" ||
+-            MachOArchName == "arm64")
++        if (MachOArchName == "arm64") {
++#if __arm64__
++          OSTy = llvm::Triple::MacOSX;
++#else
++          OSTy = llvm::Triple::IOS;
++#endif
++        } else if (MachOArchName == "armv7" || MachOArchName == "armv7s")
+           OSTy = llvm::Triple::IOS;
+         else if (MachOArchName == "armv7k")
+           OSTy = llvm::Triple::WatchOS;
+@@ -1449,7 +1454,7 @@ void Darwin::AddDeploymentTarget(DerivedArgList &Args) const {
+            "Unknown target platform!");
+     if (!Driver::GetReleaseVersion(OSXVersion->getValue(), Major, Minor, Micro,
+                                    HadExtra) ||
+-        HadExtra || Major != 10 || Minor >= 100 || Micro >= 100)
++        HadExtra || Major < 10 || Minor >= 100 || Micro >= 100)
+       getDriver().Diag(diag::err_drv_invalid_version_number)
+           << OSXVersion->getAsString(Args);
+   } else if (Platform == IPhoneOS) {
+-- 
+2.24.3 (Apple Git-128)
+

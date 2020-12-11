@@ -11,6 +11,7 @@ if [[ "$(uname)" == "Linux" ]]; then
   patch -p1 -i "${RECIPE_DIR}/Use-external-char-instead-of-std-string-to-avoid-pre.patch"
   patch -p0 -i "${RECIPE_DIR}/cross-compile.diff"
 fi
+patch -p1 -i "${RECIPE_DIR}/0001-Apply-https-reviews.llvm.org-D82428-and-support-macO.patch"
 if [[ "$(uname)" == "Darwin" ]]; then
   patch -p1 -i "${RECIPE_DIR}/Improve-logic-for-finding-the-macos-sysroot-for-cond.patch"
 fi
