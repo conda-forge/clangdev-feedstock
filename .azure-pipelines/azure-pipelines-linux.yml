@@ -8,10 +8,6 @@ jobs:
     vmImage: ubuntu-16.04
   strategy:
     matrix:
-      linux_64_clang_variantcling_v0.6:
-        CONFIG: linux_64_clang_variantcling_v0.6
-        UPLOAD_PACKAGES: 'True'
-        DOCKER_IMAGE: quay.io/condaforge/linux-anvil-comp7
       linux_64_clang_variantcling_v0.7:
         CONFIG: linux_64_clang_variantcling_v0.7
         UPLOAD_PACKAGES: 'True'
@@ -20,20 +16,8 @@ jobs:
         CONFIG: linux_64_clang_variantdefault
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-comp7
-      linux_64_clang_variantroot_20190625:
-        CONFIG: linux_64_clang_variantroot_20190625
-        UPLOAD_PACKAGES: 'True'
-        DOCKER_IMAGE: quay.io/condaforge/linux-anvil-comp7
-      linux_64_clang_variantroot_20191220:
-        CONFIG: linux_64_clang_variantroot_20191220
-        UPLOAD_PACKAGES: 'True'
-        DOCKER_IMAGE: quay.io/condaforge/linux-anvil-comp7
-      linux_64_clang_variantroot_20200518:
-        CONFIG: linux_64_clang_variantroot_20200518
-        UPLOAD_PACKAGES: 'True'
-        DOCKER_IMAGE: quay.io/condaforge/linux-anvil-comp7
-      linux_aarch64_clang_variantcling_v0.6:
-        CONFIG: linux_aarch64_clang_variantcling_v0.6
+      linux_64_clang_variantroot_20201127:
+        CONFIG: linux_64_clang_variantroot_20201127
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-comp7
       linux_aarch64_clang_variantcling_v0.7:
@@ -44,16 +28,8 @@ jobs:
         CONFIG: linux_aarch64_clang_variantdefault
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-comp7
-      linux_aarch64_clang_variantroot_20190625:
-        CONFIG: linux_aarch64_clang_variantroot_20190625
-        UPLOAD_PACKAGES: 'True'
-        DOCKER_IMAGE: quay.io/condaforge/linux-anvil-comp7
-      linux_aarch64_clang_variantroot_20191220:
-        CONFIG: linux_aarch64_clang_variantroot_20191220
-        UPLOAD_PACKAGES: 'True'
-        DOCKER_IMAGE: quay.io/condaforge/linux-anvil-comp7
-      linux_aarch64_clang_variantroot_20200518:
-        CONFIG: linux_aarch64_clang_variantroot_20200518
+      linux_aarch64_clang_variantroot_20201127:
+        CONFIG: linux_aarch64_clang_variantroot_20201127
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-comp7
   timeoutInMinutes: 360

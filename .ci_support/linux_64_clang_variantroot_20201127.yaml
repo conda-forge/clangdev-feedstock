@@ -5,7 +5,7 @@ channel_sources:
 channel_targets:
 - conda-forge main
 clang_variant:
-- root_20200518
+- root_20201127
 cxx_compiler:
 - gxx
 cxx_compiler_version:

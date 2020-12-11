@@ -3,7 +3,7 @@ channel_sources:
 channel_targets:
 - conda-forge main
 clang_variant:
-- root_20191220
+- root_20201127
 cxx_compiler:
 - vs2017
 target_platform:
