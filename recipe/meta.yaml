@@ -1,7 +1,7 @@
 {% set version = "5.0.0" %}
 {% set sha256 = "019f23c2192df793ac746595e94a403908749f8e0c484b403476d2611dd20970" %}
 
-{% set build_number = "1010" %}
+{% set build_number = "1011" %}
 
 {% if not clang_variant %}
 {% set clang_variant = "default" %}
@@ -23,6 +23,9 @@ source:
   folder: root-source
 {% elif clang_variant.startswith("root_20191220") %}
   url: https://github.com/root-project/root/archive/fde5aa88ea02dfcd9fe20c346ece1c2b6aabfe6d.zip
+  folder: root-source
+{% elif clang_variant.startswith("root_20201127") %}
+  url: https://github.com/root-project/root/archive/46db25e518e17a4e8619bbf0ad1c0533e28e6882.zip
   folder: root-source
 {% elif clang_variant.startswith("root") %}
   url: https://github.com/root-project/root/archive/c100d61bd56d05058843da021cf1f740166aad38.zip
@@ -56,7 +59,7 @@ outputs:
         - m2w64-xz  # [win]
         # "compiling .pyc files" fails without this
         - python >3
-        - llvmdev =={{ version }}    # [build_platform != target_platform]
+        - llvmdev =={{ version }}    # [build_platform != target_platform and not osx]
         - make
       host:
         - llvmdev =={{ version }}
