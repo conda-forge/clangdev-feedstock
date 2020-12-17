@@ -15,6 +15,10 @@ source:
       - patches/0002-clang-add-conda-specific-env-var-CONDA_BUILD_SYSROOT.patch
       - patches/0003-clang-Fix-normalizeProgramName-s-handling-of-dots-ou.patch
       - patches/0001-Set-VERSION-in-osx-as-well.patch
+      - patches/cross-compile.diff
+      # Disable -Werror,-Wundef-prefix=TARGET_OS as they are not yet defined in the 10.9 SDK used for osx-64
+      # Only enable it for TARGET_OS_OSX.
+      - patches/disable-wundef-prefix.patch  # [osx and x86_64]
       - patches/amd-roc-2.7.0.diff   # [variant != "hcc"]
       - patches/amd-roc-hcc-2.7.0.diff  # [variant == "hcc"]
       - patches/cling.diff  # [variant == "cling_master"]
@@ -38,8 +42,9 @@ requirements:
     # Building with ninja on windows for parallel builds
     - ninja  # [win]
     - make   # [unix]
+    - llvmdev =={{ version }}    # [build_platform != target_platform]
   host:
-    - libcxx {{cxx_compiler_version}}  # [osx]
+    - libcxx {{ cxx_compiler_version }}  # [osx]
     - llvmdev =={{ version }}
 
 test:
@@ -54,7 +59,7 @@ test:
     - $PREFIX/bin/clang-check --version  # [unix]
 
     - $PREFIX/bin/clang -v -c mytest.c      # [unix]
-    - "%LIBRARY_BIN%/clang -v -c mytest.c"  # [win]
+    - '%LIBRARY_BIN%/clang -v -c mytest.c'  # [win]
 
     - if not exist %LIBRARY_INC%\\clang\\Lex\\Lexer.h exit 1  # [win]
     - test -f $PREFIX/include/clang/Lex/Lexer.h      # [unix]
@@ -63,18 +68,19 @@ test:
 
 outputs:
   - name: clangdev
-    script: install_clangdev.sh    # [unix]
-    script: install_clangdev.bat   # [win]
+    script: install_clangdev.sh  # [unix]
+    script: install_clangdev.bat  # [win]
     build:
       track_features:
         - hcc          # [variant=="hcc"]
-      string: "{{ variant }}_h{{ PKG_HASH }}_{{ build_number }}"
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       build:
         - {{ compiler('cxx') }}
         - cmake >=3.4.3
         - ninja  # [win]
         - make   # [unix]
+        - llvmdev =={{ version }}    # [build_platform != target_platform]
       host:
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clangxx", exact=True) }}
@@ -97,20 +103,21 @@ outputs:
         - if not exist %LIBRARY_LIB%\\clangAST.lib exit 1            # [win]
 
   - name: libclang
-    script: install_libclang.sh    # [unix]
-    script: install_libclang.bat   # [win]
+    script: install_libclang.sh  # [unix]
+    script: install_libclang.bat  # [win]
     build:
       track_features:
         - hcc          # [variant=="hcc"]
-      string: "{{ variant }}_h{{ PKG_HASH }}_{{ build_number }}"
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       build:
         - {{ compiler('cxx') }}
         - cmake >=3.4.3
         - ninja  # [win]
         - make   # [unix]
+        - llvmdev =={{ version }}    # [build_platform != target_platform]
       host:
-        - libcxx {{cxx_compiler_version}}  # [osx]
+        - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
         - {{ pin_subpackage("clang", exact=True) }}
@@ -137,6 +144,7 @@ outputs:
         - cmake >=3.4.3
         - ninja  # [win]
         - make   # [unix]
+        - llvmdev =={{ version }}    # [build_platform != target_platform]
       host:
         - libcxx {{cxx_compiler_version}}  # [osx]
         - llvmdev =={{ version }}
@@ -196,11 +204,12 @@ outputs:
         - cmake >=3.4.3
         - ninja  # [win]
         - make   # [unix]
+        - llvmdev =={{ version }}    # [build_platform != target_platform]
       host:
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clangxx", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
-        - libcxx {{cxx_compiler_version}}  # [osx]
+        - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
       run:
@@ -219,7 +228,7 @@ outputs:
       noarch: python
       # Building this output using this recipe is only supported on unix
       # It can still be installed on Windows as it is marked as `noarch: python`
-      skip: true  # [win]
+      skip: true  # [win or (build_platform != target_platform)]
       track_features:
         - hcc          # [variant=="hcc"]
       string: "{{ variant }}_h{{ PKG_HASH }}_{{ build_number }}"
@@ -257,3 +266,4 @@ extra:
     - jakirkham
     - SylvainCorlay
     - timsnyder
+    - chrisburr
