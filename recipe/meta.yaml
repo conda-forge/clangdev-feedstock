@@ -7,7 +7,7 @@ package:
   version: {{ version }}
 
 source:
-  - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version }}/clang-{{ version }}.src.tar.xz
+  - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/clang-{{ version.replace(".rc", "rc") }}.src.tar.xz
     sha256: 5778512b2e065c204010f88777d44b95250671103e434f9dc7363ab2e3804253
     patches:
       - patches/0001-Find-conda-gcc-installation.patch
@@ -23,7 +23,7 @@ source:
       - patches/amd-roc-hcc-2.7.0.diff  # [variant == "hcc"]
       - patches/cling.diff  # [variant == "cling_master"]
     folder: .
-  - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version }}/clang-tools-extra-{{ version }}.src.tar.xz
+  - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/clang-tools-extra-{{ version.replace(".rc", "rc") }}.src.tar.xz
     sha256: b26fd72a78bd7db998a26270ec9ec6a01346651d88fa87b4b323e13049fb6f07
     folder: tools/extra
 
@@ -86,13 +86,15 @@ outputs:
         - {{ pin_subpackage("clangxx", exact=True) }}
         - {{ pin_subpackage("clang-tools", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
-        - libcxx {{cxx_compiler_version}}  # [osx]
+        - {{ pin_subpackage("libclang-cpp", exact=True) }}
+        - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
       run:
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clangxx", exact=True) }}
         - {{ pin_subpackage("clang-tools", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
+        - {{ pin_subpackage("libclang-cpp", exact=True) }}
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
         - llvmdev =={{ version }}
     test:
@@ -101,6 +103,66 @@ outputs:
         - test -f "$PREFIX/lib/libclangAST.a"               # [unix]
         - if not exist %LIBRARY_INC%\\clang/Config/config.h exit 1   # [win]
         - if not exist %LIBRARY_LIB%\\clangAST.lib exit 1            # [win]
+
+  - name: libclang-cpp{{ major_version }}
+    script: install_libclang_cpp.sh  # [unix]
+    build:
+      track_features:
+        - hcc          # [variant=="hcc"]
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+      run_exports:
+        - {{ pin_subpackage("libclang-cpp" + major_version, max_pin="x.x") }}   # [unix]
+      skip: true  # [win]
+    requirements:
+      build:
+        - {{ compiler('cxx') }}
+        - cmake >=3.4.3
+        - ninja  # [win]
+        - make   # [unix]
+        - llvmdev =={{ version }}    # [build_platform != target_platform]
+      host:
+        - libcxx {{ cxx_compiler_version }}  # [osx]
+        - llvmdev =={{ version }}
+        - llvm =={{ version }}
+      run:
+        - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
+    test:
+      commands:
+        - test ! -f "$PREFIX/lib/libclang-cpp.so"                           # [linux]
+        - test -f "$PREFIX/lib/libclang-cpp.so.{{ major_version }}"         # [linux]
+        - test ! -f "$PREFIX/lib/libclang-cpp.dylib"                        # [osx]
+        - test -f "$PREFIX/lib/libclang-cpp.{{ major_version }}.dylib"      # [osx]
+
+  - name: libclang-cpp
+    script: install_libclang_cpp.sh  # [unix]
+    build:
+      track_features:
+        - hcc          # [variant=="hcc"]
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+      {% if not win %}
+      run_exports:   # [unix]
+        - {{ pin_subpackage("libclang-cpp" + major_version, max_pin="x.x") }}   # [unix]
+      {% endif %}
+    requirements:
+      build:
+        - {{ compiler('cxx') }}
+        - cmake >=3.4.3
+        - ninja  # [win]
+        - make   # [unix]
+        - llvmdev =={{ version }}    # [build_platform != target_platform]
+      host:
+        - libcxx {{ cxx_compiler_version }}  # [osx]
+        - llvmdev =={{ version }}
+        - llvm =={{ version }}
+        - {{ pin_subpackage("libclang-cpp" + major_version, exact=True) }}  # [unix]
+      run:
+        - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
+        - {{ pin_subpackage("libclang-cpp" + major_version, exact=True) }}  # [unix]
+    test:
+      commands:
+        - test -f "$PREFIX/lib/libclang-cpp.so"                     # [linux]
+        - test -f "$PREFIX/lib/libclang-cpp.dylib"                  # [osx]
+        - if exist %LIBRARY_BIN%\\libclang-cpp.dll exit 1           # [win]
 
   - name: libclang
     script: install_libclang.sh  # [unix]
@@ -126,17 +188,17 @@ outputs:
     test:
       commands:
         - test -f "$PREFIX/lib/libclang.so"                     # [linux]
-        - test -f "$PREFIX/lib/libclang.so.{{major_version}}"   # [linux]
+        - test -f "$PREFIX/lib/libclang.so.{{ major_version }}"   # [linux]
         - test -f "$PREFIX/lib/libclang.dylib"                  # [osx]
         - if not exist %LIBRARY_BIN%\\libclang.dll exit 1       # [win]
 
-  - name: clang
-    script: install_clang.sh       # [unix]
-    script: install_clang.bat      # [win]
+  - name: clang-{{ major_version }}
+    script: install_clang.sh  # [unix]
+    script: install_clang.bat  # [win]
     build:
       track_features:
         - hcc          # [variant=="hcc"]
-      string: "{{ variant }}_h{{ PKG_HASH }}_{{ build_number }}"
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       build:
         - {{ compiler('cxx') }}
@@ -146,35 +208,52 @@ outputs:
         - make   # [unix]
         - llvmdev =={{ version }}    # [build_platform != target_platform]
       host:
-        - libcxx {{cxx_compiler_version}}  # [osx]
+        - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
+        - {{ pin_compatible("libclang-cpp" + major_version, exact=True) }}  # [unix]
       run:
-        - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
+        - {{ pin_compatible("libcxx", max_pin=None) }}      # [osx]
+        - {{ pin_compatible("libclang-cpp" + major_version, exact=True) }}  # [unix]
       run_constrained:
         - clangdev {{ version }}
         - clangxx {{ version }}
         - clang-tools {{ version }}
+        - llvm-tools {{ version }}
+    test:
+      commands:
+        - clang-{{ major_version }} --version
+        - test ! -f "$PREFIX/bin/clang"   # [unix]
+        - test ! -f "$PREFIX/bin/clang-cl"   # [unix]
+        - test ! -f "$PREFIX/bin/clang-cpp"   # [unix]
+        - if exist %LIBRARY_BIN%\\clang.exe exit 1   # [win]
+        - if exist %LIBRARY_BIN%\\clang-cl.exe exit 1   # [win]
+        - if exist %LIBRARY_BIN%\\clang-cpp.exe exit 1   # [win]
+        - test ! -f "$PREFIX/lib/libclang-cpp.so"                     # [linux]
+        - test -f "$PREFIX/lib/libclang-cpp.so.{{ major_version }}"   # [linux]
+        - test ! -f "$PREFIX/lib/libclang-cpp.dylib"                  # [osx]
+        - test -f "$PREFIX/lib/clang/{{ '.'.join(version.split('.')[:3]) }}/include/stdatomic.h"                    # [unix]
+        - if not exist %LIBRARY_LIB%\\clang\\{{ '.'.join(version.split('.')[:3]) }}\\include\\stdatomic.h exit 1    # [win]
+
+  - name: clang
+    script: install_clang_symlinks.sh  # [unix]
+    script: install_clang_symlinks.bat  # [win]
+    requirements:
+      - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+      - gcc_impl_{{ target_platform }}  # [linux]
     test:
       commands:
         - clang --version
         - clang-cl --version
         - clang-cpp --version
-        - clang-{{major_version}} --version   # [unix]
-        - test -f "$PREFIX/lib/libclang-cpp.so"                     # [linux]
-        - test -f "$PREFIX/lib/libclang-cpp.so.{{major_version}}"   # [linux]
-        - test -f "$PREFIX/lib/libclang-cpp.dylib"                  # [osx]
-        - test -f "$PREFIX/lib/clang/{{ version }}/include/stdatomic.h"                    # [unix]
-        - if not exist %LIBRARY_LIB%\\clang\\{{ version }}\\include\\stdatomic.h exit 1    # [win]
 
-  # Defaults provides this, so let's do the same in conda-forge
   - name: clangxx
-    script: install_clangxx.sh       # [unix]
-    script: install_clangxx.bat      # [win]
+    script: install_clangxx.sh  # [unix]
+    script: install_clangxx.bat  # [win]
     build:
       track_features:
         - hcc          # [variant=="hcc"]
-      string: "{{ variant }}_h{{ PKG_HASH }}_{{ build_number }}"
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       host:
         - {{ pin_subpackage("clang", exact=True) }}
@@ -190,12 +269,12 @@ outputs:
         - clang++ -v -c mytest.cxx
 
   - name: clang-tools
-    script: install_clang_tools.sh    # [unix]
-    script: install_clang_tools.bat   # [win]
+    script: install_clang_tools.sh  # [unix]
+    script: install_clang_tools.bat  # [win]
     build:
       track_features:
         - hcc          # [variant=="hcc"]
-      string: "{{ variant }}_h{{ PKG_HASH }}_{{ build_number }}"
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       build:
         # "compiling .pyc files" fails without this
@@ -228,17 +307,17 @@ outputs:
       noarch: python
       # Building this output using this recipe is only supported on unix
       # It can still be installed on Windows as it is marked as `noarch: python`
-      skip: true  # [win or (build_platform != target_platform)]
+      skip: true  # [win or variant=="hcc" or (build_platform != target_platform)]
       track_features:
         - hcc          # [variant=="hcc"]
-      string: "{{ variant }}_h{{ PKG_HASH }}_{{ build_number }}"
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     script: build_python_bindings.sh
     requirements:
       host:
         - python
       run:
         - python
-        - libclang =={{version}}
+        - libclang =={{ version }}
     test:
       requires:
         - nose
