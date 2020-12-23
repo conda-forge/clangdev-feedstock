@@ -238,9 +238,28 @@ outputs:
   - name: clang
     script: install_clang_symlinks.sh  # [unix]
     script: install_clang_symlinks.bat  # [win]
+    build:
+      track_features:
+        - hcc          # [variant=="hcc"]
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
-      - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
-      - gcc_impl_{{ target_platform }}  # [linux]
+      build:
+        - {{ compiler('cxx') }}
+        - cmake >=3.4.3
+        # Needed to unpack the source tarball
+        - m2w64-xz  # [win]
+        # "compiling .pyc files" fails without this
+        - python >3
+        # Building with ninja on windows for parallel builds
+        - ninja  # [win]
+        - make   # [unix]
+        - llvmdev =={{ version }}    # [build_platform != target_platform]
+      host:
+        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+        - gcc_impl_{{ target_platform }}  # [linux]
+      run:
+        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+        - gcc_impl_{{ target_platform }}  # [linux]
     test:
       commands:
         - clang --version
@@ -257,8 +276,10 @@ outputs:
     requirements:
       host:
         - {{ pin_subpackage("clang", exact=True) }}
+        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
       run:
         - {{ pin_subpackage("clang", exact=True) }}
+        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
     test:
       requires:
         - {{ compiler("cxx") }}
