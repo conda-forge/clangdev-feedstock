@@ -3,7 +3,7 @@ channel_sources:
 channel_targets:
 - conda-forge main
 clang_variant:
-- cling_v0.7
+- cling_v0.8
 cxx_compiler:
 - vs2017
 target_platform:

@@ -5,7 +5,7 @@ channel_sources:
 channel_targets:
 - conda-forge main
 clang_variant:
-- cling_v0.7
+- cling_v0.8
 cxx_compiler:
 - gxx
 cxx_compiler_version:
@@ -14,3 +14,6 @@ docker_image:
 - quay.io/condaforge/linux-anvil-comp7
 target_platform:
 - linux-64
+zip_keys:
+- - cdt_name
+  - docker_image

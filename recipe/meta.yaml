@@ -17,7 +17,8 @@ source:
   sha256: {{ sha256 }}
 {% elif clang_variant.startswith("cling") %}
   git_url: http://root.cern.ch/git/clang.git
-  git_rev: {{ clang_variant|replace('cling_', 'cling-') }}
+  # The git rev for 0.8 is the same as 0.7
+  git_rev: {{ clang_variant|replace('cling_', 'cling-')|replace('0.8', '0.7') }}
 {% elif clang_variant.startswith("root_20190625") %}
   url: https://github.com/root-project/root/archive/6b8f54808eb13103e87cae19c642aec474270422.zip
   folder: root-source
