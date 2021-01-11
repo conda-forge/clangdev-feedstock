@@ -3,13 +3,13 @@ BUILD:
 cdt_arch:
 - aarch64
 cdt_name:
-- cos6
+- cos7
 channel_sources:
 - conda-forge
 channel_targets:
 - conda-forge main
 clang_variant:
-- cling_v0.7
+- cling_v0.8
 cxx_compiler:
 - gxx
 cxx_compiler_version:

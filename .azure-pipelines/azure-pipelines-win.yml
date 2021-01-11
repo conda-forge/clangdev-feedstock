@@ -8,8 +8,8 @@ jobs:
     vmImage: vs2017-win2016
   strategy:
     matrix:
-      win_64_clang_variantcling_v0.7:
-        CONFIG: win_64_clang_variantcling_v0.7
+      win_64_clang_variantcling_v0.8:
+        CONFIG: win_64_clang_variantcling_v0.8
         UPLOAD_PACKAGES: 'True'
       win_64_clang_variantdefault:
         CONFIG: win_64_clang_variantdefault
