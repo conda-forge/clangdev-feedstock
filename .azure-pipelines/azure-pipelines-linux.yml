@@ -8,18 +8,18 @@ jobs:
     vmImage: ubuntu-16.04
   strategy:
     matrix:
-      linux_64_target_platformlinux-64variantdefault:
-        CONFIG: linux_64_target_platformlinux-64variantdefault
+      linux_64_variantdefault:
+        CONFIG: linux_64_variantdefault
         UPLOAD_PACKAGES: 'True'
-        DOCKER_IMAGE: condaforge/linux-anvil-comp7
-      linux_aarch64_target_platformlinux-aarch64variantdefault:
-        CONFIG: linux_aarch64_target_platformlinux-aarch64variantdefault
+        DOCKER_IMAGE: quay.io/condaforge/linux-anvil-comp7
+      linux_aarch64_variantdefault:
+        CONFIG: linux_aarch64_variantdefault
         UPLOAD_PACKAGES: 'True'
-        DOCKER_IMAGE: condaforge/linux-anvil-comp7
-      linux_ppc64le_target_platformlinux-ppc64levariantdefault:
-        CONFIG: linux_ppc64le_target_platformlinux-ppc64levariantdefault
+        DOCKER_IMAGE: quay.io/condaforge/linux-anvil-comp7
+      linux_ppc64le_variantdefault:
+        CONFIG: linux_ppc64le_variantdefault
         UPLOAD_PACKAGES: 'True'
-        DOCKER_IMAGE: condaforge/linux-anvil-comp7
+        DOCKER_IMAGE: quay.io/condaforge/linux-anvil-comp7
   timeoutInMinutes: 360
 
   steps:
