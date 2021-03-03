@@ -194,6 +194,10 @@ outputs:
       commands:
         - test -f "$PREFIX/lib/libclang.so"                           # [linux]
         - test -f "$PREFIX/lib/libclang.so.{{ minor_aware_ext }}"     # [linux]
+        {% if minor_aware_ext != major_version %}
+        - test ! -f "$PREFIX/lib/libclang.so.{{ major_version }}"     # [linux]
+        - test ! -f "$PREFIX/lib/libclang.{{ major_version }}.dylib"  # [osx]
+        {% endif %}
         - test -f "$PREFIX/lib/libclang.dylib"                        # [osx]
         - test -f "$PREFIX/lib/libclang.{{ minor_aware_ext }}.dylib"  # [osx]
         - if not exist %LIBRARY_BIN%\\libclang.dll exit 1             # [win]
