@@ -109,14 +109,14 @@ outputs:
         - if not exist %LIBRARY_INC%\\clang/Config/config.h exit 1   # [win]
         - if not exist %LIBRARY_LIB%\\clangAST.lib exit 1            # [win]
 
-  - name: libclang-cpp{{ major_version }}
+  - name: libclang-cpp{{ minor_aware_ext }}
     script: install_libclang_cpp.sh  # [unix]
     build:
       track_features:
         - hcc          # [variant=="hcc"]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:
-        - {{ pin_subpackage("libclang-cpp" + major_version, max_pin="x.x") }}   # [unix]
+        - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, max_pin="x.x") }}   # [unix]
       skip: true  # [win]
     requirements:
       build:
@@ -146,7 +146,7 @@ outputs:
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       {% if not win %}
       run_exports:   # [unix]
-        - {{ pin_subpackage("libclang-cpp" + major_version, max_pin="x.x") }}   # [unix]
+        - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, max_pin="x.x") }}   # [unix]
       {% endif %}
     requirements:
       build:
@@ -159,10 +159,10 @@ outputs:
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
-        - {{ pin_subpackage("libclang-cpp" + major_version, exact=True) }}  # [unix]
+        - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, exact=True) }}  # [unix]
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
-        - {{ pin_subpackage("libclang-cpp" + major_version, exact=True) }}  # [unix]
+        - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, exact=True) }}  # [unix]
     test:
       commands:
         - test -f "$PREFIX/lib/libclang-cpp.so"                     # [linux]
@@ -217,10 +217,10 @@ outputs:
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
-        - {{ pin_compatible("libclang-cpp" + major_version, exact=True) }}  # [unix]
+        - {{ pin_compatible("libclang-cpp" + minor_aware_ext, exact=True) }}  # [unix]
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}      # [osx]
-        - {{ pin_compatible("libclang-cpp" + major_version, exact=True) }}  # [unix]
+        - {{ pin_compatible("libclang-cpp" + minor_aware_ext, exact=True) }}  # [unix]
       run_constrained:
         - clangdev {{ version }}
         - clangxx {{ version }}
