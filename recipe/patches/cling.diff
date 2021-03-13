@@ -104,7 +104,7 @@ index 7add83f896..29a2f74bf5 100644
    friend void FunctionDecl::setPure(bool);
    friend void TagDecl::startDefinition();
 diff --git a/include/clang/AST/DeclContextInternals.h b/include/clang/AST/DeclContextInternals.h
-index e6a4cd4381..f570112579 100644
+index e6a4cd4381..c80e13fc7c 100644
 --- a/include/clang/AST/DeclContextInternals.h
 +++ b/include/clang/AST/DeclContextInternals.h
 @@ -33,7 +33,7 @@ class DependentDiagnostic;
@@ -112,7 +112,7 @@ index e6a4cd4381..f570112579 100644
  struct StoredDeclsList {
    /// When in vector form, this is what the Data pointer points to.
 -  using DeclsTy = SmallVector<NamedDecl *, 4>;
-+  using DeclsTy = SmallVector<NamedDecl *, 32>;
++  using DeclsTy = SmallVector<NamedDecl *, 8>;
  
    /// A collection of declarations, with a flag to indicate if we have
    /// further external declarations.
@@ -830,7 +830,7 @@ index 558106eb68..5de0bd4dc1 100644
        for (SmallVectorImpl<TemplateIdAnnotation *>::iterator I =
                 Container.begin(),
 diff --git a/include/clang/Sema/Sema.h b/include/clang/Sema/Sema.h
-index e6c63fd9c0..452deb4dfd 100644
+index e6c63fd9c0..26f3d66995 100644
 --- a/include/clang/Sema/Sema.h
 +++ b/include/clang/Sema/Sema.h
 @@ -137,6 +137,7 @@ namespace clang {
@@ -923,7 +923,17 @@ index e6c63fd9c0..452deb4dfd 100644
    /// WeakUndeclaredIdentifiers - Identifiers contained in
    /// \#pragma weak before declared. rare. may alias another
    /// identifier, declared or undeclared
-@@ -5590,7 +5648,7 @@ public:
+@@ -3405,7 +3463,8 @@ public:
+   LabelDecl *LookupOrCreateLabel(IdentifierInfo *II, SourceLocation IdentLoc,
+                                  SourceLocation GnuLabelLoc = SourceLocation());
+ 
+-  DeclContextLookupResult LookupConstructors(CXXRecordDecl *Class);
++  void LookupConstructors(CXXRecordDecl *Class,
++                          llvm::SmallVectorImpl<NamedDecl*> &Constructors);
+   CXXConstructorDecl *LookupDefaultConstructor(CXXRecordDecl *Class);
+   CXXConstructorDecl *LookupCopyingConstructor(CXXRecordDecl *Class,
+                                                unsigned Quals);
+@@ -5590,7 +5649,7 @@ public:
    StmtResult ActOnFinishFullStmt(Stmt *Stmt);
  
    // Marks SS invalid if it represents an incomplete type.
@@ -932,7 +942,7 @@ index e6c63fd9c0..452deb4dfd 100644
  
    DeclContext *computeDeclContext(QualType T);
    DeclContext *computeDeclContext(const CXXScopeSpec &SS,
-@@ -6527,7 +6585,8 @@ public:
+@@ -6527,7 +6586,8 @@ public:
    bool CheckTemplateParameterList(TemplateParameterList *NewParams,
                                    TemplateParameterList *OldParams,
                                    TemplateParamListContext TPC,
@@ -942,7 +952,7 @@ index e6c63fd9c0..452deb4dfd 100644
    TemplateParameterList *MatchTemplateParametersToScopeSpecifier(
        SourceLocation DeclStartLoc, SourceLocation DeclLoc,
        const CXXScopeSpec &SS, TemplateIdAnnotation *TemplateId,
-@@ -8046,6 +8105,24 @@ public:
+@@ -8046,6 +8106,24 @@ public:
      }
    };
  
@@ -967,7 +977,7 @@ index e6c63fd9c0..452deb4dfd 100644
    void PerformPendingInstantiations(bool LocalOnly = false);
  
    TypeSourceInfo *SubstType(TypeSourceInfo *T,
-@@ -11110,6 +11187,7 @@ protected:
+@@ -11110,6 +11188,7 @@ protected:
    friend class ASTReader;
    friend class ASTDeclReader;
    friend class ASTWriter;
@@ -1814,7 +1824,7 @@ index 0a4d403106..12de4194f5 100644
    const Stmt *S = this;
    do {
 diff --git a/lib/AST/TemplateBase.cpp b/lib/AST/TemplateBase.cpp
-index cb4cbd2f76..d4a5aad649 100644
+index cb4cbd2f76..08e41393cd 100644
 --- a/lib/AST/TemplateBase.cpp
 +++ b/lib/AST/TemplateBase.cpp
 @@ -76,6 +76,12 @@ static void printIntegral(const TemplateArgument &TemplArg,
@@ -1830,6 +1840,33 @@ index cb4cbd2f76..d4a5aad649 100644
    }
  }
  
+@@ -405,10 +411,23 @@ void TemplateArgument::print(const PrintingPolicy &Policy,
+   }
+ 
+   case Declaration: {
+-    NamedDecl *ND = getAsDecl();
+-    Out << '&';
++    NamedDecl *ND = cast<NamedDecl>(getAsDecl());
++    bool needsRef = true;
++    if (auto VD = dyn_cast<ValueDecl>(ND)) {
++      const clang::Type *ArgTy = VD->getType()->getUnqualifiedDesugaredType();
++      const clang::Type *ParmTy
++        = getParamTypeForDecl()->getUnqualifiedDesugaredType();
++      clang::ASTContext& Ctx = ND->getASTContext();
++      needsRef = !Ctx.hasSameType(ArgTy, ParmTy);
++      if (needsRef && (ArgTy->isArrayType() || ArgTy->isFunctionType())) {
++        const clang::Type *decayedArgTy
++          = Ctx.getDecayedType(clang::QualType(ArgTy, 0)).getTypePtr();
++        needsRef = !Ctx.hasSameType(decayedArgTy, ParmTy);
++      }
++    }
++    if (needsRef)
++      Out << '&';
+     if (ND->getDeclName()) {
+-      // FIXME: distinguish between pointer and reference args?
+       ND->printQualifiedName(Out);
+     } else {
+       Out << "(anonymous)";
 diff --git a/lib/Analysis/plugins/CheckerDependencyHandling/CMakeLists.txt b/lib/Analysis/plugins/CheckerDependencyHandling/CMakeLists.txt
 index 229de54814..dde2cca133 100644
 --- a/lib/Analysis/plugins/CheckerDependencyHandling/CMakeLists.txt
@@ -3391,6 +3428,21 @@ index c473856f0b..d1a34dd1a0 100644
  
      LookupQualifiedName(Found, LookupCtx);
  
+diff --git a/lib/Sema/SemaCodeComplete.cpp b/lib/Sema/SemaCodeComplete.cpp
+index e4bbee86e3..16e0c41d27 100644
+--- a/lib/Sema/SemaCodeComplete.cpp
++++ b/lib/Sema/SemaCodeComplete.cpp
+@@ -5212,7 +5212,9 @@ QualType Sema::ProduceConstructorSignatureHelp(Scope *S, QualType Type,
+ 
+   OverloadCandidateSet CandidateSet(Loc, OverloadCandidateSet::CSK_Normal);
+ 
+-  for (NamedDecl *C : LookupConstructors(RD)) {
++  llvm::SmallVector<NamedDecl*, 4> Ctors;
++  LookupConstructors(RD, Ctors);
++  for (NamedDecl *C : Ctors) {
+     if (auto *FD = dyn_cast<FunctionDecl>(C)) {
+       AddOverloadCandidate(FD, DeclAccessPair::make(FD, C->getAccess()), Args,
+                            CandidateSet,
 diff --git a/lib/Sema/SemaDecl.cpp b/lib/Sema/SemaDecl.cpp
 index a8ee656dce..be8100c025 100644
 --- a/lib/Sema/SemaDecl.cpp
@@ -3458,7 +3510,7 @@ index a8ee656dce..be8100c025 100644
        << Prev->isFixed();
      Diag(Prev->getLocation(), diag::note_previous_declaration);
 diff --git a/lib/Sema/SemaDeclCXX.cpp b/lib/Sema/SemaDeclCXX.cpp
-index 2f9e4f961f..bf76272525 100644
+index 2f9e4f961f..13dc68e9bd 100644
 --- a/lib/Sema/SemaDeclCXX.cpp
 +++ b/lib/Sema/SemaDeclCXX.cpp
 @@ -525,6 +525,8 @@ bool Sema::MergeCXXFunctionDecl(FunctionDecl *New, FunctionDecl *Old,
@@ -3487,7 +3539,18 @@ index 2f9e4f961f..bf76272525 100644
      Diag(New->getLocation(), diag::err_deduction_guide_redeclared);
      Diag(Old->getLocation(), diag::note_previous_declaration);
    }
-@@ -10376,9 +10379,9 @@ bool Sema::CheckUsingDeclQualifier(SourceLocation UsingLoc,
+@@ -10159,7 +10162,9 @@ NamedDecl *Sema::BuildUsingDeclaration(
+         UsingName.setName(Context.DeclarationNames.getCXXConstructorName(
+             Context.getCanonicalType(Context.getRecordType(CurClass))));
+         UsingName.setNamedTypeInfo(nullptr);
+-        for (auto *Ctor : LookupConstructors(RD))
++        llvm::SmallVector<NamedDecl*, 4> Ctors;
++        LookupConstructors(RD, Ctors);
++        for (auto *Ctor : Ctors)
+           R.addDecl(Ctor);
+         R.resolveKind();
+       } else {
+@@ -10376,9 +10381,9 @@ bool Sema::CheckUsingDeclQualifier(SourceLocation UsingLoc,
      // we have a 'typename' keyword, the scope must resolve to a class type.
      if ((HasTypename && !NamedContext) ||
          (NamedContext && NamedContext->getRedeclContext()->isRecord())) {
@@ -3545,7 +3608,7 @@ index d8869ffe94..357a5dafee 100644
      if (getLangOpts().CPlusPlus &&
          LHS.get()->getObjectKind() != OK_ObjCProperty) {
 diff --git a/lib/Sema/SemaExprCXX.cpp b/lib/Sema/SemaExprCXX.cpp
-index c1c08969c7..cfb3754d15 100644
+index c1c08969c7..e82e321090 100644
 --- a/lib/Sema/SemaExprCXX.cpp
 +++ b/lib/Sema/SemaExprCXX.cpp
 @@ -95,7 +95,8 @@ ParsedType Sema::getConstructorName(IdentifierInfo &II,
@@ -3558,8 +3621,96 @@ index c1c08969c7..cfb3754d15 100644
      return ParsedType();
  
    // Find the injected-class-name declaration. Note that we make no attempt to
+@@ -4803,7 +4804,9 @@ static bool EvaluateUnaryTypeTrait(Sema &Self, TypeTrait UTT,
+ 
+       bool FoundConstructor = false;
+       unsigned FoundTQs;
+-      for (const auto *ND : Self.LookupConstructors(RD)) {
++      llvm::SmallVector<NamedDecl*, 4> Ctors;
++      Self.LookupConstructors(RD, Ctors);
++      for (const auto *ND : Ctors) {
+         // A template constructor is never a copy constructor.
+         // FIXME: However, it may actually be selected at the actual overload
+         // resolution point.
+@@ -4844,7 +4847,9 @@ static bool EvaluateUnaryTypeTrait(Sema &Self, TypeTrait UTT,
+         return true;
+ 
+       bool FoundConstructor = false;
+-      for (const auto *ND : Self.LookupConstructors(RD)) {
++      llvm::SmallVector<NamedDecl*, 4> Ctors;
++      Self.LookupConstructors(RD, Ctors);
++      for (const auto *ND : Ctors) {
+         // FIXME: In C++0x, a constructor template can be a default constructor.
+         if (isa<FunctionTemplateDecl>(ND->getUnderlyingDecl()))
+           continue;
+diff --git a/lib/Sema/SemaInit.cpp b/lib/Sema/SemaInit.cpp
+index 60f34775c6..75b4007214 100644
+--- a/lib/Sema/SemaInit.cpp
++++ b/lib/Sema/SemaInit.cpp
+@@ -3735,7 +3735,7 @@ ResolveConstructorOverload(Sema &S, SourceLocation DeclLoc,
+                            MultiExprArg Args,
+                            OverloadCandidateSet &CandidateSet,
+                            QualType DestType,
+-                           DeclContext::lookup_result Ctors,
++                           const llvm::SmallVectorImpl<NamedDecl*>& Ctors,
+                            OverloadCandidateSet::iterator &Best,
+                            bool CopyInitializing, bool AllowExplicit,
+                            bool OnlyListConstructors, bool IsListInit,
+@@ -3915,7 +3915,8 @@ static void TryConstructorInitialization(Sema &S,
+   //   - Otherwise, if T is a class type, constructors are considered. The
+   //     applicable constructors are enumerated, and the best one is chosen
+   //     through overload resolution.
+-  DeclContext::lookup_result Ctors = S.LookupConstructors(DestRecordDecl);
++  llvm::SmallVector<NamedDecl*, 4> Ctors;
++  S.LookupConstructors(DestRecordDecl, Ctors);
+ 
+   OverloadingResult Result = OR_No_Viable_Function;
+   OverloadCandidateSet::iterator Best;
+@@ -4370,7 +4371,9 @@ static OverloadingResult TryRefInitWithConversionFunction(
+     // to see if there is a suitable conversion.
+     CXXRecordDecl *T1RecordDecl = cast<CXXRecordDecl>(T1RecordType->getDecl());
+ 
+-    for (NamedDecl *D : S.LookupConstructors(T1RecordDecl)) {
++    llvm::SmallVector<NamedDecl*, 4> Ctors;
++    S.LookupConstructors(T1RecordDecl, Ctors);
++    for (NamedDecl *D : Ctors) {
+       auto Info = getConstructorInfo(D);
+       if (!Info.Constructor)
+         continue;
+@@ -5014,7 +5017,9 @@ static void TryUserDefinedConversion(Sema &S,
+ 
+     // Try to complete the type we're converting to.
+     if (S.isCompleteType(Kind.getLocation(), DestType)) {
+-      for (NamedDecl *D : S.LookupConstructors(DestRecordDecl)) {
++      llvm::SmallVector<NamedDecl*, 4> Ctors;
++      S.LookupConstructors(DestRecordDecl, Ctors);
++      for (NamedDecl *D : Ctors) {
+         auto Info = getConstructorInfo(D);
+         if (!Info.Constructor)
+           continue;
+@@ -5987,7 +5992,8 @@ static ExprResult CopyObject(Sema &S,
+   // C++11 [dcl.init]p16, second bullet for class types, this initialization
+   // is direct-initialization.
+   OverloadCandidateSet CandidateSet(Loc, OverloadCandidateSet::CSK_Normal);
+-  DeclContext::lookup_result Ctors = S.LookupConstructors(Class);
++  llvm::SmallVector<NamedDecl*, 4> Ctors;
++  S.LookupConstructors(Class, Ctors);
+ 
+   OverloadCandidateSet::iterator Best;
+   switch (ResolveConstructorOverload(
+@@ -6129,8 +6135,8 @@ static void CheckCXX98CompatAccessibleCopy(Sema &S,
+ 
+   // Find constructors which would have been considered.
+   OverloadCandidateSet CandidateSet(Loc, OverloadCandidateSet::CSK_Normal);
+-  DeclContext::lookup_result Ctors =
+-      S.LookupConstructors(cast<CXXRecordDecl>(Record->getDecl()));
++  llvm::SmallVector<NamedDecl*, 4> Ctors;
++  S.LookupConstructors(cast<CXXRecordDecl>(Record->getDecl()), Ctors);
+ 
+   // Perform overload resolution.
+   OverloadCandidateSet::iterator Best;
 diff --git a/lib/Sema/SemaLookup.cpp b/lib/Sema/SemaLookup.cpp
-index 8a24dd884a..2958dd1412 100644
+index 8a24dd884a..aa5d2f34c5 100644
 --- a/lib/Sema/SemaLookup.cpp
 +++ b/lib/Sema/SemaLookup.cpp
 @@ -1925,8 +1925,14 @@ bool Sema::LookupName(LookupResult &R, Scope *S, bool AllowBuiltinCreation) {
@@ -3578,6 +3729,40 @@ index 8a24dd884a..2958dd1412 100644
    }
  
    // If we didn't find a use of this identifier, and if the identifier
+@@ -3208,7 +3214,8 @@ CXXConstructorDecl *Sema::LookupMovingConstructor(CXXRecordDecl *Class,
+ }
+ 
+ /// Look up the constructors for the given class.
+-DeclContext::lookup_result Sema::LookupConstructors(CXXRecordDecl *Class) {
++void Sema::LookupConstructors(CXXRecordDecl *Class,
++                              llvm::SmallVectorImpl<NamedDecl*> &Constructors) {
+   // If the implicit constructors have not yet been declared, do so now.
+   if (CanDeclareSpecialMemberFunction(Class)) {
+     if (Class->needsImplicitDefaultConstructor())
+@@ -3221,7 +3228,10 @@ DeclContext::lookup_result Sema::LookupConstructors(CXXRecordDecl *Class) {
+ 
+   CanQualType T = Context.getCanonicalType(Context.getTypeDeclType(Class));
+   DeclarationName Name = Context.DeclarationNames.getCXXConstructorName(T);
+-  return Class->lookup(Name);
++  // Working directly on R might trigger a deserialization, invalidating R if
++  // the underlying data structure needs to reallocate the storage.
++  DeclContext::lookup_result R = Class->lookup(Name);
++  Constructors.append(R.begin(), R.end());
+ }
+ 
+ /// Look up the copying assignment operator for the given class.
+@@ -3456,7 +3466,10 @@ void Sema::ArgumentDependentLookup(DeclarationName Name, SourceLocation Loc,
+     //        namespaces even if they are not visible during an ordinary
+     //        lookup (11.4).
+     DeclContext::lookup_result R = NS->lookup(Name);
+-    for (auto *D : R) {
++    // The loop might trigger a deserialization, invalidating R if the
++    // underlying data structure needs to reallocate the storage.
++    llvm::SmallVector<NamedDecl*, 8> RCopy(R.begin(), R.end());
++    for (auto *D : RCopy) {
+       auto *Underlying = D;
+       if (auto *USD = dyn_cast<UsingShadowDecl>(D))
+         Underlying = USD->getTargetDecl();
 diff --git a/lib/Sema/SemaModule.cpp b/lib/Sema/SemaModule.cpp
 index 10de0ca912..43396c733b 100644
 --- a/lib/Sema/SemaModule.cpp
@@ -3591,8 +3776,34 @@ index 10de0ca912..43396c733b 100644
  
    // FIXME: we should support importing a submodule within a different submodule
    // of the same top-level module. Until we do, make it an error rather than
+diff --git a/lib/Sema/SemaOverload.cpp b/lib/Sema/SemaOverload.cpp
+index f632a4d3bd..b176a9c6a7 100644
+--- a/lib/Sema/SemaOverload.cpp
++++ b/lib/Sema/SemaOverload.cpp
+@@ -3230,7 +3230,9 @@ IsInitializerListConstructorConversion(Sema &S, Expr *From, QualType ToType,
+                                        OverloadCandidateSet &CandidateSet,
+                                        bool AllowExplicit) {
+   CandidateSet.clear(OverloadCandidateSet::CSK_InitByUserDefinedConversion);
+-  for (auto *D : S.LookupConstructors(To)) {
++  llvm::SmallVector<NamedDecl*, 4> Ctors;
++  S.LookupConstructors(To, Ctors);
++  for (auto *D : Ctors) {
+     auto Info = getConstructorInfo(D);
+     if (!Info)
+       continue;
+@@ -3353,7 +3355,9 @@ IsUserDefinedConversion(Sema &S, Expr *From, QualType ToType,
+         ListInitializing = true;
+       }
+ 
+-      for (auto *D : S.LookupConstructors(ToRecordDecl)) {
++      llvm::SmallVector<NamedDecl*, 4> Ctors;
++      S.LookupConstructors(ToRecordDecl, Ctors);
++      for (auto *D : Ctors) {
+         auto Info = getConstructorInfo(D);
+         if (!Info)
+           continue;
 diff --git a/lib/Sema/SemaTemplate.cpp b/lib/Sema/SemaTemplate.cpp
-index 135ca2b25c..520c89ee98 100644
+index 135ca2b25c..6ada88492f 100644
 --- a/lib/Sema/SemaTemplate.cpp
 +++ b/lib/Sema/SemaTemplate.cpp
 @@ -36,6 +36,31 @@
@@ -3682,7 +3893,18 @@ index 135ca2b25c..520c89ee98 100644
      Invalid = true;
  
    if (SS.isSet()) {
-@@ -2260,7 +2310,8 @@ static bool DiagnoseUnexpandedParameterPacks(Sema &S,
+@@ -2108,7 +2158,9 @@ void Sema::DeclareImplicitDeductionGuides(TemplateDecl *Template,
+   // for which some class template parameter without a default argument never
+   // appears in a deduced context).
+   bool AddedAny = false;
+-  for (NamedDecl *D : LookupConstructors(Transform.Primary)) {
++  llvm::SmallVector<NamedDecl*, 4> Ctors;
++  LookupConstructors(Transform.Primary, Ctors);
++  for (NamedDecl *D : Ctors) {
+     D = D->getUnderlyingDecl();
+     if (D->isInvalidDecl() || D->isImplicit())
+       continue;
+@@ -2260,7 +2312,8 @@ static bool DiagnoseUnexpandedParameterPacks(Sema &S,
  bool Sema::CheckTemplateParameterList(TemplateParameterList *NewParams,
                                        TemplateParameterList *OldParams,
                                        TemplateParamListContext TPC,
@@ -3692,7 +3914,7 @@ index 135ca2b25c..520c89ee98 100644
    bool Invalid = false;
  
    // C++ [temp.param]p10:
-@@ -2295,7 +2346,7 @@ bool Sema::CheckTemplateParameterList(TemplateParameterList *NewParams,
+@@ -2295,7 +2348,7 @@ bool Sema::CheckTemplateParameterList(TemplateParameterList *NewParams,
      if (TemplateTypeParmDecl *NewTypeParm
            = dyn_cast<TemplateTypeParmDecl>(*NewParam)) {
        // Check the presence of a default argument here.
@@ -3701,7 +3923,7 @@ index 135ca2b25c..520c89ee98 100644
            DiagnoseDefaultTemplateArgument(*this, TPC,
                                            NewTypeParm->getLocation(),
                 NewTypeParm->getDefaultArgumentInfo()->getTypeLoc()
-@@ -2339,7 +2390,7 @@ bool Sema::CheckTemplateParameterList(TemplateParameterList *NewParams,
+@@ -2339,7 +2392,7 @@ bool Sema::CheckTemplateParameterList(TemplateParameterList *NewParams,
        }
  
        // Check the presence of a default argument here.
@@ -3710,7 +3932,7 @@ index 135ca2b25c..520c89ee98 100644
            DiagnoseDefaultTemplateArgument(*this, TPC,
                                            NewNonTypeParm->getLocation(),
                      NewNonTypeParm->getDefaultArgument()->getSourceRange())) {
-@@ -2383,7 +2434,7 @@ bool Sema::CheckTemplateParameterList(TemplateParameterList *NewParams,
+@@ -2383,7 +2436,7 @@ bool Sema::CheckTemplateParameterList(TemplateParameterList *NewParams,
        }
  
        // Check the presence of a default argument here.
@@ -3719,7 +3941,7 @@ index 135ca2b25c..520c89ee98 100644
            DiagnoseDefaultTemplateArgument(*this, TPC,
                                            NewTemplateParm->getLocation(),
                       NewTemplateParm->getDefaultArgument().getSourceRange()))
-@@ -2431,14 +2482,24 @@ bool Sema::CheckTemplateParameterList(TemplateParameterList *NewParams,
+@@ -2431,14 +2484,24 @@ bool Sema::CheckTemplateParameterList(TemplateParameterList *NewParams,
        Invalid = true;
      }
  
@@ -3746,7 +3968,7 @@ index 135ca2b25c..520c89ee98 100644
        // C++ [temp.param]p11:
        //   If a template-parameter of a class template has a default
        //   template-argument, each subsequent template-parameter shall either
-@@ -4576,7 +4637,11 @@ bool Sema::CheckTemplateTypeArgument(TemplateTypeParmDecl *Param,
+@@ -4576,7 +4639,11 @@ bool Sema::CheckTemplateTypeArgument(TemplateTypeParmDecl *Param,
      return true;
  
    // Add the converted template type argument.
@@ -3759,7 +3981,7 @@ index 135ca2b25c..520c89ee98 100644
  
    // Objective-C ARC:
    //   If an explicitly-specified template argument type is a lifetime type
-@@ -5734,8 +5799,15 @@ bool Sema::CheckTemplateArgument(TemplateTypeParmDecl *Param,
+@@ -5734,8 +5801,15 @@ bool Sema::CheckTemplateArgument(TemplateTypeParmDecl *Param,
  
    if (Arg->isVariablyModifiedType()) {
      return Diag(SR.getBegin(), diag::err_variably_modified_template_arg) << Arg;
@@ -3777,7 +3999,7 @@ index 135ca2b25c..520c89ee98 100644
    }
  
    // C++03 [temp.arg.type]p2:
-@@ -5747,7 +5819,11 @@ bool Sema::CheckTemplateArgument(TemplateTypeParmDecl *Param,
+@@ -5747,7 +5821,11 @@ bool Sema::CheckTemplateArgument(TemplateTypeParmDecl *Param,
    // a warning.
    if (LangOpts.CPlusPlus11 || Arg->hasUnnamedOrLocalType()) {
      UnnamedLocalNoLinkageFinder Finder(*this, SR);
@@ -3936,7 +4158,7 @@ index 8df18b5c27..3b2063e9f5 100644
    // Propagate type-source information.
    SubstTemplateTypeParmTypeLoc NewTL
 diff --git a/lib/Serialization/ASTReader.cpp b/lib/Serialization/ASTReader.cpp
-index 7f2c7f09e8..5f96140214 100644
+index 7f2c7f09e8..8f9c69a011 100644
 --- a/lib/Serialization/ASTReader.cpp
 +++ b/lib/Serialization/ASTReader.cpp
 @@ -1497,7 +1497,7 @@ bool ASTReader::ReadSLocEntry(int ID) {
@@ -3970,7 +4192,19 @@ index 7f2c7f09e8..5f96140214 100644
  }
  
  void ASTReader::resolvePendingMacro(IdentifierInfo *II,
-@@ -2549,9 +2555,10 @@ ASTReader::ReadControlBlock(ModuleFile &F,
+@@ -2279,8 +2285,10 @@ InputFile ASTReader::getInputFile(ModuleFile &F, unsigned ID, bool Complain) {
+ 
+   // For an overridden file, create a virtual file with the stored
+   // size/timestamp.
+-  if ((Overridden || Transient) && File == nullptr)
++  if ((Overridden || Transient) && (DisableValidation || File == nullptr)) {
+     File = FileMgr.getVirtualFile(Filename, StoredSize, StoredTime);
++    Overridden = true;
++  }
+ 
+   if (File == nullptr) {
+     if (Complain) {
+@@ -2549,9 +2557,10 @@ ASTReader::ReadControlBlock(ModuleFile &F,
        // All user input files reside at the index range [0, NumUserInputs), and
        // system input files reside at [NumUserInputs, NumInputs). For explicitly
        // loaded module files, ignore missing inputs.
@@ -3983,7 +4217,7 @@ index 7f2c7f09e8..5f96140214 100644
  
          // If we are reading a module, we will create a verification timestamp,
          // so we verify all input files.  Otherwise, verify only user input
-@@ -2564,12 +2571,13 @@ ASTReader::ReadControlBlock(ModuleFile &F,
+@@ -2564,12 +2573,13 @@ ASTReader::ReadControlBlock(ModuleFile &F,
               F.Kind == MK_ImplicitModule))
            N = NumInputs;
  
@@ -4000,7 +4234,7 @@ index 7f2c7f09e8..5f96140214 100644
  
        if (Listener)
          Listener->visitModuleFile(F.FileName, F.Kind);
-@@ -2614,7 +2622,7 @@ ASTReader::ReadControlBlock(ModuleFile &F,
+@@ -2614,7 +2624,7 @@ ASTReader::ReadControlBlock(ModuleFile &F,
            //
            // FIXME: Allow this for files explicitly specified with -include-pch.
            bool AllowCompatibleConfigurationMismatch =
@@ -4009,7 +4243,7 @@ index 7f2c7f09e8..5f96140214 100644
  
            Result = ReadOptionsBlock(Stream, ClientLoadCapabilities,
                                      AllowCompatibleConfigurationMismatch,
-@@ -2743,6 +2751,26 @@ ASTReader::ReadControlBlock(ModuleFile &F,
+@@ -2743,6 +2753,26 @@ ASTReader::ReadControlBlock(ModuleFile &F,
          else
            SkipPath(Record, Idx);
  
@@ -4036,7 +4270,7 @@ index 7f2c7f09e8..5f96140214 100644
          // If our client can't cope with us being out of date, we can't cope with
          // our dependency being missing.
          unsigned Capabilities = ClientLoadCapabilities;
-@@ -3746,11 +3774,30 @@ void ASTReader::ReadModuleOffsetMap(ModuleFile &F) const {
+@@ -3746,11 +3776,30 @@ void ASTReader::ReadModuleOffsetMap(ModuleFile &F) const {
                        ? ModuleMgr.lookupByModuleName(Name)
                        : ModuleMgr.lookupByFileName(Name));
      if (!OM) {
@@ -4072,7 +4306,7 @@ index 7f2c7f09e8..5f96140214 100644
      }
  
      uint32_t SLocOffset =
-@@ -3840,7 +3887,8 @@ ASTReader::ReadModuleMapFileBlock(RecordData &Record, ModuleFile &F,
+@@ -3840,7 +3889,8 @@ ASTReader::ReadModuleMapFileBlock(RecordData &Record, ModuleFile &F,
  
      // Check the primary module map file.
      const FileEntry *StoredModMap = FileMgr.getFile(F.ModuleMapPath);
@@ -4082,7 +4316,7 @@ index 7f2c7f09e8..5f96140214 100644
        assert(ModMap && "found module is missing module map file");
        assert(ImportedBy && "top-level import should be verified");
        if ((ClientLoadCapabilities & ARR_OutOfDate) == 0)
-@@ -4373,11 +4421,10 @@ ASTReader::ReadASTCore(StringRef FileName,
+@@ -4373,11 +4423,10 @@ ASTReader::ReadASTCore(StringRef FileName,
                         unsigned ClientLoadCapabilities) {
    ModuleFile *M;
    std::string ErrorStr;
@@ -4098,7 +4332,7 @@ index 7f2c7f09e8..5f96140214 100644
  
    switch (AddResult) {
    case ModuleManager::AlreadyLoaded:
-@@ -7566,14 +7613,23 @@ void ASTReader::CompleteRedeclChain(const Decl *D) {
+@@ -7566,14 +7615,23 @@ void ASTReader::CompleteRedeclChain(const Decl *D) {
      }
    }
  
@@ -4129,7 +4363,7 @@ index 7f2c7f09e8..5f96140214 100644
  }
  
  CXXCtorInitializer **
-@@ -8519,7 +8575,7 @@ void ASTReader::ReadMethodPool(Selector Sel) {
+@@ -8519,7 +8577,7 @@ void ASTReader::ReadMethodPool(Selector Sel) {
    // Get the selector generation and update it to the current generation.
    unsigned &Generation = SelectorGeneration[Sel];
    unsigned PriorGeneration = Generation;
@@ -4138,7 +4372,7 @@ index 7f2c7f09e8..5f96140214 100644
    SelectorOutOfDate[Sel] = false;
  
    // Search for methods defined with this selector.
-@@ -12167,6 +12223,9 @@ ASTReader::ASTReader(Preprocessor &PP, InMemoryModuleCache &ModuleCache,
+@@ -12167,6 +12225,9 @@ ASTReader::ASTReader(Preprocessor &PP, InMemoryModuleCache &ModuleCache,
  ASTReader::~ASTReader() {
    if (OwnsDeserializationListener)
      delete DeserializationListener;
@@ -4149,7 +4383,7 @@ index 7f2c7f09e8..5f96140214 100644
  
  IdentifierResolver &ASTReader::getIdResolver() {
 diff --git a/lib/Serialization/ASTReaderDecl.cpp b/lib/Serialization/ASTReaderDecl.cpp
-index 3cac82ad42..1fca2dc3f1 100644
+index 3cac82ad42..4f6678333e 100644
 --- a/lib/Serialization/ASTReaderDecl.cpp
 +++ b/lib/Serialization/ASTReaderDecl.cpp
 @@ -83,9 +83,9 @@ namespace clang {
@@ -4217,7 +4451,30 @@ index 3cac82ad42..1fca2dc3f1 100644
  
      static void setNextObjCCategory(ObjCCategoryDecl *Cat,
                                      ObjCCategoryDecl *Next) {
-@@ -2143,7 +2149,7 @@ void ASTDeclReader::VisitClassTemplateDecl(ClassTemplateDecl *D) {
+@@ -863,7 +869,10 @@ void ASTDeclReader::VisitFunctionDecl(FunctionDecl *FD) {
+   FD->setInlineSpecified(Record.readInt());
+   FD->setImplicitlyInline(Record.readInt());
+   FD->setVirtualAsWritten(Record.readInt());
+-  FD->setPure(Record.readInt());
++  // We defer calling `FunctionDecl::setPure()` here as for methods of
++  // `CXXTemplateSpecializationDecl`s, we may not have connected up the
++  // definition (which is required for `setPure`).
++  const bool Pure = Record.readInt();
+   FD->setHasInheritedPrototype(Record.readInt());
+   FD->setHasWrittenPrototype(Record.readInt());
+   FD->setDeletedAsWritten(Record.readInt());
+@@ -997,6 +1006,10 @@ void ASTDeclReader::VisitFunctionDecl(FunctionDecl *FD) {
+   }
+   }
+ 
++  // Defer calling `setPure` until merging above has guaranteed we've set
++  // `DefinitionData` (as this will need to access it).
++  FD->setPure(Pure);
++
+   // Read in the parameters.
+   unsigned NumParams = Record.readInt();
+   SmallVector<ParmVarDecl *, 16> Params;
+@@ -2143,7 +2156,7 @@ void ASTDeclReader::VisitClassTemplateDecl(ClassTemplateDecl *D) {
    if (ThisDeclID == Redecl.getFirstID()) {
      // This ClassTemplateDecl owns a CommonPtr; read it to keep track of all of
      // the specializations.
@@ -4226,7 +4483,7 @@ index 3cac82ad42..1fca2dc3f1 100644
      ReadDeclIDList(SpecIDs);
      ASTDeclReader::AddLazySpecializations(D, SpecIDs);
    }
-@@ -2170,7 +2176,7 @@ void ASTDeclReader::VisitVarTemplateDecl(VarTemplateDecl *D) {
+@@ -2170,7 +2183,7 @@ void ASTDeclReader::VisitVarTemplateDecl(VarTemplateDecl *D) {
    if (ThisDeclID == Redecl.getFirstID()) {
      // This VarTemplateDecl owns a CommonPtr; read it to keep track of all of
      // the specializations.
@@ -4235,7 +4492,7 @@ index 3cac82ad42..1fca2dc3f1 100644
      ReadDeclIDList(SpecIDs);
      ASTDeclReader::AddLazySpecializations(D, SpecIDs);
    }
-@@ -2277,7 +2283,7 @@ void ASTDeclReader::VisitFunctionTemplateDecl(FunctionTemplateDecl *D) {
+@@ -2277,7 +2290,7 @@ void ASTDeclReader::VisitFunctionTemplateDecl(FunctionTemplateDecl *D) {
  
    if (ThisDeclID == Redecl.getFirstID()) {
      // This FunctionTemplateDecl owns a CommonPtr; read it.
@@ -4244,7 +4501,7 @@ index 3cac82ad42..1fca2dc3f1 100644
      ReadDeclIDList(SpecIDs);
      ASTDeclReader::AddLazySpecializations(D, SpecIDs);
    }
-@@ -4035,7 +4041,9 @@ void ASTReader::loadDeclUpdateRecords(PendingUpdateRecord &Record) {
+@@ -4035,7 +4048,9 @@ void ASTReader::loadDeclUpdateRecords(PendingUpdateRecord &Record) {
    ProcessingUpdatesRAIIObj ProcessingUpdates(*this);
    DeclUpdateOffsetsMap::iterator UpdI = DeclUpdateOffsets.find(ID);
  
@@ -4255,7 +4512,7 @@ index 3cac82ad42..1fca2dc3f1 100644
  
    if (UpdI != DeclUpdateOffsets.end()) {
      auto UpdateOffsets = std::move(UpdI->second);
-@@ -4306,7 +4314,7 @@ static void forAllLaterRedecls(DeclT *D, Fn F) {
+@@ -4306,7 +4321,7 @@ static void forAllLaterRedecls(DeclT *D, Fn F) {
  }
  
  void ASTDeclReader::UpdateDecl(Decl *D,
@@ -4264,7 +4521,7 @@ index 3cac82ad42..1fca2dc3f1 100644
    while (Record.getIdx() < Record.size()) {
      switch ((DeclUpdateKind)Record.readInt()) {
      case UPD_CXX_ADDED_IMPLICIT_MEMBER: {
-@@ -4323,7 +4331,7 @@ void ASTDeclReader::UpdateDecl(Decl *D,
+@@ -4323,7 +4338,7 @@ void ASTDeclReader::UpdateDecl(Decl *D,
  
      case UPD_CXX_ADDED_TEMPLATE_SPECIALIZATION:
        // It will be added to the template's lazy specialization set.

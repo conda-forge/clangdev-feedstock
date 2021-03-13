@@ -1,14 +1,16 @@
 {% set version = "9.0.1" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 0 %}
+{% set build_number = 100 %}
 
 package:
   name: clang_packages
   version: {{ version }}
 
 source:
-  - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/clang-{{ version.replace(".rc", "rc") }}.src.tar.xz
-    sha256: 5778512b2e065c204010f88777d44b95250671103e434f9dc7363ab2e3804253
+  # - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/clang-{{ version.replace(".rc", "rc") }}.src.tar.xz
+  #   sha256: 5778512b2e065c204010f88777d44b95250671103e434f9dc7363ab2e3804253
+  - git_url: http://root.cern/git/clang.git
+    git_rev: ROOT-patches
     patches:
       - patches/0001-Find-conda-gcc-installation.patch
       - patches/0002-Fix-sysroot-detection-for-linux.patch
@@ -21,7 +23,105 @@ source:
       - patches/disable-wundef-prefix.patch  # [osx and x86_64]
       - patches/amd-roc-2.7.0.diff   # [variant != "hcc"]
       - patches/amd-roc-hcc-2.7.0.diff  # [variant == "hcc"]
-      - patches/cling.diff  # [variant == "cling_master"]
+      # - patches/cling.diff  # [variant == "cling_master"]
+      # Taken from cloning http://root.cern/git/clang.git and running
+      # git format-patch cc54f73e76332c635d97a53b5ec369901173be53~1..52dbce653a6c09f4c053a034ac72ca7bf087ad7b
+      # - patches/root/0001-Temporary-parsers-should-not-manipulate-global-parse.patch  # [variant == "cling_master"]
+      # - patches/root/0002-Only-reset-extra-parsers-if-not-temporary.patch             # [variant == "cling_master"]
+      # - patches/root/0003-Let-autoload-act-on-fwd-declares.patch                      # [variant == "cling_master"]
+      # - patches/root/0004-Do-not-complain-about-invalid-sources-for-PCH-files.patch   # [variant == "cling_master"]
+      # - patches/root/0005-Extend-SubstTemplateTypeParmType-to-support-non-cano.patch  # [variant == "cling_master"]
+      # - patches/root/0006-Remove-macro-and-print-macro.patch                          # [variant == "cling_master"]
+      # - patches/root/0007-From-Vassil-add-debug-printout-of-ModuleBuilder-data.patch  # [variant == "cling_master"]
+      # - patches/root/0008-Cleanup-cached-constant-.str-from-codegen.patch             # [variant == "cling_master"]
+      # - patches/root/0009-Implement-FileManager-uncaching.patch                       # [variant == "cling_master"]
+      # - patches/root/0010-Adapt-the-user-of-invalidateCache-to-its-new-signatu.patch  # [variant == "cling_master"]
+      # - patches/root/0011-Mark-the-file-entry-invalid-until-reread.-Invalidate.patch  # [variant == "cling_master"]
+      # - patches/root/0012-In-cases-of-nested-parsing-at-execution-time-sometim.patch  # [variant == "cling_master"]
+      # - patches/root/0013-Implement-soft-reset-of-the-diagnostics-engine.patch        # [variant == "cling_master"]
+      # - patches/root/0014-Access-sema-internals-and-revert-the-list-of-unused-.patch  # [variant == "cling_master"]
+      # - patches/root/0015-Propagate-cache-flags-from-LookupFile-to-FileManager.patch  # [variant == "cling_master"]
+      # - patches/root/0016-Pass-the-OpenFile-flag-also-to-DirectoryLookup.patch        # [variant == "cling_master"]
+      # - patches/root/0017-Merge-Ctors-from-nested-transactions.patch                  # [variant == "cling_master"]
+      # - patches/root/0018-SrcMan-can-happen-for-Locs-from-the-command-line.patch      # [variant == "cling_master"]
+      # - patches/root/0019-Make-sure-the-inode-did-not-get-updated-since-we-rea.patch  # [variant == "cling_master"]
+      # - patches/root/0020-More-RAIIs-for-autoloading.patch                            # [variant == "cling_master"]
+      # - patches/root/0021-Fix-cling-teardown-issues-when-a-pch-is-attached.-Ku.patch  # [variant == "cling_master"]
+      # - patches/root/0022-Use-raw-string-literals-to-correctly-stringify-and-i.patch  # [variant == "cling_master"]
+      # - patches/root/0023-Accessor-to-is-file-opened-this-is-crucial-info-for-.patch  # [variant == "cling_master"]
+      # - patches/root/0024-Buffer-the-pending-instantiations-in-case-or-recursi.patch  # [variant == "cling_master"]
+      # - patches/root/0025-Also-store-Parser-paren-numbers-likely-fixes-ROOT-69.patch  # [variant == "cling_master"]
+      # - patches/root/0026-Allow-switching-of-CodeGen-llvm-Module.patch                # [variant == "cling_master"]
+      # - patches/root/0027-Avoid-dupe-llvm.ident-operands.patch                        # [variant == "cling_master"]
+      # - patches/root/0028-Hand-over-deferred-objects-to-the-new-CGModule-fixes.patch  # [variant == "cling_master"]
+      # - patches/root/0029-CGModule-can-have-pending-WeakRefReferences-carry-ov.patch  # [variant == "cling_master"]
+      # - patches/root/0030-Survive-pragma-once-from-virtual-file.patch                 # [variant == "cling_master"]
+      # - patches/root/0031-Provide-possibly-updated-CodegenOpts-to-StartModule.patch   # [variant == "cling_master"]
+      # - patches/root/0032-Clear-pending-decls-from-Builder-in-case-of-errors-R.patch  # [variant == "cling_master"]
+      # - patches/root/0033-Add-ASTConsumer-HandleInvalidTagDeclDefinition.patch        # [variant == "cling_master"]
+      # - patches/root/0034-Fix-ROOT-7775-by-making-all-static-init-function-nam.patch  # [variant == "cling_master"]
+      # - patches/root/0035-Inject-DeclUnloader-as-a-friend.patch                       # [variant == "cling_master"]
+      # - patches/root/0036-Do-not-load-the-source-file-just-to-get-an-irrelevan.patch  # [variant == "cling_master"]
+      # - patches/root/0037-Construct-DestroyTemplateIdAnnotationsRAIIObj-given-.patch  # [variant == "cling_master"]
+      # - patches/root/0038-Keep-track-of-emitted-deferred-decls-in-case-cling-n.patch  # [variant == "cling_master"]
+      # - patches/root/0039-Forget-Decls-by-removing-them-from-the-DeferredDecls.patch  # [variant == "cling_master"]
+      # - patches/root/0040-Find-an-easier-way-of-accessing-CodeGenModule-intern.patch  # [variant == "cling_master"]
+      # - patches/root/0041-Keep-the-collection-of-EmittedDeferredDecls-for-subs.patch  # [variant == "cling_master"]
+      # - patches/root/0042-Track-previously-deferred-emitted-symbol-put-back-as.patch  # [variant == "cling_master"]
+      # - patches/root/0043-CLING-Move-cling-DeclUnloader-and-ParserStateRAII-in.patch  # [variant == "cling_master"]
+      # - patches/root/0044-Fix-assertion-when-removing-decls-coming-from-a-pch-.patch  # [variant == "cling_master"]
+      # - patches/root/0045-Do-not-collect-DeleteExprs-over-incremental-end-of-T.patch  # [variant == "cling_master"]
+      # - patches/root/0046-In-the-RAII-ctor-set-private-Parser-fields-to-defaul.patch  # [variant == "cling_master"]
+      # - patches/root/0047-Do-not-remove-DeferredDecls-when-they-become-Emitted.patch  # [variant == "cling_master"]
+      # - patches/root/0048-Keep-track-of-immediately-emitted-deferred-decls.-Di.patch  # [variant == "cling_master"]
+      # - patches/root/0049-Only-keep-track-of-weak-symbols.-Move-to-addDeferred.patch  # [variant == "cling_master"]
+      # - patches/root/0050-Make-sure-no-EmittedDeferredDecls-are-left.patch            # [variant == "cling_master"]
+      # - patches/root/0051-Keep-DeferredDecl-entry-when-forgetting-symbols-from.patch  # [variant == "cling_master"]
+      # - patches/root/0052-Move-addEmittedDeferredDecl-into-separate-function-a.patch  # [variant == "cling_master"]
+      # - patches/root/0053-Pass-mangled-name-to-CodeGenerator-forgetDecl.-From-.patch  # [variant == "cling_master"]
+      # - patches/root/0054-Clear-also-EmittedDeferredDecls.patch                       # [variant == "cling_master"]
+      # - patches/root/0055-Also-remember-ODROnce-vars-fixes-cling-test-Prompt-S.patch  # [variant == "cling_master"]
+      # - patches/root/0056-Keep-into-account-if-files-were-virtual.patch               # [variant == "cling_master"]
+      # - patches/root/0057-cxxmodules-Don-t-complain-when-modulemap-for-implici.patch  # [variant == "cling_master"]
+      # - patches/root/0058-Enable-ROOT-s-builtin_llvm-Off.patch                        # [variant == "cling_master"]
+      # - patches/root/0059-Reimplement-the-replaceStmts-logic.patch                    # [variant == "cling_master"]
+      # - patches/root/0060-Preserve-AnonStructIds-of-mangling-ctx.patch                # [variant == "cling_master"]
+      # - patches/root/0061-Allow-interfaces-to-operate-on-in-memory-buffers-wit.patch  # [variant == "cling_master"]
+      # - patches/root/0062-Temporary-workaround-to-the-vector-reallocation-cras.patch  # [variant == "cling_master"]
+      # - patches/root/0063-Don-t-diagnose-a-redeclaration-of-a-deduction-guide-.patch  # [variant == "cling_master"]
+      # - patches/root/0064-prevent-crash-for-nonnull-attribut-in-constant-conte.patch  # [variant == "cling_master"]
+      # - patches/root/0065-Try-current-version-of-D41416-modules-pch-Do-not-des.patch  # [variant == "cling_master"]
+      # - patches/root/0066-Reinstate-version-of-root-project-root-c9307811.patch       # [variant == "cling_master"]
+      # - patches/root/0067-Don-t-complain-when-modulemap-for-implicit-modules-h.patch  # [variant == "cling_master"]
+      # - patches/root/0068-Improve-ROOT-startup-time-by-not-merging-identifier-.patch  # [variant == "cling_master"]
+      # - patches/root/0069-Add-ASTConsumer-HandleInvalidTagDeclDefinition.patch        # [variant == "cling_master"]
+      # - patches/root/0070-Default-template-parameter-of-class-template-instanc.patch  # [variant == "cling_master"]
+      # - patches/root/0071-New-file-for-4453ba7.patch                                  # [variant == "cling_master"]
+      # - patches/root/0072-Make-llvm_unreachable-an-assert-for-uncomparable-src.patch  # [variant == "cling_master"]
+      # - patches/root/0073-Before-generating-a-template-instantiation-check-if-.patch  # [variant == "cling_master"]
+      # - patches/root/0074-Duplicate-declarations-of-template-default-argument-.patch  # [variant == "cling_master"]
+      # - patches/root/0075-Add-support-for-default-template-parameters-that-con.patch  # [variant == "cling_master"]
+      # - patches/root/0076-Implement-implicit-auto-keyword-injection-in-clang-i.patch  # [variant == "cling_master"]
+      # - patches/root/0077-Update-the-DeclContext-used-for-lookup-to-point-to-t.patch  # [variant == "cling_master"]
+      # - patches/root/0078-Update-another-lookup-ctx-after-AutoParse.patch             # [variant == "cling_master"]
+      # - patches/root/0079-Expose-all-files-included-in-PCH-PCM-to-FileManager.patch   # [variant == "cling_master"]
+      # - patches/root/0080-Disable-diags-of-dupe-default-args-func-templt-tempo.patch  # [variant == "cling_master"]
+      # - patches/root/0081-Silence-enum-typed-untyped-redecl-until-fwd-decl-can.patch  # [variant == "cling_master"]
+      # - patches/root/0082-Mark-implicit-members-coming-from-a-PCH-as-used.patch       # [variant == "cling_master"]
+      # - patches/root/0083-Do-not-read-the-source-file-to-emit-annotations.patch       # [variant == "cling_master"]
+      # - patches/root/0084-Do-not-read-the-file-to-determine-its-name.patch            # [variant == "cling_master"]
+      # - patches/root/0085-Store-token-literal-data-in-PCH.-Avoids-disk-read-on.patch  # [variant == "cling_master"]
+      # - patches/root/0086-Add-RAII-to-buffer-delayed-infos-for-recursive-parsi.patch  # [variant == "cling_master"]
+      # - patches/root/0087-Handle-failure-in-auto-auto-deduction.patch                 # [variant == "cling_master"]
+      # - patches/root/0088-Spaces.patch                                                # [variant == "cling_master"]
+      # - patches/root/0089-Improve-int-literal-printing-for-template-args.-To-b.patch  # [variant == "cling_master"]
+      # - patches/root/0090-Update-the-DeclContext-used-for-lookup-to-point-to-t.patch  # [variant == "cling_master"]
+      # - patches/root/0091-Refactor-in-RequireCompleteDeclContext-the-Update-th.patch  # [variant == "cling_master"]
+      # - patches/root/0092-Fix-fwddecls-of-templates-with-tmplt-arg-defauls-com.patch  # [variant == "cling_master"]
+      # - patches/root/0093-D39714-cxxmodules-Refactor-generation-counter-in-LLV.patch  # [variant == "cling_master"]
+      # - patches/root/0094-Do-not-unload-enum-fwd-decl-but-silence-redecl-diag-.patch  # [variant == "cling_master"]
+      # - patches/root/0095-Fixes-Issue-6812.patch                                      # [variant == "cling_master"]
+      # - patches/root/0096-Revert-Related-to-PR37768-improve-diagnostics-for-cl.patch  # [variant == "cling_master"]
     folder: .
   - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/clang-tools-extra-{{ version.replace(".rc", "rc") }}.src.tar.xz
     sha256: b26fd72a78bd7db998a26270ec9ec6a01346651d88fa87b4b323e13049fb6f07
