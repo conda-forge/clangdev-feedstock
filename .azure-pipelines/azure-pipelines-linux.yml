@@ -8,10 +8,6 @@ jobs:
     vmImage: ubuntu-16.04
   strategy:
     matrix:
-      linux_64_variantcling_master:
-        CONFIG: linux_64_variantcling_master
-        UPLOAD_PACKAGES: 'True'
-        DOCKER_IMAGE: quay.io/condaforge/linux-anvil-comp7
       linux_64_variantdefault:
         CONFIG: linux_64_variantdefault
         UPLOAD_PACKAGES: 'True'
@@ -20,8 +16,8 @@ jobs:
         CONFIG: linux_64_varianthcc
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-comp7
-      linux_aarch64_variantcling_master:
-        CONFIG: linux_aarch64_variantcling_master
+      linux_64_variantroot_62400:
+        CONFIG: linux_64_variantroot_62400
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-comp7
       linux_aarch64_variantdefault:
@@ -32,8 +28,8 @@ jobs:
         CONFIG: linux_aarch64_varianthcc
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-comp7
-      linux_ppc64le_variantcling_master:
-        CONFIG: linux_ppc64le_variantcling_master
+      linux_aarch64_variantroot_62400:
+        CONFIG: linux_aarch64_variantroot_62400
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-comp7
       linux_ppc64le_variantdefault:
@@ -42,6 +38,10 @@ jobs:
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-comp7
       linux_ppc64le_varianthcc:
         CONFIG: linux_ppc64le_varianthcc
+        UPLOAD_PACKAGES: 'True'
+        DOCKER_IMAGE: quay.io/condaforge/linux-anvil-comp7
+      linux_ppc64le_variantroot_62400:
+        CONFIG: linux_ppc64le_variantroot_62400
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-comp7
   timeoutInMinutes: 360

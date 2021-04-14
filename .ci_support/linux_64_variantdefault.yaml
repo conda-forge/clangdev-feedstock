@@ -24,3 +24,6 @@ variant:
 - default
 vc:
 - '14'
+zip_keys:
+- - cdt_name
+  - docker_image

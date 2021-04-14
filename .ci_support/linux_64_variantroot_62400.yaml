@@ -21,6 +21,9 @@ python:
 target_platform:
 - linux-64
 variant:
-- cling_master
+- root_62400
 vc:
 - '14'
+zip_keys:
+- - cdt_name
+  - docker_image

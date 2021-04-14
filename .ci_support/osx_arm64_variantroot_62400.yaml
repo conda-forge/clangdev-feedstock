@@ -13,6 +13,6 @@ macos_machine:
 target_platform:
 - osx-arm64
 variant:
-- cling_master
+- root_62400
 vc:
 - '14'
