@@ -1,0 +1,90 @@
+From 2cbec0a7c3b510a5f076d98e2d048ee74ee80823 Mon Sep 17 00:00:00 2001
+From: Philippe Canal <pcanal@fnal.gov>
+Date: Thu, 19 Sep 2013 15:33:59 -0500
+Subject: [PATCH 077/110] Add support for default template parameters that
+ contain scope and typedef.
+
+namespace edm {
+struct refhelper {
+  template <typename what>
+  struct ValueTrait {
+    typedef typename what::value_type value;
+  };
+};
+
+template <typename what,
+	  typename trait = typename refhelper::ValueTrait<what>::value >
+class Ref {
+public:
+  trait fValue;
+};
+}
+
+#ifdef __ROOTCLING__
+#pragma link C++ class edm::Ref<vector<Double32_t> >+;
+#endif
+---
+ lib/Sema/SemaCXXScopeSpec.cpp |  9 ++++++++-
+ lib/Sema/TreeTransform.h      | 17 +++++++++++++----
+ 2 files changed, 21 insertions(+), 5 deletions(-)
+
+diff --git a/lib/Sema/SemaCXXScopeSpec.cpp b/lib/Sema/SemaCXXScopeSpec.cpp
+index 0bc258b854..f23e3e3ef8 100644
+--- a/lib/Sema/SemaCXXScopeSpec.cpp
++++ b/lib/Sema/SemaCXXScopeSpec.cpp
+@@ -23,7 +23,8 @@
+ #include "llvm/ADT/STLExtras.h"
+ using namespace clang;
+ 
+-/// Find the current instantiation that associated with the given type.
++#include "HackForDefaultTemplateArg.h"
++
+ static CXXRecordDecl *getCurrentInstantiationOf(QualType T,
+                                                 DeclContext *CurContext) {
+   if (T.isNull())
+@@ -154,6 +155,12 @@ DeclContext *Sema::computeDeclContext(const CXXScopeSpec &SS,
+   case NestedNameSpecifier::TypeSpec:
+   case NestedNameSpecifier::TypeSpecWithTemplate: {
+     const TagType *Tag = NNS->getAsType()->getAs<TagType>();
++    if (!Tag 
++	&& sema::HackForDefaultTemplateArg::AllowNonCanonicalSubst()) {
++      // In case we are in the middle of a template name creation
++      // that tries to keep some of the typedef
++      Tag = NNS->getAsType()->getCanonicalTypeInternal()->getAs<TagType>();
++    }
+     assert(Tag && "Non-tag type in nested-name-specifier");
+     return Tag->getDecl();
+   }
+diff --git a/lib/Sema/TreeTransform.h b/lib/Sema/TreeTransform.h
+index b1e0402839..3b2063e9f5 100644
+--- a/lib/Sema/TreeTransform.h
++++ b/lib/Sema/TreeTransform.h
+@@ -3705,12 +3705,21 @@ TreeTransform<Derived>::TransformNestedNameSpecifierLoc(
+       if (!TL)
+         return NestedNameSpecifierLoc();
+ 
+-      if (TL.getType()->isDependentType() || TL.getType()->isRecordType() ||
++      // When using ROOT the type being passed can still be sugared
++      // so that we can construct template instance name with template
++      // default added that still uses the original spelling of the 
++      // arguments. [This is part of adding support for opaque typedef
++      // and 'shorter' names]
++      QualType tlType = TL.getType();
++      if (HackForDefaultTemplateArg::AllowNonCanonicalSubst()) {
++        tlType = tlType->getCanonicalTypeInternal().getUnqualifiedType();
++      }
++      if (tlType->isDependentType() || tlType->isRecordType() ||
+           (SemaRef.getLangOpts().CPlusPlus11 &&
+-           TL.getType()->isEnumeralType())) {
+-        assert(!TL.getType().hasLocalQualifiers() &&
++           tlType->isEnumeralType())) {
++        assert(!tlType.hasLocalQualifiers() &&
+                "Can't get cv-qualifiers here");
+-        if (TL.getType()->isEnumeralType())
++        if (tlType->isEnumeralType())
+           SemaRef.Diag(TL.getBeginLoc(),
+                        diag::warn_cxx98_compat_enum_nested_name_spec);
+         SS.Extend(SemaRef.Context, /*FIXME:*/SourceLocation(), TL,
+-- 
+2.29.2
+

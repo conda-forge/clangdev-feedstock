@@ -1,0 +1,25 @@
+From 437b9864fe995cf273a39ea750a0af4cbc495250 Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Mon, 26 Aug 2013 14:32:50 +0200
+Subject: [PATCH 004/110] Do not complain about invalid sources for PCH files.
+
+---
+ lib/Serialization/ASTReader.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/Serialization/ASTReader.cpp b/lib/Serialization/ASTReader.cpp
+index 7f2c7f09e8..ecc69ae75d 100644
+--- a/lib/Serialization/ASTReader.cpp
++++ b/lib/Serialization/ASTReader.cpp
+@@ -1497,7 +1497,7 @@ bool ASTReader::ReadSLocEntry(int ID) {
+     // We will detect whether a file changed and return 'Failure' for it, but
+     // we will also try to fail gracefully by setting up the SLocEntry.
+     unsigned InputID = Record[4];
+-    InputFile IF = getInputFile(*F, InputID);
++    InputFile IF = getInputFile(*F, InputID, /*Complain=*/false);
+     const FileEntry *File = IF.getFile();
+     bool OverriddenBuffer = IF.isOverridden();
+ 
+-- 
+2.29.2
+

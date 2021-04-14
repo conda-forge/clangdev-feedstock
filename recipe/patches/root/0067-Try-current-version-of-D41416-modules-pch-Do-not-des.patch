@@ -1,0 +1,703 @@
+From 829d5c5d36e6c466b76ff963c9f82dcc72ddfa79 Mon Sep 17 00:00:00 2001
+From: Vassil Vassilev <v.g.vassilev@gmail.com>
+Date: Sun, 7 Jan 2018 15:16:11 +0200
+Subject: [PATCH 067/110] Try current version of D41416: [modules] [pch] Do not
+ deserialize all lazy template specializations when looking for one.
+
+---
+ include/clang/AST/DeclTemplate.h    | 36 +++++++++--
+ lib/AST/DeclTemplate.cpp            | 94 ++++++++++++++++++++++-------
+ lib/AST/ODRHash.cpp                 | 67 ++++++++++++--------
+ lib/Serialization/ASTReader.cpp     | 25 +++++---
+ lib/Serialization/ASTReaderDecl.cpp | 40 +++++++-----
+ lib/Serialization/ASTWriter.cpp     | 21 ++++++-
+ lib/Serialization/ASTWriterDecl.cpp | 74 +++++++++++++++++++----
+ 7 files changed, 268 insertions(+), 89 deletions(-)
+
+diff --git a/include/clang/AST/DeclTemplate.h b/include/clang/AST/DeclTemplate.h
+index 235b31c1c3..8ad01d564e 100644
+--- a/include/clang/AST/DeclTemplate.h
++++ b/include/clang/AST/DeclTemplate.h
+@@ -239,6 +239,9 @@ public:
+   static TemplateArgumentList *CreateCopy(ASTContext &Context,
+                                           ArrayRef<TemplateArgument> Args);
+ 
++  /// \brief Create hash for the given arguments.
++  static unsigned ComputeODRHash(ArrayRef<TemplateArgument> Args);
++
+   /// Construct a new, temporary template argument list on the stack.
+   ///
+   /// The template argument list does not own the template arguments
+@@ -808,6 +811,26 @@ class RedeclarableTemplateDecl : public TemplateDecl,
+   }
+ 
+   void anchor() override;
++  struct LazySpecializationInfo {
++    uint32_t DeclID = ~0U;
++    unsigned ODRHash = ~0U;
++    bool IsPartial = false;
++    LazySpecializationInfo(uint32_t ID, unsigned Hash = ~0U,
++                           bool Partial = false)
++      : DeclID(ID), ODRHash(Hash), IsPartial(Partial) { }
++    LazySpecializationInfo() { }
++    bool operator<(const LazySpecializationInfo &Other) const {
++      return DeclID < Other.DeclID;
++    }
++    bool operator==(const LazySpecializationInfo &Other) const {
++      assert((DeclID != Other.DeclID || ODRHash == Other.ODRHash) &&
++             "Hashes differ!");
++      assert((DeclID != Other.DeclID || IsPartial == Other.IsPartial) &&
++             "Both must be the same kinds!");
++      return DeclID == Other.DeclID;
++    }
++  };
++
+ protected:
+   template <typename EntryType> struct SpecEntryTraits {
+     using DeclType = EntryType;
+@@ -848,7 +871,12 @@ protected:
+     return SpecIterator<EntryType>(isEnd ? Specs.end() : Specs.begin());
+   }
+ 
+-  void loadLazySpecializationsImpl() const;
++  void loadLazySpecializationsImpl(bool OnlyPartial = false) const;
++
++  ///\returns true if any lazy specialization was loaded.
++  bool loadLazySpecializationsImpl(llvm::ArrayRef<TemplateArgument> Args) const;
++
++  Decl *loadLazySpecializationImpl(LazySpecializationInfo &LazySpecInfo) const;
+ 
+   template <class EntryType> typename SpecEntryTraits<EntryType>::DeclType*
+   findSpecializationImpl(llvm::FoldingSetVector<EntryType> &Specs,
+@@ -874,7 +902,7 @@ protected:
+     ///
+     /// The first value in the array is the number of specializations/partial
+     /// specializations that follow.
+-    uint32_t *LazySpecializations = nullptr;
++    LazySpecializationInfo *LazySpecializations = nullptr;
+   };
+ 
+   /// Pointer to the common data shared by all declarations of this
+@@ -2167,7 +2195,7 @@ public:
+   friend class ASTDeclWriter;
+ 
+   /// Load any lazily-loaded specializations from the external source.
+-  void LoadLazySpecializations() const;
++  void LoadLazySpecializations(bool OnlyPartial = false) const;
+ 
+   /// Get the underlying class declarations of the template.
+   CXXRecordDecl *getTemplatedDecl() const {
+@@ -2978,7 +3006,7 @@ public:
+   friend class ASTDeclWriter;
+ 
+   /// Load any lazily-loaded specializations from the external source.
+-  void LoadLazySpecializations() const;
++  void LoadLazySpecializations(bool OnlyPartial = false) const;
+ 
+   /// Get the underlying variable declarations of the template.
+   VarDecl *getTemplatedDecl() const {
+diff --git a/lib/AST/DeclTemplate.cpp b/lib/AST/DeclTemplate.cpp
+index 40c39c845d..378faafd9a 100644
+--- a/lib/AST/DeclTemplate.cpp
++++ b/lib/AST/DeclTemplate.cpp
+@@ -20,6 +20,8 @@
+ #include "clang/AST/TemplateBase.h"
+ #include "clang/AST/TemplateName.h"
+ #include "clang/AST/Type.h"
++#include "clang/AST/ODRHash.h"
++#include "clang/AST/ExprCXX.h"
+ #include "clang/AST/TypeLoc.h"
+ #include "clang/Basic/Builtins.h"
+ #include "clang/Basic/LLVM.h"
+@@ -182,17 +184,45 @@ RedeclarableTemplateDecl::CommonBase *RedeclarableTemplateDecl::getCommonPtr() c
+   return Common;
+ }
+ 
+-void RedeclarableTemplateDecl::loadLazySpecializationsImpl() const {
++void RedeclarableTemplateDecl::loadLazySpecializationsImpl(
++                                             bool OnlyPartial/*=false*/) const {
+   // Grab the most recent declaration to ensure we've loaded any lazy
+   // redeclarations of this template.
+   CommonBase *CommonBasePtr = getMostRecentDecl()->getCommonPtr();
+-  if (CommonBasePtr->LazySpecializations) {
+-    ASTContext &Context = getASTContext();
+-    uint32_t *Specs = CommonBasePtr->LazySpecializations;
+-    CommonBasePtr->LazySpecializations = nullptr;
+-    for (uint32_t I = 0, N = *Specs++; I != N; ++I)
+-      (void)Context.getExternalSource()->GetExternalDecl(Specs[I]);
++  if (auto *Specs = CommonBasePtr->LazySpecializations) {
++    if (!OnlyPartial)
++      CommonBasePtr->LazySpecializations = nullptr;
++    for (uint32_t I = 0, N = Specs[0].DeclID; I != N; ++I) {
++      // Skip over already loaded specializations.
++      if (!Specs[I+1].ODRHash)
++        continue;
++      if (!OnlyPartial || Specs[I+1].IsPartial)
++        (void)loadLazySpecializationImpl(Specs[I+1]);
++    }
++  }
++}
++
++Decl *RedeclarableTemplateDecl::loadLazySpecializationImpl(
++                                   LazySpecializationInfo &LazySpecInfo) const {
++  uint32_t ID = LazySpecInfo.DeclID;
++  assert(ID && "Loading already loaded specialization!");
++  // Note that we loaded the specialization.
++  LazySpecInfo.DeclID = LazySpecInfo.ODRHash = LazySpecInfo.IsPartial = 0;
++  return getASTContext().getExternalSource()->GetExternalDecl(ID);
++}
++
++bool
++RedeclarableTemplateDecl::loadLazySpecializationsImpl(ArrayRef<TemplateArgument>
++                                                      Args) const {
++  bool LoadedSpecialization = false;
++  CommonBase *CommonBasePtr = getMostRecentDecl()->getCommonPtr();
++  if (auto *Specs = CommonBasePtr->LazySpecializations) {
++    unsigned Hash = TemplateArgumentList::ComputeODRHash(Args);
++    for (uint32_t I = 0, N = Specs[0].DeclID; I != N; ++I)
++      if (Specs[I+1].ODRHash && Specs[I+1].ODRHash == Hash)
++        LoadedSpecialization |= (bool)loadLazySpecializationImpl(Specs[I+1]);
+   }
++  return LoadedSpecialization;
+ }
+ 
+ template<class EntryType>
+@@ -202,6 +232,8 @@ RedeclarableTemplateDecl::findSpecializationImpl(
+     void *&InsertPos) {
+   using SETraits = SpecEntryTraits<EntryType>;
+ 
++  (void)loadLazySpecializationsImpl(Args);
++
+   llvm::FoldingSetNodeID ID;
+   EntryType::Profile(ID, Args, getASTContext());
+   EntryType *Entry = Specs.FindNodeOrInsertPos(ID, InsertPos);
+@@ -216,10 +248,11 @@ void RedeclarableTemplateDecl::addSpecializationImpl(
+ 
+   if (InsertPos) {
+ #ifndef NDEBUG
++    auto Args = SETraits::getTemplateArgs(Entry);
++    assert(!loadLazySpecializationsImpl(Args) &&
++           "Specialization is already registered as lazy");
+     void *CorrectInsertPos;
+-    assert(!findSpecializationImpl(Specializations,
+-                                   SETraits::getTemplateArgs(Entry),
+-                                   CorrectInsertPos) &&
++    assert(!findSpecializationImpl(Specializations, Args, CorrectInsertPos) &&
+            InsertPos == CorrectInsertPos &&
+            "given incorrect InsertPos for specialization");
+ #endif
+@@ -276,12 +309,14 @@ FunctionTemplateDecl::getSpecializations() const {
+ FunctionDecl *
+ FunctionTemplateDecl::findSpecialization(ArrayRef<TemplateArgument> Args,
+                                          void *&InsertPos) {
+-  return findSpecializationImpl(getSpecializations(), Args, InsertPos);
++  auto *Common = getCommonPtr();
++  return findSpecializationImpl(Common->Specializations, Args, InsertPos);
+ }
+ 
+ void FunctionTemplateDecl::addSpecialization(
+       FunctionTemplateSpecializationInfo *Info, void *InsertPos) {
+-  addSpecializationImpl<FunctionTemplateDecl>(getSpecializations(), Info,
++  auto *Common = getCommonPtr();
++  addSpecializationImpl<FunctionTemplateDecl>(Common->Specializations, Info,
+                                               InsertPos);
+ }
+ 
+@@ -365,8 +400,9 @@ ClassTemplateDecl *ClassTemplateDecl::CreateDeserialized(ASTContext &C,
+                                        DeclarationName(), nullptr, nullptr);
+ }
+ 
+-void ClassTemplateDecl::LoadLazySpecializations() const {
+-  loadLazySpecializationsImpl();
++void ClassTemplateDecl::LoadLazySpecializations(
++                                             bool OnlyPartial/*=false*/) const {
++  loadLazySpecializationsImpl(OnlyPartial);
+ }
+ 
+ llvm::FoldingSetVector<ClassTemplateSpecializationDecl> &
+@@ -377,7 +413,7 @@ ClassTemplateDecl::getSpecializations() const {
+ 
+ llvm::FoldingSetVector<ClassTemplatePartialSpecializationDecl> &
+ ClassTemplateDecl::getPartialSpecializations() {
+-  LoadLazySpecializations();
++  LoadLazySpecializations(/*PartialOnly = */ true);
+   return getCommonPtr()->PartialSpecializations;
+ }
+ 
+@@ -391,12 +427,15 @@ ClassTemplateDecl::newCommon(ASTContext &C) const {
+ ClassTemplateSpecializationDecl *
+ ClassTemplateDecl::findSpecialization(ArrayRef<TemplateArgument> Args,
+                                       void *&InsertPos) {
+-  return findSpecializationImpl(getSpecializations(), Args, InsertPos);
++  auto *Common = getCommonPtr();
++  return findSpecializationImpl(Common->Specializations, Args, InsertPos);
+ }
+ 
+ void ClassTemplateDecl::AddSpecialization(ClassTemplateSpecializationDecl *D,
+                                           void *InsertPos) {
+-  addSpecializationImpl<ClassTemplateDecl>(getSpecializations(), D, InsertPos);
++  auto *Common = getCommonPtr();
++  addSpecializationImpl<ClassTemplateDecl>(Common->Specializations, D,
++                                           InsertPos);
+ }
+ 
+ ClassTemplatePartialSpecializationDecl *
+@@ -687,6 +726,14 @@ TemplateArgumentList::CreateCopy(ASTContext &Context,
+   return new (Mem) TemplateArgumentList(Args);
+ }
+ 
++unsigned TemplateArgumentList::ComputeODRHash(ArrayRef<TemplateArgument> Args) {
++  ODRHash Hasher;
++  for (TemplateArgument TA : Args)
++    Hasher.AddTemplateArgument(TA);
++
++  return Hasher.CalculateHash();
++}
++
+ FunctionTemplateSpecializationInfo *FunctionTemplateSpecializationInfo::Create(
+     ASTContext &C, FunctionDecl *FD, FunctionTemplateDecl *Template,
+     TemplateSpecializationKind TSK, const TemplateArgumentList *TemplateArgs,
+@@ -984,8 +1031,9 @@ VarTemplateDecl *VarTemplateDecl::CreateDeserialized(ASTContext &C,
+                                      DeclarationName(), nullptr, nullptr);
+ }
+ 
+-void VarTemplateDecl::LoadLazySpecializations() const {
+-  loadLazySpecializationsImpl();
++void VarTemplateDecl::LoadLazySpecializations(
++                                             bool OnlyPartial/*=false*/) const {
++  loadLazySpecializationsImpl(OnlyPartial);
+ }
+ 
+ llvm::FoldingSetVector<VarTemplateSpecializationDecl> &
+@@ -996,7 +1044,7 @@ VarTemplateDecl::getSpecializations() const {
+ 
+ llvm::FoldingSetVector<VarTemplatePartialSpecializationDecl> &
+ VarTemplateDecl::getPartialSpecializations() {
+-  LoadLazySpecializations();
++  LoadLazySpecializations(/*PartialOnly = */ true);
+   return getCommonPtr()->PartialSpecializations;
+ }
+ 
+@@ -1010,12 +1058,14 @@ VarTemplateDecl::newCommon(ASTContext &C) const {
+ VarTemplateSpecializationDecl *
+ VarTemplateDecl::findSpecialization(ArrayRef<TemplateArgument> Args,
+                                     void *&InsertPos) {
+-  return findSpecializationImpl(getSpecializations(), Args, InsertPos);
++  auto *Common = getCommonPtr();
++  return findSpecializationImpl(Common->Specializations, Args, InsertPos);
+ }
+ 
+ void VarTemplateDecl::AddSpecialization(VarTemplateSpecializationDecl *D,
+                                         void *InsertPos) {
+-  addSpecializationImpl<VarTemplateDecl>(getSpecializations(), D, InsertPos);
++  auto *Common = getCommonPtr();
++  addSpecializationImpl<VarTemplateDecl>(Common->Specializations, D, InsertPos);
+ }
+ 
+ VarTemplatePartialSpecializationDecl *
+diff --git a/lib/AST/ODRHash.cpp b/lib/AST/ODRHash.cpp
+index 3b89c630b4..377c3cfd6d 100644
+--- a/lib/AST/ODRHash.cpp
++++ b/lib/AST/ODRHash.cpp
+@@ -157,32 +157,34 @@ void ODRHash::AddTemplateName(TemplateName Name) {
+ void ODRHash::AddTemplateArgument(TemplateArgument TA) {
+   const auto Kind = TA.getKind();
+   ID.AddInteger(Kind);
+-
+   switch (Kind) {
+-    case TemplateArgument::Null:
+-      llvm_unreachable("Expected valid TemplateArgument");
+-    case TemplateArgument::Type:
+-      AddQualType(TA.getAsType());
+-      break;
+-    case TemplateArgument::Declaration:
+-      AddDecl(TA.getAsDecl());
+-      break;
+-    case TemplateArgument::NullPtr:
+-    case TemplateArgument::Integral:
+-      break;
+-    case TemplateArgument::Template:
+-    case TemplateArgument::TemplateExpansion:
+-      AddTemplateName(TA.getAsTemplateOrTemplatePattern());
+-      break;
+-    case TemplateArgument::Expression:
+-      AddStmt(TA.getAsExpr());
+-      break;
+-    case TemplateArgument::Pack:
+-      ID.AddInteger(TA.pack_size());
+-      for (auto SubTA : TA.pack_elements()) {
+-        AddTemplateArgument(SubTA);
+-      }
+-      break;
++  case TemplateArgument::Null:
++    llvm_unreachable("Require valid TemplateArgument");
++  case TemplateArgument::Type:
++    AddQualType(TA.getAsType());
++    break;
++  case TemplateArgument::Declaration:
++    AddDecl(TA.getAsDecl());
++    break;
++  case TemplateArgument::NullPtr:
++    AddQualType(TA.getNullPtrType());
++    break;
++  case TemplateArgument::Integral:
++    TA.getAsIntegral().Profile(ID);
++    AddQualType(TA.getIntegralType());
++    break;
++  case TemplateArgument::Template:
++  case TemplateArgument::TemplateExpansion:
++    AddTemplateName(TA.getAsTemplateOrTemplatePattern());
++    break;
++  case TemplateArgument::Expression:
++    AddStmt(TA.getAsExpr());
++    break;
++  case TemplateArgument::Pack:
++    ID.AddInteger(TA.pack_size());
++    for (auto SubTA : TA.pack_elements())
++      AddTemplateArgument(SubTA);
++    break;
+   }
+ }
+ 
+@@ -644,6 +646,21 @@ void ODRHash::AddDecl(const Decl *D) {
+     for (const TemplateArgument &TA : List.asArray())
+       AddTemplateArgument(TA);
+   }
++
++  // If this was a specialization we should take into account its template
++  // arguments. This helps to reduce collisions coming when visiting template
++  // specialization types (eg. when processing type template arguments).
++  ArrayRef<TemplateArgument> Args;
++  if (auto *CTSD = dyn_cast<ClassTemplateSpecializationDecl>(D))
++    Args = CTSD->getTemplateArgs().asArray();
++  else if (auto *VTSD = dyn_cast<VarTemplateSpecializationDecl>(D))
++    Args = VTSD->getTemplateArgs().asArray();
++  else if (auto *FD = dyn_cast<FunctionDecl>(D))
++    if (FD->getTemplateSpecializationArgs())
++      Args = FD->getTemplateSpecializationArgs()->asArray();
++
++  for (auto &TA : Args)
++    AddTemplateArgument(TA);
+ }
+ 
+ namespace {
+diff --git a/lib/Serialization/ASTReader.cpp b/lib/Serialization/ASTReader.cpp
+index 718e49ada7..f7881cffe0 100644
+--- a/lib/Serialization/ASTReader.cpp
++++ b/lib/Serialization/ASTReader.cpp
+@@ -7605,14 +7605,23 @@ void ASTReader::CompleteRedeclChain(const Decl *D) {
+     }
+   }
+ 
+-  if (auto *CTSD = dyn_cast<ClassTemplateSpecializationDecl>(D))
+-    CTSD->getSpecializedTemplate()->LoadLazySpecializations();
+-  if (auto *VTSD = dyn_cast<VarTemplateSpecializationDecl>(D))
+-    VTSD->getSpecializedTemplate()->LoadLazySpecializations();
+-  if (auto *FD = dyn_cast<FunctionDecl>(D)) {
+-    if (auto *Template = FD->getPrimaryTemplate())
+-      Template->LoadLazySpecializations();
+-  }
++  RedeclarableTemplateDecl *Template = nullptr;
++  ArrayRef<TemplateArgument> Args;
++  if (auto *CTSD = dyn_cast<ClassTemplateSpecializationDecl>(D)) {
++    Template = CTSD->getSpecializedTemplate();
++    Args = CTSD->getTemplateArgs().asArray();
++  } else if (auto *VTSD = dyn_cast<VarTemplateSpecializationDecl>(D)) {
++    Template = VTSD->getSpecializedTemplate();
++    Args = VTSD->getTemplateArgs().asArray();
++  } else if (auto *FD = dyn_cast<FunctionDecl>(D)) {
++    if (auto *Tmplt = FD->getPrimaryTemplate()) {
++      Template = Tmplt;
++      Args = FD->getTemplateSpecializationArgs()->asArray();
++    }
++  }
++
++  if (Template)
++    Template->loadLazySpecializationsImpl(Args);
+ }
+ 
+ CXXCtorInitializer **
+diff --git a/lib/Serialization/ASTReaderDecl.cpp b/lib/Serialization/ASTReaderDecl.cpp
+index 3cac82ad42..1fca2dc3f1 100644
+--- a/lib/Serialization/ASTReaderDecl.cpp
++++ b/lib/Serialization/ASTReaderDecl.cpp
+@@ -83,9 +83,9 @@ namespace clang {
+     ASTReader::RecordLocation Loc;
+     const DeclID ThisDeclID;
+     const SourceLocation ThisDeclLoc;
+-
+     using RecordData = ASTReader::RecordData;
+-
++    using LazySpecializationInfo
++      = RedeclarableTemplateDecl::LazySpecializationInfo;
+     TypeID DeferredTypeID = 0;
+     unsigned AnonymousDeclNumber;
+     GlobalDeclID NamedDeclForTagDecl = 0;
+@@ -131,9 +131,16 @@ namespace clang {
+       return Record.readString();
+     }
+ 
+-    void ReadDeclIDList(SmallVectorImpl<DeclID> &IDs) {
++    LazySpecializationInfo ReadLazySpecializationInfo() {
++      DeclID ID = ReadDeclID();
++      unsigned Hash = Record.readInt();
++      bool IsPartial = Record.readInt();
++      return LazySpecializationInfo(ID, Hash, IsPartial);
++    }
++
++    void ReadDeclIDList(SmallVectorImpl<LazySpecializationInfo> &IDs) {
+       for (unsigned I = 0, Size = Record.readInt(); I != Size; ++I)
+-        IDs.push_back(ReadDeclID());
++        IDs.push_back(ReadLazySpecializationInfo());
+     }
+ 
+     Decl *ReadDecl() {
+@@ -262,7 +269,7 @@ namespace clang {
+ 
+     template <typename T> static
+     void AddLazySpecializations(T *D,
+-                                SmallVectorImpl<serialization::DeclID>& IDs) {
++                                SmallVectorImpl<LazySpecializationInfo>& IDs) {
+       if (IDs.empty())
+         return;
+ 
+@@ -272,12 +279,11 @@ namespace clang {
+       auto *&LazySpecializations = D->getCommonPtr()->LazySpecializations;
+ 
+       if (auto &Old = LazySpecializations) {
+-        IDs.insert(IDs.end(), Old + 1, Old + 1 + Old[0]);
+-        llvm::sort(IDs);
++        IDs.insert(IDs.end(), Old + 1, Old + 1 + Old[0].DeclID);
++        std::sort(IDs.begin(), IDs.end());
+         IDs.erase(std::unique(IDs.begin(), IDs.end()), IDs.end());
+       }
+-
+-      auto *Result = new (C) serialization::DeclID[1 + IDs.size()];
++      auto *Result = new (C) LazySpecializationInfo[1 + IDs.size()];
+       *Result = IDs.size();
+       std::copy(IDs.begin(), IDs.end(), Result + 1);
+ 
+@@ -312,7 +318,7 @@ namespace clang {
+     void ReadFunctionDefinition(FunctionDecl *FD);
+     void Visit(Decl *D);
+ 
+-    void UpdateDecl(Decl *D, SmallVectorImpl<serialization::DeclID> &);
++    void UpdateDecl(Decl *D, llvm::SmallVectorImpl<LazySpecializationInfo>&);
+ 
+     static void setNextObjCCategory(ObjCCategoryDecl *Cat,
+                                     ObjCCategoryDecl *Next) {
+@@ -2143,7 +2149,7 @@ void ASTDeclReader::VisitClassTemplateDecl(ClassTemplateDecl *D) {
+   if (ThisDeclID == Redecl.getFirstID()) {
+     // This ClassTemplateDecl owns a CommonPtr; read it to keep track of all of
+     // the specializations.
+-    SmallVector<serialization::DeclID, 32> SpecIDs;
++    SmallVector<LazySpecializationInfo, 32> SpecIDs;
+     ReadDeclIDList(SpecIDs);
+     ASTDeclReader::AddLazySpecializations(D, SpecIDs);
+   }
+@@ -2170,7 +2176,7 @@ void ASTDeclReader::VisitVarTemplateDecl(VarTemplateDecl *D) {
+   if (ThisDeclID == Redecl.getFirstID()) {
+     // This VarTemplateDecl owns a CommonPtr; read it to keep track of all of
+     // the specializations.
+-    SmallVector<serialization::DeclID, 32> SpecIDs;
++    SmallVector<LazySpecializationInfo, 32> SpecIDs;
+     ReadDeclIDList(SpecIDs);
+     ASTDeclReader::AddLazySpecializations(D, SpecIDs);
+   }
+@@ -2277,7 +2283,7 @@ void ASTDeclReader::VisitFunctionTemplateDecl(FunctionTemplateDecl *D) {
+ 
+   if (ThisDeclID == Redecl.getFirstID()) {
+     // This FunctionTemplateDecl owns a CommonPtr; read it.
+-    SmallVector<serialization::DeclID, 32> SpecIDs;
++    SmallVector<LazySpecializationInfo, 32> SpecIDs;
+     ReadDeclIDList(SpecIDs);
+     ASTDeclReader::AddLazySpecializations(D, SpecIDs);
+   }
+@@ -4035,7 +4041,9 @@ void ASTReader::loadDeclUpdateRecords(PendingUpdateRecord &Record) {
+   ProcessingUpdatesRAIIObj ProcessingUpdates(*this);
+   DeclUpdateOffsetsMap::iterator UpdI = DeclUpdateOffsets.find(ID);
+ 
+-  SmallVector<serialization::DeclID, 8> PendingLazySpecializationIDs;
++  using LazySpecializationInfo
++    = RedeclarableTemplateDecl::LazySpecializationInfo;
++  llvm::SmallVector<LazySpecializationInfo, 8> PendingLazySpecializationIDs;
+ 
+   if (UpdI != DeclUpdateOffsets.end()) {
+     auto UpdateOffsets = std::move(UpdI->second);
+@@ -4306,7 +4314,7 @@ static void forAllLaterRedecls(DeclT *D, Fn F) {
+ }
+ 
+ void ASTDeclReader::UpdateDecl(Decl *D,
+-   llvm::SmallVectorImpl<serialization::DeclID> &PendingLazySpecializationIDs) {
++        SmallVectorImpl<LazySpecializationInfo> &PendingLazySpecializationIDs) {
+   while (Record.getIdx() < Record.size()) {
+     switch ((DeclUpdateKind)Record.readInt()) {
+     case UPD_CXX_ADDED_IMPLICIT_MEMBER: {
+@@ -4323,7 +4331,7 @@ void ASTDeclReader::UpdateDecl(Decl *D,
+ 
+     case UPD_CXX_ADDED_TEMPLATE_SPECIALIZATION:
+       // It will be added to the template's lazy specialization set.
+-      PendingLazySpecializationIDs.push_back(ReadDeclID());
++      PendingLazySpecializationIDs.push_back(ReadLazySpecializationInfo());
+       break;
+ 
+     case UPD_CXX_ADDED_ANONYMOUS_NAMESPACE: {
+diff --git a/lib/Serialization/ASTWriter.cpp b/lib/Serialization/ASTWriter.cpp
+index 10946f9b0d..348836532d 100644
+--- a/lib/Serialization/ASTWriter.cpp
++++ b/lib/Serialization/ASTWriter.cpp
+@@ -5225,12 +5225,29 @@ void ASTWriter::WriteDeclUpdatesBlocks(RecordDataImpl &OffsetsRecord) {
+ 
+       switch (Kind) {
+       case UPD_CXX_ADDED_IMPLICIT_MEMBER:
+-      case UPD_CXX_ADDED_TEMPLATE_SPECIALIZATION:
+       case UPD_CXX_ADDED_ANONYMOUS_NAMESPACE:
+         assert(Update.getDecl() && "no decl to add?");
+         Record.push_back(GetDeclRef(Update.getDecl()));
+         break;
+-
++      case UPD_CXX_ADDED_TEMPLATE_SPECIALIZATION: {
++        const Decl *Spec = Update.getDecl();
++        assert(Spec && "no decl to add?");
++        Record.push_back(GetDeclRef(Spec));
++        ArrayRef<TemplateArgument> Args;
++        if (auto *CTSD = dyn_cast<ClassTemplateSpecializationDecl>(Spec))
++          Args = CTSD->getTemplateArgs().asArray();
++        else if (auto *VTSD = dyn_cast<VarTemplateSpecializationDecl>(Spec))
++          Args = VTSD->getTemplateArgs().asArray();
++        else if (auto *FD = dyn_cast<FunctionDecl>(Spec))
++          Args = FD->getTemplateSpecializationArgs()->asArray();
++        assert(Args.size());
++        Record.push_back(TemplateArgumentList::ComputeODRHash(Args));
++        bool IsPartialSpecialization
++          = isa<ClassTemplatePartialSpecializationDecl>(Spec) ||
++          isa<VarTemplatePartialSpecializationDecl>(Spec);
++        Record.push_back(IsPartialSpecialization);
++        break;
++      }
+       case UPD_CXX_ADDED_FUNCTION_DEFINITION:
+         break;
+ 
+diff --git a/lib/Serialization/ASTWriterDecl.cpp b/lib/Serialization/ASTWriterDecl.cpp
+index b71315505d..3a03c41e05 100644
+--- a/lib/Serialization/ASTWriterDecl.cpp
++++ b/lib/Serialization/ASTWriterDecl.cpp
+@@ -167,11 +167,11 @@ namespace clang {
+       Record.AddSourceLocation(typeParams->getRAngleLoc());
+     }
+ 
+-    /// Add to the record the first declaration from each module file that
+-    /// provides a declaration of D. The intent is to provide a sufficient
+-    /// set such that reloading this set will load all current redeclarations.
+-    void AddFirstDeclFromEachModule(const Decl *D, bool IncludeLocal) {
+-      llvm::MapVector<ModuleFile*, const Decl*> Firsts;
++    /// Collect the first declaration from each module file that provides a
++    /// declaration of D.
++    void CollectFirstDeclFromEachModule(const Decl *D, bool IncludeLocal,
++                            llvm::MapVector<ModuleFile*, const Decl*> &Firsts) {
++
+       // FIXME: We can skip entries that we know are implied by others.
+       for (const Decl *R = D->getMostRecentDecl(); R; R = R->getPreviousDecl()) {
+         if (R->isFromASTFile())
+@@ -179,10 +179,49 @@ namespace clang {
+         else if (IncludeLocal)
+           Firsts[nullptr] = R;
+       }
++    }
++
++    /// Add to the record the first declaration from each module file that
++    /// provides a declaration of D. The intent is to provide a sufficient
++    /// set such that reloading this set will load all current redeclarations.
++    void AddFirstDeclFromEachModule(const Decl *D, bool IncludeLocal) {
++      llvm::MapVector<ModuleFile*, const Decl*> Firsts;
++      CollectFirstDeclFromEachModule(D, IncludeLocal, Firsts);
++
+       for (const auto &F : Firsts)
+         Record.AddDeclRef(F.second);
+     }
+ 
++    /// Add to the record the first template specialization from each module
++    /// file that provides a declaration of D. We store the DeclId and an
++    /// ODRHash of the template arguments of D which should provide enough
++    /// information to load D only if the template instantiator needs it.
++    void AddFirstSpecializationDeclFromEachModule(const Decl *D,
++                                                  bool IncludeLocal) {
++      assert(isa<ClassTemplateSpecializationDecl>(D) ||
++             isa<VarTemplateSpecializationDecl>(D) || isa<FunctionDecl>(D) &&
++             "Must not be called with other decls");
++      llvm::MapVector<ModuleFile*, const Decl*> Firsts;
++      CollectFirstDeclFromEachModule(D, IncludeLocal, Firsts);
++
++      for (const auto &F : Firsts) {
++        Record.AddDeclRef(F.second);
++        ArrayRef<TemplateArgument> Args;
++        if (auto *CTSD = dyn_cast<ClassTemplateSpecializationDecl>(D))
++          Args = CTSD->getTemplateArgs().asArray();
++        else if (auto *VTSD = dyn_cast<VarTemplateSpecializationDecl>(D))
++          Args = VTSD->getTemplateArgs().asArray();
++        else if (auto *FD = dyn_cast<FunctionDecl>(D))
++          Args = FD->getTemplateSpecializationArgs()->asArray();
++        assert(Args.size());
++        Record.push_back(TemplateArgumentList::ComputeODRHash(Args));
++        bool IsPartialSpecialization
++          = isa<ClassTemplatePartialSpecializationDecl>(D) ||
++          isa<VarTemplatePartialSpecializationDecl>(D);
++        Record.push_back(IsPartialSpecialization);
++      }
++    }
++
+     /// Get the specialization decl from an entry in the specialization list.
+     template <typename EntryType>
+     typename RedeclarableTemplateDecl::SpecEntryTraits<EntryType>::DeclType *
+@@ -195,7 +234,8 @@ namespace clang {
+     decltype(T::PartialSpecializations) &getPartialSpecializations(T *Common) {
+       return Common->PartialSpecializations;
+     }
+-    ArrayRef<Decl> getPartialSpecializations(FunctionTemplateDecl::Common *) {
++    MutableArrayRef<FunctionTemplateSpecializationInfo>
++    getPartialSpecializations(FunctionTemplateDecl::Common *) {
+       return None;
+     }
+ 
+@@ -212,9 +252,11 @@ namespace clang {
+         assert(!Common->LazySpecializations);
+       }
+ 
+-      ArrayRef<DeclID> LazySpecializations;
++      using LazySpecializationInfo
++        = RedeclarableTemplateDecl::LazySpecializationInfo;
++      ArrayRef<LazySpecializationInfo> LazySpecializations;
+       if (auto *LS = Common->LazySpecializations)
+-        LazySpecializations = llvm::makeArrayRef(LS + 1, LS[0]);
++        LazySpecializations = llvm::makeArrayRef(LS + 1, LS[0].DeclID);
+ 
+       // Add a slot to the record for the number of specializations.
+       unsigned I = Record.size();
+@@ -230,12 +272,20 @@ namespace clang {
+ 
+       for (auto *D : Specs) {
+         assert(D->isCanonicalDecl() && "non-canonical decl in set");
+-        AddFirstDeclFromEachModule(D, /*IncludeLocal*/true);
++        AddFirstSpecializationDeclFromEachModule(D, /*IncludeLocal*/true);
++      }
++      for (auto &SpecInfo : LazySpecializations) {
++        Record.push_back(SpecInfo.DeclID);
++        Record.push_back(SpecInfo.ODRHash);
++        Record.push_back(SpecInfo.IsPartial);
+       }
+-      Record.append(LazySpecializations.begin(), LazySpecializations.end());
+ 
+-      // Update the size entry we added earlier.
+-      Record[I] = Record.size() - I - 1;
++      // Update the size entry we added earlier. We linerized the
++      // LazySpecializationInfo members and we need to adjust the size as we
++      // will read them always together.
++      assert ((Record.size() - I - 1) % 3 == 0
++              && "Must be divisible by LazySpecializationInfo count!");
++      Record[I] = (Record.size() - I - 1) / 3;
+     }
+ 
+     /// Ensure that this template specialization is associated with the specified
+-- 
+2.29.2
+

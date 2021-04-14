@@ -1,0 +1,61 @@
+From ef445580ac926ab6ea160529f2cc22b0d420bd86 Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Tue, 17 Mar 2015 14:55:07 +0100
+Subject: [PATCH 031/110] Provide (possibly updated) CodegenOpts to
+ StartModule.
+
+---
+ include/clang/CodeGen/ModuleBuilder.h |  1 -
+ lib/CodeGen/ModuleBuilder.cpp         | 10 ++++++----
+ 2 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/include/clang/CodeGen/ModuleBuilder.h b/include/clang/CodeGen/ModuleBuilder.h
+index 91bb5f0757..9b3404ed61 100644
+--- a/include/clang/CodeGen/ModuleBuilder.h
++++ b/include/clang/CodeGen/ModuleBuilder.h
+@@ -93,7 +93,6 @@ public:
+   llvm::Module* StartModule(llvm::StringRef ModuleName, llvm::LLVMContext &C);
+ 
+   void forgetGlobal(llvm::GlobalValue* GV);
+-  void forgetDecl(const GlobalDecl& GD, llvm::StringRef MangledName);
+   llvm::Module* StartModule(llvm::StringRef ModuleName,
+                             llvm::LLVMContext& C,
+                             const CodeGenOptions& CGO);
+diff --git a/lib/CodeGen/ModuleBuilder.cpp b/lib/CodeGen/ModuleBuilder.cpp
+index 7c672a8249..996dfd1a87 100644
+--- a/lib/CodeGen/ModuleBuilder.cpp
++++ b/lib/CodeGen/ModuleBuilder.cpp
+@@ -34,7 +34,7 @@ namespace {
+     ASTContext *Ctx;
+     const HeaderSearchOptions &HeaderSearchOpts; // Only used for debug info.
+     const PreprocessorOptions &PreprocessorOpts; // Only used for debug info.
+-    const CodeGenOptions CodeGenOpts;  // Intentionally copied in.
++    CodeGenOptions CodeGenOpts;  // Intentionally copied in.
+ 
+     unsigned HandlingTopLevelDecls;
+ 
+@@ -125,6 +125,7 @@ namespace {
+ 
+       std::unique_ptr<CodeGen::CodeGenModule> OldBuilder;
+       OldBuilder.swap(Builder);
++      CodeGenOpts = CGO;
+       M.reset(new llvm::Module(ModuleName, C));
+       Initialize(*Ctx);
+ 
+@@ -488,9 +489,10 @@ void CodeGenerator::forgetGlobal(llvm::GlobalValue* GV) {
+ }
+ 
+ 
+-llvm::Module *CodeGenerator::StartModule(const std::string& ModuleName,
+-                                         llvm::LLVMContext& C) {
+-   return static_cast<CodeGeneratorImpl*>(this)->StartModule(ModuleName, C);
++llvm::Module *CodeGenerator::StartModule(llvm::StringRef ModuleName,
++                                         llvm::LLVMContext& C,
++                                         const CodeGenOptions& CGO) {
++  return static_cast<CodeGeneratorImpl*>(this)->StartModule(ModuleName, C, CGO);
+ }
+ 
+ CodeGenerator *clang::CreateLLVMCodeGen(
+-- 
+2.29.2
+

@@ -1,0 +1,139 @@
+From 913197cd12c9173a6f468e8acc9d45f689aa72a2 Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Mon, 20 Mar 2017 15:19:31 +0100
+Subject: [PATCH 048/110] Keep track of immediately emitted deferred decls.
+ Distinguish emitted from deferred.
+
+---
+ lib/CodeGen/CodeGenModule.cpp | 21 +++++++++++++--------
+ lib/CodeGen/CodeGenModule.h   |  9 ++-------
+ lib/CodeGen/ModuleBuilder.cpp | 30 +++++++-----------------------
+ 3 files changed, 22 insertions(+), 38 deletions(-)
+
+diff --git a/lib/CodeGen/CodeGenModule.cpp b/lib/CodeGen/CodeGenModule.cpp
+index 690fdef550..158b2f1003 100644
+--- a/lib/CodeGen/CodeGenModule.cpp
++++ b/lib/CodeGen/CodeGenModule.cpp
+@@ -391,6 +391,9 @@ void InstrProfStats::reportDiagnostics(DiagnosticsEngine &Diags,
+ 
+ void CodeGenModule::Release() {
+   EmitDeferred();
++  DeferredDecls.insert(EmittedDeferredDecls.begin(),
++                       EmittedDeferredDecls.end());
++  EmittedDeferredDecls.clear();
+   EmitVTablesOpportunistically();
+   applyGlobalValReplacements();
+   applyReplacements();
+@@ -2539,11 +2542,13 @@ void CodeGenModule::EmitGlobal(GlobalDecl GD) {
+   StringRef MangledName = getMangledName(GD);
+   if (GetGlobalValue(MangledName) != nullptr) {
+     // The value has already been used and should therefore be emitted.
+-    addDeferredDeclToEmit(GD);
++    addDeferredDeclToEmit(GV, GD);
++    EmittedDeferredDecls[MangledName] = GD;
+   } else if (MustBeEmitted(Global)) {
+     // The value must be emitted, but cannot be emitted eagerly.
+     assert(!MayBeEmittedEagerly(Global));
+-    addDeferredDeclToEmit(GD);
++    addDeferredDeclToEmit(/*GV=*/nullptr, GD);
++    EmittedDeferredDecls[MangledName] = GD;
+   } else {
+     // Otherwise, remember that we saw a deferred decl with this name.  The
+     // first use of the mangled name will cause it to move into
+@@ -3147,9 +3152,9 @@ llvm::Constant *CodeGenModule::GetOrCreateLLVMFunction(
+       // Move the potentially referenced deferred decl to the
+       // DeferredDeclsToEmit list, and remove it from DeferredDecls (since we
+       // don't need it anymore).
+-      addDeferredDeclToEmit(DDI->second);
+-      EmittedDeferredDecls[F] = std::make_pair(DDI->first, DDI->second);
+-      //DeferredDecls.erase(DDI);
++      addDeferredDeclToEmit(F, DDI->second);
++      EmittedDeferredDecls[DDI->first] = DDI->second;
++      DeferredDecls.erase(DDI);
+ 
+       // Otherwise, there are cases we have to worry about where we're
+       // using a declaration for which we must emit a definition but where
+@@ -3402,9 +3407,9 @@ CodeGenModule::GetOrCreateLLVMGlobal(StringRef MangledName,
+   if (DDI != DeferredDecls.end()) {
+     // Move the potentially referenced deferred decl to the DeferredDeclsToEmit
+     // list, and remove it from DeferredDecls (since we don't need it anymore).
+-    addDeferredDeclToEmit(DDI->second);
+-    EmittedDeferredDecls[GV] = std::make_pair(DDI->first, DDI->second);
+-    //DeferredDecls.erase(DDI);
++    addDeferredDeclToEmit(GV, DDI->second);
++    EmittedDeferredDecls[DDI->first] = DDI->second;
++    DeferredDecls.erase(DDI);
+   }
+ 
+   // Handle things which are present even on external declarations.
+diff --git a/lib/CodeGen/CodeGenModule.h b/lib/CodeGen/CodeGenModule.h
+index ba7f6e7bc9..462bf89402 100644
+--- a/lib/CodeGen/CodeGenModule.h
++++ b/lib/CodeGen/CodeGenModule.h
+@@ -348,13 +348,8 @@ private:
+     DeferredDeclsToEmit.emplace_back(GD);
+   }
+ 
+-  /// Enables unloading of emitted symbols that need to become deferred.
+-  /// Key is the emitted definition, value is symbol name + Decl created
+-  /// while marking this deferred, i.e. the content of DeferredDecls.
+-  std::unordered_map<llvm::GlobalValue*,
+-                     std::pair<llvm::StringRef, GlobalDecl>>
+-    EmittedDeferredDecls;
+-
++  /// Decls that were DeferredDecls and have now been emitted.
++  std::map<StringRef, GlobalDecl> EmittedDeferredDecls;
+ 
+   /// List of alias we have emitted. Used to make sure that what they point to
+   /// is defined once we get to the end of the of the translation unit.
+diff --git a/lib/CodeGen/ModuleBuilder.cpp b/lib/CodeGen/ModuleBuilder.cpp
+index 892a08b7ee..3e74753dd5 100644
+--- a/lib/CodeGen/ModuleBuilder.cpp
++++ b/lib/CodeGen/ModuleBuilder.cpp
+@@ -154,8 +154,6 @@ namespace clang {
+              && "Newly created module should not have weakRefRefs");
+       Builder->WeakRefReferences.swap(OldBuilder->WeakRefReferences);
+ 
+-      Builder->EmittedDeferredDecls.swap(OldBuilder->EmittedDeferredDecls);
+-
+       return M.get();
+     }
+ 
+@@ -290,27 +288,13 @@ namespace clang {
+         }
+       }
+ 
+-      if (GV->isWeakForLinker()) {
+-        if (!GV->isDeclaration()) {
+-          // This is a definition. If if was emitted as deferred, move it
+-          // back into deferred state.
+-          auto IEmittedDeferredDecl
+-            = Builder->EmittedDeferredDecls.find(GV);
+-          if (IEmittedDeferredDecl != Builder->EmittedDeferredDecls.end()) {
+-            // Use the name of the original GV, not that of our definition
+-            // that's soon to be erased.
+-            Builder->DeferredDecls[IEmittedDeferredDecl->second.first]
+-              = IEmittedDeferredDecl->second.second;
+-            Builder->EmittedDeferredDecls.erase(IEmittedDeferredDecl);
+-          }
+-        } else {
+-          // might be an entry in the deferred decls, if so: remove!
+-          auto IDeferredDecl = Builder->DeferredDecls.find(GV->getName());
+-          if (IDeferredDecl != Builder->DeferredDecls.end()) {
+-            // yes, pointer comparison.
+-            if (IDeferredDecl->first.data() == GV->getName().data())
+-              Builder->DeferredDecls.erase(IDeferredDecl);
+-          }
++      if (GV->isWeakForLinker() && GV->isDeclaration()) {
++        // might be an entry in the deferred decls, if so: remove!
++        auto IDeferredDecl = Builder->DeferredDecls.find(GV->getName());
++        if (IDeferredDecl != Builder->DeferredDecls.end()) {
++          // yes, pointer comparison.
++          if (IDeferredDecl->first.data() == GV->getName().data())
++            Builder->DeferredDecls.erase(IDeferredDecl);
+         }
+       }
+     }
+-- 
+2.29.2
+

@@ -1,0 +1,29 @@
+From 8c736d559827ab2425f632247f827eb03d9941f7 Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Thu, 28 May 2015 11:43:50 +0200
+Subject: [PATCH 032/110] Clear pending decls from Builder in case of errors
+ (ROOT-7295).
+
+---
+ lib/CodeGen/ModuleBuilder.cpp | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/lib/CodeGen/ModuleBuilder.cpp b/lib/CodeGen/ModuleBuilder.cpp
+index 996dfd1a87..44f93c77d4 100644
+--- a/lib/CodeGen/ModuleBuilder.cpp
++++ b/lib/CodeGen/ModuleBuilder.cpp
+@@ -96,6 +96,11 @@ namespace {
+     }
+ 
+     llvm::Module *ReleaseModule() {
++      // Remove pending etc decls in case of error; the asserts in StartModule()
++      // will rightfully be confused otherwise, as none of the decls were
++      // emitted.
++      if (Diags.hasErrorOccurred())
++        Builder->clear();
+       return M.release();
+     }
+ 
+-- 
+2.29.2
+

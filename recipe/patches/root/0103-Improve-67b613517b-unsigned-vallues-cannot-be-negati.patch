@@ -1,0 +1,34 @@
+From b3a99707a5dd70378ffa332e4ac25d51bcec88c6 Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Thu, 11 Feb 2021 15:01:21 +0100
+Subject: [PATCH 103/110] Improve 67b613517b: unsigned vallues cannot be
+ negative:
+
+This fixes
+```
+math/mathcore/G__MathCore.cxx:450:57: warning: integer literal is too large to be represented in a signed integer type, interpreting as unsigned [-Wimplicitly-unsigned-literal]
+      ::mersenne_twister_engine<ULong64_t,64,312,156,31,13043109905998158313,...
+```
+The code meant to test whether the highest bit is set. `isNegative` is false for
+unsigned values; we have to check whether the bit pattern starts with at least one
+leading one bit.
+---
+ lib/AST/TemplateBase.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/AST/TemplateBase.cpp b/lib/AST/TemplateBase.cpp
+index d6339acdf8..d4a5aad649 100644
+--- a/lib/AST/TemplateBase.cpp
++++ b/lib/AST/TemplateBase.cpp
+@@ -79,7 +79,7 @@ static void printIntegral(const TemplateArgument &TemplArg,
+     // Handle cases where the value is too large to fit into the underlying type
+     // i.e. where the unsignedness matters.
+     if (T->isBuiltinType()) {
+-      if (Val.isUnsigned() && Val.getBitWidth() == 64 && Val.isNegative())
++      if (Val.isUnsigned() && Val.getBitWidth() == 64 && Val.countLeadingOnes())
+         Out << "ull";
+     }
+   }
+-- 
+2.29.2
+

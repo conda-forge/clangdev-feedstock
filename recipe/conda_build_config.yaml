@@ -20,4 +20,4 @@ cxx_compiler_version:   # [osx]
 variant:
   - default
   - hcc   # [linux]
-  - cling_master  # [linux or osx]
+  - root_62400  # [linux or osx]

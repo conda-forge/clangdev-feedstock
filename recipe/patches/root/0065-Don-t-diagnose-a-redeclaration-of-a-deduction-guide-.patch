@@ -1,0 +1,28 @@
+From 86bca61d93b4415e6f6b38cf022192816b3d696c Mon Sep 17 00:00:00 2001
+From: Richard Smith <richard@metafoo.co.uk>
+Date: Fri, 12 Jun 2020 10:27:48 -0700
+Subject: [PATCH 065/110] Don't diagnose a redeclaration of a deduction guide
+ if the prior declaration is not visible.
+
+In passing, add a test for a similar case of conflicting redeclarations
+of internal-linkage structured bindings. (This case already works).
+---
+ lib/Sema/SemaDeclCXX.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/Sema/SemaDeclCXX.cpp b/lib/Sema/SemaDeclCXX.cpp
+index 2f9e4f961f..f2e39a8c2e 100644
+--- a/lib/Sema/SemaDeclCXX.cpp
++++ b/lib/Sema/SemaDeclCXX.cpp
+@@ -663,7 +663,7 @@ bool Sema::MergeCXXFunctionDecl(FunctionDecl *New, FunctionDecl *Old,
+   //   for the same class template shall not have equivalent
+   //   parameter-declaration-clauses.
+   if (isa<CXXDeductionGuideDecl>(New) &&
+-      !New->isFunctionTemplateSpecialization()) {
++      !New->isFunctionTemplateSpecialization() && isVisible(Old)) {
+     Diag(New->getLocation(), diag::err_deduction_guide_redeclared);
+     Diag(Old->getLocation(), diag::note_previous_declaration);
+   }
+-- 
+2.29.2
+

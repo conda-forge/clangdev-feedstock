@@ -1,0 +1,33 @@
+From c121ec4aa7539f1cc33eb42d4c5a8d88474d4afc Mon Sep 17 00:00:00 2001
+From: Philippe Canal <pcanal@fnal.gov>
+Date: Tue, 8 Nov 2016 11:22:22 -0600
+Subject: [PATCH 092/110] Update the DeclContext used for lookup to point to
+ the definition.
+
+This is similar to 2b4de2603a086162f89fd5eb16aa0d5fddac8a6e and
+384f6eabcd2d02512b942215d7ae52ff40954027
+but applied to the case hit by ROOT-8443
+(involving function template explicit instantiation and auto-parsing).
+---
+ lib/Sema/SemaTemplate.cpp | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/lib/Sema/SemaTemplate.cpp b/lib/Sema/SemaTemplate.cpp
+index c5fc3ec231..6b139e846c 100644
+--- a/lib/Sema/SemaTemplate.cpp
++++ b/lib/Sema/SemaTemplate.cpp
+@@ -420,6 +420,11 @@ bool Sema::LookupTemplateName(LookupResult &Found,
+     // The declaration context must be complete.
+     if (LookupCtx && RequireCompleteDeclContext(SS, LookupCtx))
+       return true;
++
++    if (TagDecl* TD = dyn_cast_or_null<TagDecl>(LookupCtx)) {
++      // Update the DeclContext to point to the Tag definition.
++      LookupCtx = TD->getDefinition();
++    }
+   }
+ 
+   bool ObjectTypeSearchedInScope = false;
+-- 
+2.29.2
+

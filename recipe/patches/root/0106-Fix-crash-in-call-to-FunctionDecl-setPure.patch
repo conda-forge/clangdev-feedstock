@@ -1,0 +1,50 @@
+From 7942f2ef506a719525902c6b68f3874d8c8a00ad Mon Sep 17 00:00:00 2001
+From: Andrew Gallagher <andrewjcg@gmail.com>
+Date: Thu, 4 Mar 2021 18:12:46 +0000
+Subject: [PATCH 106/110] Fix crash in call to `FunctionDecl::setPure()`
+
+In some cases, when deserializing a `CXXMethodDecl` of a `CXXSpecializationTemplateDecl`,
+the call to `FunctionDecl::setPure()` happens before the `DefinitionData` member has been
+populated (which appears to happen lower down in a `mergeRedeclarable` call), causing a
+crash (https://reviews.llvm.org/P8228).
+
+This diff fixes this by deferring the `FunctionDecl::setPure()` till after the `DefinitionData` has
+been filled in.
+
+Reviewed By: lxfind
+
+Differential Revision: https://reviews.llvm.org/D86853
+---
+ lib/Serialization/ASTReaderDecl.cpp | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/lib/Serialization/ASTReaderDecl.cpp b/lib/Serialization/ASTReaderDecl.cpp
+index 1fca2dc3f1..4f6678333e 100644
+--- a/lib/Serialization/ASTReaderDecl.cpp
++++ b/lib/Serialization/ASTReaderDecl.cpp
+@@ -869,7 +869,10 @@ void ASTDeclReader::VisitFunctionDecl(FunctionDecl *FD) {
+   FD->setInlineSpecified(Record.readInt());
+   FD->setImplicitlyInline(Record.readInt());
+   FD->setVirtualAsWritten(Record.readInt());
+-  FD->setPure(Record.readInt());
++  // We defer calling `FunctionDecl::setPure()` here as for methods of
++  // `CXXTemplateSpecializationDecl`s, we may not have connected up the
++  // definition (which is required for `setPure`).
++  const bool Pure = Record.readInt();
+   FD->setHasInheritedPrototype(Record.readInt());
+   FD->setHasWrittenPrototype(Record.readInt());
+   FD->setDeletedAsWritten(Record.readInt());
+@@ -1003,6 +1006,10 @@ void ASTDeclReader::VisitFunctionDecl(FunctionDecl *FD) {
+   }
+   }
+ 
++  // Defer calling `setPure` until merging above has guaranteed we've set
++  // `DefinitionData` (as this will need to access it).
++  FD->setPure(Pure);
++
+   // Read in the parameters.
+   unsigned NumParams = Record.readInt();
+   SmallVector<ParmVarDecl *, 16> Params;
+-- 
+2.29.2
+

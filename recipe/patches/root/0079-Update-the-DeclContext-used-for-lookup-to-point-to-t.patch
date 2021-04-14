@@ -1,0 +1,37 @@
+From 77ff7cfe86d082824a4bb392deb82138341ba1a1 Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Wed, 16 Jul 2014 11:28:29 +0200
+Subject: [PATCH 079/110] Update the DeclContext used for lookup to point to
+ the definition.
+
+While the ASTReader fills the existing Decl, we create a new redecl.
+This patch can be removed once we use real PCMs.
+---
+ lib/Sema/SemaDecl.cpp | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/lib/Sema/SemaDecl.cpp b/lib/Sema/SemaDecl.cpp
+index 8f19edbc4f..e89beef17e 100644
+--- a/lib/Sema/SemaDecl.cpp
++++ b/lib/Sema/SemaDecl.cpp
+@@ -328,9 +328,14 @@ ParsedType Sema::getTypeName(const IdentifierInfo &II, SourceLocation NameLoc,
+       return nullptr;
+     }
+ 
+-    if (!LookupCtx->isDependentContext() &&
+-        RequireCompleteDeclContext(*SS, LookupCtx))
+-      return nullptr;
++    if (!LookupCtx->isDependentContext()) {
++      if (RequireCompleteDeclContext(*SS, LookupCtx)) {
++        return nullptr;
++      } else if (TagDecl* TD = dyn_cast<TagDecl>(LookupCtx)) {
++        // Update the DeclContext to point to the Tag definition.
++        LookupCtx = TD->getDefinition();
++      }
++    }
+   }
+ 
+   // FIXME: LookupNestedNameSpecifierName isn't the right kind of
+-- 
+2.29.2
+

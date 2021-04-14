@@ -1,0 +1,35 @@
+From f6c8fb7bf3beba69ad04ffe6c6fc6f0262edd760 Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Wed, 16 Jul 2014 17:09:21 +0200
+Subject: [PATCH 080/110] Update another lookup ctx after AutoParse.
+
+---
+ lib/Sema/SemaCXXScopeSpec.cpp | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
+
+diff --git a/lib/Sema/SemaCXXScopeSpec.cpp b/lib/Sema/SemaCXXScopeSpec.cpp
+index f23e3e3ef8..bfbfe4f166 100644
+--- a/lib/Sema/SemaCXXScopeSpec.cpp
++++ b/lib/Sema/SemaCXXScopeSpec.cpp
+@@ -531,9 +531,15 @@ bool Sema::BuildCXXNestedNameSpecifier(Scope *S, NestedNameSpecInfo &IdInfo,
+     // nested-name-specifier.
+ 
+     // The declaration context must be complete.
+-    if (!LookupCtx->isDependentContext() &&
+-        RequireCompleteDeclContext(SS, LookupCtx))
+-      return true;
++    if (!LookupCtx->isDependentContext()) {
++      if (RequireCompleteDeclContext(SS, LookupCtx)) {
++        return true;
++      } else if (TagDecl* TD = dyn_cast<TagDecl>(LookupCtx)) {
++        // Update the DeclContext to point to the Tag definition.
++        LookupCtx = TD->getDefinition();
++      }
++    }
++
+ 
+     LookupQualifiedName(Found, LookupCtx);
+ 
+-- 
+2.29.2
+

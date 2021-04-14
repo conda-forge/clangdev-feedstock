@@ -11,7 +11,7 @@ if [[ "$variant" == "hcc" ]]; then
   CMAKE_ARGS="$CMAKE_ARGS -DKALMAR_SDK_COMMIT=24e69cd8 -DKALMAR_FRONTEND_COMMIT=24e69cd8 -DKALMAR_BACKEND_COMMIT=24e69cd8"
 fi
 
-if [[ "$variant" == "cling"* ]]; then
+if [[ "$variant" == "root"* ]]; then
   # Cling needs some minor patches to the LLVM sources
   sed -i "s@LLVM_LINK_LLVM_DYLIB yes@LLVM_LINK_LLVM_DYLIB no@g" "${PREFIX}/lib/cmake/llvm/LLVMConfig.cmake"
   cd "${PREFIX}"
