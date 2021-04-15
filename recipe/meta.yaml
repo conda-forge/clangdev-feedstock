@@ -9,7 +9,6 @@ package:
 source:
   - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/clang-{{ version.replace(".rc", "rc") }}.src.tar.xz
     sha256: 5778512b2e065c204010f88777d44b95250671103e434f9dc7363ab2e3804253
-    git_rev: ROOT-patches
     patches:
       - patches/0001-Find-conda-gcc-installation.patch
       - patches/0002-Fix-sysroot-detection-for-linux.patch
