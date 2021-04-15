@@ -16,6 +16,7 @@ source:
       - patches/0003-clang-Fix-normalizeProgramName-s-handling-of-dots-ou.patch
       - patches/0001-Set-VERSION-in-osx-as-well.patch
       - patches/cross-compile.diff
+      - patches/apple-silicon.diff
       - patches/amd-roc-2.7.0.diff   # [variant != "hcc"]
       - patches/amd-roc-hcc-2.7.0.diff  # [variant == "hcc"]
       # Taken from cloning http://root.cern/git/clang.git and running
