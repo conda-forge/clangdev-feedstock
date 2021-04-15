@@ -14,6 +14,8 @@ pin_run_as_build:
   python:
     min_pin: x.x
     max_pin: x.x
+  zlib:
+    max_pin: x.x
 python:
 - 3.6.* *_cpython
 - 3.7.* *_cpython
@@ -27,3 +29,5 @@ vc:
 zip_keys:
 - - cdt_name
   - docker_image
+zlib:
+- '1.2'

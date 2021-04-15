@@ -156,6 +156,7 @@ requirements:
   host:
     - libcxx {{ cxx_compiler_version }}  # [osx]
     - llvmdev =={{ version }}
+    - zlib
 
 test:
   requires:
@@ -234,6 +235,7 @@ outputs:
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
+        - zlib
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
     test:
@@ -265,6 +267,7 @@ outputs:
         - llvmdev =={{ version }}
         - llvm =={{ version }}
         - {{ pin_subpackage("libclang-cpp" + major_version, exact=True) }}  # [unix]
+        - zlib
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
         - {{ pin_subpackage("libclang-cpp" + major_version, exact=True) }}  # [unix]
@@ -322,6 +325,7 @@ outputs:
         - llvmdev =={{ version }}
         - llvm =={{ version }}
         - {{ pin_compatible("libclang-cpp" + major_version, exact=True) }}  # [unix]
+        - zlib
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}      # [osx]
         - {{ pin_compatible("libclang-cpp" + major_version, exact=True) }}  # [unix]
