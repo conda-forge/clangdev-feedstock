@@ -15,6 +15,7 @@ source:
       - patches/0002-clang-add-conda-specific-env-var-CONDA_BUILD_SYSROOT.patch
       - patches/0003-clang-Fix-normalizeProgramName-s-handling-of-dots-ou.patch
       - patches/0001-Set-VERSION-in-osx-as-well.patch
+      - patches/Improve-logic-for-finding-the-macos-sysroot-for-cond.patch  # [osx]
       - patches/cross-compile.diff
       - patches/apple-silicon.diff
       - patches/amd-roc-2.7.0.diff   # [variant != "hcc"]
