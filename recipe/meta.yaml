@@ -186,6 +186,7 @@ outputs:
     build:
       track_features:
         - hcc          # [variant=="hcc"]
+        - cling        # [variant and "root" in variant]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       build:
@@ -222,6 +223,7 @@ outputs:
     build:
       track_features:
         - hcc          # [variant=="hcc"]
+        - cling        # [variant and "root" in variant]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:
         - {{ pin_subpackage("libclang-cpp" + major_version, max_pin="x.x") }}   # [unix]
@@ -252,6 +254,7 @@ outputs:
     build:
       track_features:
         - hcc          # [variant=="hcc"]
+        - cling        # [variant and "root" in variant]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       {% if not win %}
       run_exports:   # [unix]
@@ -285,6 +288,7 @@ outputs:
     build:
       track_features:
         - hcc          # [variant=="hcc"]
+        - cling        # [variant and "root" in variant]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       build:
@@ -313,6 +317,7 @@ outputs:
     build:
       track_features:
         - hcc          # [variant=="hcc"]
+        - cling        # [variant and "root" in variant]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       build:
@@ -357,6 +362,7 @@ outputs:
     build:
       track_features:
         - hcc          # [variant=="hcc"]
+        - cling        # [variant and "root" in variant]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
@@ -373,6 +379,7 @@ outputs:
     build:
       track_features:
         - hcc          # [variant=="hcc"]
+        - cling        # [variant and "root" in variant]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       host:
@@ -396,6 +403,7 @@ outputs:
     build:
       track_features:
         - hcc          # [variant=="hcc"]
+        - cling        # [variant and "root" in variant]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       build:
@@ -429,9 +437,10 @@ outputs:
       noarch: python
       # Building this output using this recipe is only supported on unix
       # It can still be installed on Windows as it is marked as `noarch: python`
-      skip: true  # [win or variant=="hcc" or (build_platform != target_platform)]
+      skip: true  # [win or variant=="hcc" or (variant and "root" in variant) or (build_platform != target_platform)]
       track_features:
         - hcc          # [variant=="hcc"]
+        - cling        # [variant and "root" in variant]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     script: build_python_bindings.sh
     requirements:
