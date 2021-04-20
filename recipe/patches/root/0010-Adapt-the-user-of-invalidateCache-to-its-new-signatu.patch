@@ -1,0 +1,35 @@
+From 758e42e823bf921ab94aa9b845e2cc12750606c5 Mon Sep 17 00:00:00 2001
+From: Vassil Vassilev <vvasilev@cern.ch>
+Date: Tue, 8 Apr 2014 18:00:07 +0200
+Subject: [PATCH 010/110] Adapt the user of invalidateCache to its new
+ signature. Note: this might be change of behavior, because the new
+ implementation doesn't erase the entry from the ADT.
+
+---
+ lib/Serialization/ModuleManager.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/lib/Serialization/ModuleManager.cpp b/lib/Serialization/ModuleManager.cpp
+index 6ae0c4f575..0306dadb3b 100644
+--- a/lib/Serialization/ModuleManager.cpp
++++ b/lib/Serialization/ModuleManager.cpp
+@@ -206,7 +206,7 @@ ModuleManager::addModule(StringRef FileName, ModuleKind Type,
+     // Try to remove the buffer.  If it can't be removed, then it was already
+     // validated by this process.
+     if (!getModuleCache().tryToDropPCM(NewModule->FileName))
+-      FileMgr.invalidateCache(NewModule->File);
++      FileMgr.invalidateCache(const_cast<FileEntry*>(NewModule->File));
+     return OutOfDate;
+   }
+ 
+@@ -263,6 +263,7 @@ void ModuleManager::removeModules(
+   for (ModuleIterator victim = First; victim != Last; ++victim) {
+     Modules.erase(victim->File);
+ 
++    FileMgr.invalidateCache(const_cast<FileEntry*>(victim->File));
+     if (modMap) {
+       StringRef ModuleName = victim->ModuleName;
+       if (Module *mod = modMap->findModule(ModuleName)) {
+-- 
+2.29.2
+

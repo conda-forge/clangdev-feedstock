@@ -1,3 +1,5 @@
+cdt_name:
+- cos7
 channel_sources:
 - conda-forge,defaults
 channel_targets:
@@ -7,16 +9,15 @@ cxx_compiler:
 cxx_compiler_version:
 - '7'
 docker_image:
-- condaforge/linux-anvil-comp7
+- quay.io/condaforge/linux-anvil-comp7
 pin_run_as_build:
-  python:
-    min_pin: x.x
+  zlib:
     max_pin: x.x
-  vc:
-    max_pin: x
-python:
-- '3.7'
+target_platform:
+- linux-ppc64le
 variant:
-- hcc
+- root_62400
 vc:
 - '14'
+zlib:
+- '1.2'

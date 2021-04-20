@@ -1,0 +1,29 @@
+diff --git a/lib/Driver/ToolChains/Darwin.cpp.bak b/lib/Driver/ToolChains/Darwin.cpp
+index 5de7d71..7a43567 100644
+--- a/lib/Driver/ToolChains/Darwin.cpp.bak
++++ b/lib/Driver/ToolChains/Darwin.cpp
+@@ -1609,8 +1609,13 @@ inferDeploymentTargetFromArch(DerivedArgList &Args, const Darwin &Toolchain,
+   llvm::Triple::OSType OSTy = llvm::Triple::UnknownOS;
+ 
+   StringRef MachOArchName = Toolchain.getMachOArchName(Args);
+-  if (MachOArchName == "armv7" || MachOArchName == "armv7s" ||
+-      MachOArchName == "arm64")
++  if (MachOArchName == "arm64") {
++#if __arm64__
++    OSTy = llvm::Triple::MacOSX;
++#else
++    OSTy = llvm::Triple::IOS;
++#endif
++  } else if (MachOArchName == "armv7" || MachOArchName == "armv7s")
+     OSTy = llvm::Triple::IOS;
+   else if (MachOArchName == "armv7k")
+     OSTy = llvm::Triple::WatchOS;
+@@ -1759,7 +1764,7 @@ void Darwin::AddDeploymentTarget(DerivedArgList &Args) const {
+   if (Platform == MacOS) {
+     if (!Driver::GetReleaseVersion(OSTarget->getOSVersion(), Major, Minor,
+                                    Micro, HadExtra) ||
+-        HadExtra || Major != 10 || Minor >= 100 || Micro >= 100)
++        HadExtra || Major < 10 || Minor >= 100 || Micro >= 100)
+       getDriver().Diag(diag::err_drv_invalid_version_number)
+           << OSTarget->getAsString(Args, Opts);
+   } else if (Platform == IPhoneOS) {

@@ -1,0 +1,87 @@
+From 94e336f95a2b3d24d4fd5141fd0af18680a8cd8b Mon Sep 17 00:00:00 2001
+From: Philippe Canal <pcanal@fnal.gov>
+Date: Tue, 8 Nov 2016 14:36:41 -0600
+Subject: [PATCH 093/110] Refactor in RequireCompleteDeclContext the 'Update
+ the DeclContext used for lookup to point to the definition.'
+
+This superseeds 4fa2f7a38e37303b3bb5a9ba01d762122e8d9814, 2b4de2603a086162f89fd5eb16aa0d5fddac8a6e and 384f6eabcd2d02512b942215d7ae52ff40954027
+---
+ include/clang/Sema/Sema.h     | 2 +-
+ lib/Sema/SemaCXXScopeSpec.cpp | 8 +++++++-
+ lib/Sema/SemaDeclCXX.cpp      | 6 +++---
+ lib/Sema/SemaExprCXX.cpp      | 3 ++-
+ 4 files changed, 13 insertions(+), 6 deletions(-)
+
+diff --git a/include/clang/Sema/Sema.h b/include/clang/Sema/Sema.h
+index 113e0fa191..04260e94af 100644
+--- a/include/clang/Sema/Sema.h
++++ b/include/clang/Sema/Sema.h
+@@ -5648,7 +5648,7 @@ public:
+   StmtResult ActOnFinishFullStmt(Stmt *Stmt);
+ 
+   // Marks SS invalid if it represents an incomplete type.
+-  bool RequireCompleteDeclContext(CXXScopeSpec &SS, DeclContext *DC);
++  bool RequireCompleteDeclContext(CXXScopeSpec &SS, DeclContext *&DC);
+ 
+   DeclContext *computeDeclContext(QualType T);
+   DeclContext *computeDeclContext(const CXXScopeSpec &SS,
+diff --git a/lib/Sema/SemaCXXScopeSpec.cpp b/lib/Sema/SemaCXXScopeSpec.cpp
+index bfbfe4f166..535a519b89 100644
+--- a/lib/Sema/SemaCXXScopeSpec.cpp
++++ b/lib/Sema/SemaCXXScopeSpec.cpp
+@@ -208,7 +208,7 @@ CXXRecordDecl *Sema::getCurrentInstantiationOf(NestedNameSpecifier *NNS) {
+ /// a class template specialization that is not a complete type, we
+ /// will attempt to instantiate that class template.
+ bool Sema::RequireCompleteDeclContext(CXXScopeSpec &SS,
+-                                      DeclContext *DC) {
++                                      DeclContext *&DC) {
+   assert(DC && "given null context");
+ 
+   TagDecl *tag = dyn_cast<TagDecl>(DC);
+@@ -234,6 +234,12 @@ bool Sema::RequireCompleteDeclContext(CXXScopeSpec &SS,
+   // The type must be complete.
+   if (RequireCompleteType(loc, type, diag::err_incomplete_nested_name_spec,
+                           SS.getRange())) {
++    // The actual information about the decl may have been loaded via an
++    // external source that created a new AST node/decl for the definition
++    // rather than reusing the one we had (DC) like the ASTReader does.
++    // To avoid the caller to continue using the still incomplete decl, let's
++    // set it to the definition.
++    DC = tag->getDefinition();
+     SS.SetInvalid(SS.getRange());
+     return true;
+   }
+diff --git a/lib/Sema/SemaDeclCXX.cpp b/lib/Sema/SemaDeclCXX.cpp
+index 8e40f5ae9d..bf76272525 100644
+--- a/lib/Sema/SemaDeclCXX.cpp
++++ b/lib/Sema/SemaDeclCXX.cpp
+@@ -10379,9 +10379,9 @@ bool Sema::CheckUsingDeclQualifier(SourceLocation UsingLoc,
+     // we have a 'typename' keyword, the scope must resolve to a class type.
+     if ((HasTypename && !NamedContext) ||
+         (NamedContext && NamedContext->getRedeclContext()->isRecord())) {
+-      auto *RD = NamedContext
+-                     ? cast<CXXRecordDecl>(NamedContext->getRedeclContext())
+-                     : nullptr;
++      DeclContext *RD = NamedContext
++                        ? cast<CXXRecordDecl>(NamedContext->getRedeclContext())
++                        : nullptr;
+       if (RD && RequireCompleteDeclContext(const_cast<CXXScopeSpec&>(SS), RD))
+         RD = nullptr;
+ 
+diff --git a/lib/Sema/SemaExprCXX.cpp b/lib/Sema/SemaExprCXX.cpp
+index c1c08969c7..cfb3754d15 100644
+--- a/lib/Sema/SemaExprCXX.cpp
++++ b/lib/Sema/SemaExprCXX.cpp
+@@ -95,7 +95,8 @@ ParsedType Sema::getConstructorName(IdentifierInfo &II,
+     return ParsedType::make(T);
+   }
+ 
+-  if (SS.isNotEmpty() && RequireCompleteDeclContext(SS, CurClass))
++  DeclContext *DC = CurClass;
++  if (SS.isNotEmpty() && RequireCompleteDeclContext(SS, DC))
+     return ParsedType();
+ 
+   // Find the injected-class-name declaration. Note that we make no attempt to
+-- 
+2.29.2
+

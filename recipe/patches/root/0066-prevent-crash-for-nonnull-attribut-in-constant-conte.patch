@@ -1,0 +1,57 @@
+From 1532c7eaa04d5afc5d07a6d41b93ca2da3c2d719 Mon Sep 17 00:00:00 2001
+From: Gauthier Harnisch <tyker1@outlook.com>
+Date: Thu, 10 Oct 2019 07:13:20 +0000
+Subject: [PATCH 066/110] prevent crash for nonnull attribut in constant
+ context (Bug 43601)
+
+Summary:
+
+bug : https://bugs.llvm.org/show_bug.cgi?id=43601
+
+Reviewers: rnk
+
+Reviewed By: rnk
+
+Subscribers: cfe-commits
+
+Tags: #clang
+
+Differential Revision: https://reviews.llvm.org/D68716
+
+llvm-svn: 374285
+---
+ lib/AST/ExprConstant.cpp | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/lib/AST/ExprConstant.cpp b/lib/AST/ExprConstant.cpp
+index f01b42e7ff..9bbedbe3e2 100644
+--- a/lib/AST/ExprConstant.cpp
++++ b/lib/AST/ExprConstant.cpp
+@@ -5116,18 +5116,18 @@ static bool EvaluateArgs(ArrayRef<const Expr *> Args, ArgVector &ArgValues,
+         }
+     }
+   }
+-  for (ArrayRef<const Expr*>::iterator I = Args.begin(), E = Args.end();
+-       I != E; ++I) {
+-    if (!Evaluate(ArgValues[I - Args.begin()], Info, *I)) {
++  for (unsigned Idx = 0; Idx < Args.size(); Idx++) {
++    if (!Evaluate(ArgValues[Idx], Info, Args[Idx])) {
+       // If we're checking for a potential constant expression, evaluate all
+       // initializers even if some of them fail.
+       if (!Info.noteFailure())
+         return false;
+       Success = false;
+     } else if (!ForbiddenNullArgs.empty() &&
+-               ForbiddenNullArgs[I - Args.begin()] &&
+-               ArgValues[I - Args.begin()].isNullPointer()) {
+-      Info.CCEDiag(*I, diag::note_non_null_attribute_failed);
++               ForbiddenNullArgs[Idx] &&
++               ArgValues[Idx].isLValue() &&
++               ArgValues[Idx].isNullPointer()) {
++      Info.CCEDiag(Args[Idx], diag::note_non_null_attribute_failed);
+       if (!Info.noteFailure())
+         return false;
+       Success = false;
+-- 
+2.29.2
+

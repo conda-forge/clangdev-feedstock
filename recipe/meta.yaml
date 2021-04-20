@@ -1,13 +1,13 @@
 {% set version = "9.0.1" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 0 %}
+{% set build_number = 1 %}
 
 package:
   name: clang_packages
   version: {{ version }}
 
 source:
-  - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version }}/clang-{{ version }}.src.tar.xz
+  - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/clang-{{ version.replace(".rc", "rc") }}.src.tar.xz
     sha256: 5778512b2e065c204010f88777d44b95250671103e434f9dc7363ab2e3804253
     patches:
       - patches/0001-Find-conda-gcc-installation.patch
@@ -15,10 +15,126 @@ source:
       - patches/0002-clang-add-conda-specific-env-var-CONDA_BUILD_SYSROOT.patch
       - patches/0003-clang-Fix-normalizeProgramName-s-handling-of-dots-ou.patch
       - patches/0001-Set-VERSION-in-osx-as-well.patch
+      - patches/Improve-logic-for-finding-the-macos-sysroot-for-cond.patch  # [osx]
+      - patches/cross-compile.diff
+      - patches/apple-silicon.diff
       - patches/amd-roc-2.7.0.diff   # [variant != "hcc"]
       - patches/amd-roc-hcc-2.7.0.diff  # [variant == "hcc"]
+      # Taken from cloning http://root.cern/git/clang.git and running
+      # git format-patch cc54f73e76332c635d97a53b5ec369901173be53~1..0d387254997cf7fcc456b60db1e7a5bf764f8611
+      # Corrosponds to ROOT 6.24.00
+      - patches/root/0001-Temporary-parsers-should-not-manipulate-global-parse.patch  # [variant == "root_62400"]
+      - patches/root/0002-Only-reset-extra-parsers-if-not-temporary.patch             # [variant == "root_62400"]
+      - patches/root/0003-Let-autoload-act-on-fwd-declares.patch                      # [variant == "root_62400"]
+      - patches/root/0004-Do-not-complain-about-invalid-sources-for-PCH-files.patch   # [variant == "root_62400"]
+      - patches/root/0005-Extend-SubstTemplateTypeParmType-to-support-non-cano.patch  # [variant == "root_62400"]
+      - patches/root/0006-Remove-macro-and-print-macro.patch                          # [variant == "root_62400"]
+      - patches/root/0007-From-Vassil-add-debug-printout-of-ModuleBuilder-data.patch  # [variant == "root_62400"]
+      - patches/root/0008-Cleanup-cached-constant-.str-from-codegen.patch             # [variant == "root_62400"]
+      - patches/root/0009-Implement-FileManager-uncaching.patch                       # [variant == "root_62400"]
+      - patches/root/0010-Adapt-the-user-of-invalidateCache-to-its-new-signatu.patch  # [variant == "root_62400"]
+      - patches/root/0011-Mark-the-file-entry-invalid-until-reread.-Invalidate.patch  # [variant == "root_62400"]
+      - patches/root/0012-In-cases-of-nested-parsing-at-execution-time-sometim.patch  # [variant == "root_62400"]
+      - patches/root/0013-Implement-soft-reset-of-the-diagnostics-engine.patch        # [variant == "root_62400"]
+      - patches/root/0014-Access-sema-internals-and-revert-the-list-of-unused-.patch  # [variant == "root_62400"]
+      - patches/root/0015-Propagate-cache-flags-from-LookupFile-to-FileManager.patch  # [variant == "root_62400"]
+      - patches/root/0016-Pass-the-OpenFile-flag-also-to-DirectoryLookup.patch        # [variant == "root_62400"]
+      - patches/root/0017-Merge-Ctors-from-nested-transactions.patch                  # [variant == "root_62400"]
+      - patches/root/0018-SrcMan-can-happen-for-Locs-from-the-command-line.patch      # [variant == "root_62400"]
+      - patches/root/0019-Make-sure-the-inode-did-not-get-updated-since-we-rea.patch  # [variant == "root_62400"]
+      - patches/root/0020-More-RAIIs-for-autoloading.patch                            # [variant == "root_62400"]
+      - patches/root/0021-Fix-cling-teardown-issues-when-a-pch-is-attached.-Ku.patch  # [variant == "root_62400"]
+      - patches/root/0022-Use-raw-string-literals-to-correctly-stringify-and-i.patch  # [variant == "root_62400"]
+      - patches/root/0023-Accessor-to-is-file-opened-this-is-crucial-info-for-.patch  # [variant == "root_62400"]
+      - patches/root/0024-Buffer-the-pending-instantiations-in-case-or-recursi.patch  # [variant == "root_62400"]
+      - patches/root/0025-Also-store-Parser-paren-numbers-likely-fixes-ROOT-69.patch  # [variant == "root_62400"]
+      - patches/root/0026-Allow-switching-of-CodeGen-llvm-Module.patch                # [variant == "root_62400"]
+      - patches/root/0027-Avoid-dupe-llvm.ident-operands.patch                        # [variant == "root_62400"]
+      - patches/root/0028-Hand-over-deferred-objects-to-the-new-CGModule-fixes.patch  # [variant == "root_62400"]
+      - patches/root/0029-CGModule-can-have-pending-WeakRefReferences-carry-ov.patch  # [variant == "root_62400"]
+      - patches/root/0030-Survive-pragma-once-from-virtual-file.patch                 # [variant == "root_62400"]
+      - patches/root/0031-Provide-possibly-updated-CodegenOpts-to-StartModule.patch   # [variant == "root_62400"]
+      - patches/root/0032-Clear-pending-decls-from-Builder-in-case-of-errors-R.patch  # [variant == "root_62400"]
+      - patches/root/0033-Add-ASTConsumer-HandleInvalidTagDeclDefinition.patch        # [variant == "root_62400"]
+      - patches/root/0034-Fix-ROOT-7775-by-making-all-static-init-function-nam.patch  # [variant == "root_62400"]
+      - patches/root/0035-Inject-DeclUnloader-as-a-friend.patch                       # [variant == "root_62400"]
+      - patches/root/0036-Do-not-load-the-source-file-just-to-get-an-irrelevan.patch  # [variant == "root_62400"]
+      - patches/root/0037-Construct-DestroyTemplateIdAnnotationsRAIIObj-given-.patch  # [variant == "root_62400"]
+      - patches/root/0038-Keep-track-of-emitted-deferred-decls-in-case-cling-n.patch  # [variant == "root_62400"]
+      - patches/root/0039-Forget-Decls-by-removing-them-from-the-DeferredDecls.patch  # [variant == "root_62400"]
+      - patches/root/0040-Find-an-easier-way-of-accessing-CodeGenModule-intern.patch  # [variant == "root_62400"]
+      - patches/root/0041-Keep-the-collection-of-EmittedDeferredDecls-for-subs.patch  # [variant == "root_62400"]
+      - patches/root/0042-Track-previously-deferred-emitted-symbol-put-back-as.patch  # [variant == "root_62400"]
+      - patches/root/0043-CLING-Move-cling-DeclUnloader-and-ParserStateRAII-in.patch  # [variant == "root_62400"]
+      - patches/root/0044-Fix-assertion-when-removing-decls-coming-from-a-pch-.patch  # [variant == "root_62400"]
+      - patches/root/0045-Do-not-collect-DeleteExprs-over-incremental-end-of-T.patch  # [variant == "root_62400"]
+      - patches/root/0046-In-the-RAII-ctor-set-private-Parser-fields-to-defaul.patch  # [variant == "root_62400"]
+      - patches/root/0047-Do-not-remove-DeferredDecls-when-they-become-Emitted.patch  # [variant == "root_62400"]
+      - patches/root/0048-Keep-track-of-immediately-emitted-deferred-decls.-Di.patch  # [variant == "root_62400"]
+      - patches/root/0049-Only-keep-track-of-weak-symbols.-Move-to-addDeferred.patch  # [variant == "root_62400"]
+      - patches/root/0050-Make-sure-no-EmittedDeferredDecls-are-left.patch            # [variant == "root_62400"]
+      - patches/root/0051-Keep-DeferredDecl-entry-when-forgetting-symbols-from.patch  # [variant == "root_62400"]
+      - patches/root/0052-Move-addEmittedDeferredDecl-into-separate-function-a.patch  # [variant == "root_62400"]
+      - patches/root/0053-Pass-mangled-name-to-CodeGenerator-forgetDecl.-From-.patch  # [variant == "root_62400"]
+      - patches/root/0054-Clear-also-EmittedDeferredDecls.patch                       # [variant == "root_62400"]
+      - patches/root/0055-Also-remember-ODROnce-vars-fixes-cling-test-Prompt-S.patch  # [variant == "root_62400"]
+      - patches/root/0056-Keep-into-account-if-files-were-virtual.patch               # [variant == "root_62400"]
+      - patches/root/0057-cxxmodules-Don-t-complain-when-modulemap-for-implici.patch  # [variant == "root_62400"]
+      - patches/root/0058-Enable-ROOT-s-builtin_llvm-Off.patch                        # [variant == "root_62400"]
+      - patches/root/0059-Reimplement-the-replaceStmts-logic.patch                    # [variant == "root_62400"]
+      - patches/root/0060-Preserve-AnonStructIds-of-mangling-ctx.patch                # [variant == "root_62400"]
+      - patches/root/0061-Allow-interfaces-to-operate-on-in-memory-buffers-wit.patch  # [variant == "root_62400"]
+      - patches/root/0062-cxxmodules-Don-t-complain-when-modulemap-for-implici.patch  # [variant == "root_62400"]
+      - patches/root/0063-meld.patch                                                  # [variant == "root_62400"]
+      - patches/root/0064-Temporary-workaround-to-the-vector-reallocation-cras.patch  # [variant == "root_62400"]
+      - patches/root/0065-Don-t-diagnose-a-redeclaration-of-a-deduction-guide-.patch  # [variant == "root_62400"]
+      - patches/root/0066-prevent-crash-for-nonnull-attribut-in-constant-conte.patch  # [variant == "root_62400"]
+      - patches/root/0067-Try-current-version-of-D41416-modules-pch-Do-not-des.patch  # [variant == "root_62400"]
+      - patches/root/0068-Reinstate-version-of-root-project-root-c9307811.patch       # [variant == "root_62400"]
+      - patches/root/0069-Don-t-complain-when-modulemap-for-implicit-modules-h.patch  # [variant == "root_62400"]
+      - patches/root/0070-Improve-ROOT-startup-time-by-not-merging-identifier-.patch  # [variant == "root_62400"]
+      - patches/root/0071-Add-ASTConsumer-HandleInvalidTagDeclDefinition.patch        # [variant == "root_62400"]
+      - patches/root/0072-Default-template-parameter-of-class-template-instanc.patch  # [variant == "root_62400"]
+      - patches/root/0073-New-file-for-4453ba7.patch                                  # [variant == "root_62400"]
+      - patches/root/0074-Make-llvm_unreachable-an-assert-for-uncomparable-src.patch  # [variant == "root_62400"]
+      - patches/root/0075-Before-generating-a-template-instantiation-check-if-.patch  # [variant == "root_62400"]
+      - patches/root/0076-Duplicate-declarations-of-template-default-argument-.patch  # [variant == "root_62400"]
+      - patches/root/0077-Add-support-for-default-template-parameters-that-con.patch  # [variant == "root_62400"]
+      - patches/root/0078-Implement-implicit-auto-keyword-injection-in-clang-i.patch  # [variant == "root_62400"]
+      - patches/root/0079-Update-the-DeclContext-used-for-lookup-to-point-to-t.patch  # [variant == "root_62400"]
+      - patches/root/0080-Update-another-lookup-ctx-after-AutoParse.patch             # [variant == "root_62400"]
+      - patches/root/0081-Expose-all-files-included-in-PCH-PCM-to-FileManager.patch   # [variant == "root_62400"]
+      - patches/root/0082-Disable-diags-of-dupe-default-args-func-templt-tempo.patch  # [variant == "root_62400"]
+      - patches/root/0083-Silence-enum-typed-untyped-redecl-until-fwd-decl-can.patch  # [variant == "root_62400"]
+      - patches/root/0084-Mark-implicit-members-coming-from-a-PCH-as-used.patch       # [variant == "root_62400"]
+      - patches/root/0085-Do-not-read-the-source-file-to-emit-annotations.patch       # [variant == "root_62400"]
+      - patches/root/0086-Do-not-read-the-file-to-determine-its-name.patch            # [variant == "root_62400"]
+      - patches/root/0087-Store-token-literal-data-in-PCH.-Avoids-disk-read-on.patch  # [variant == "root_62400"]
+      - patches/root/0088-Add-RAII-to-buffer-delayed-infos-for-recursive-parsi.patch  # [variant == "root_62400"]
+      - patches/root/0089-Handle-failure-in-auto-auto-deduction.patch                 # [variant == "root_62400"]
+      - patches/root/0090-Spaces.patch                                                # [variant == "root_62400"]
+      - patches/root/0091-Improve-int-literal-printing-for-template-args.-To-b.patch  # [variant == "root_62400"]
+      - patches/root/0092-Update-the-DeclContext-used-for-lookup-to-point-to-t.patch  # [variant == "root_62400"]
+      - patches/root/0093-Refactor-in-RequireCompleteDeclContext-the-Update-th.patch  # [variant == "root_62400"]
+      - patches/root/0094-Fix-fwddecls-of-templates-with-tmplt-arg-defauls-com.patch  # [variant == "root_62400"]
+      - patches/root/0095-D39714-cxxmodules-Refactor-generation-counter-in-LLV.patch  # [variant == "root_62400"]
+      - patches/root/0096-Do-not-unload-enum-fwd-decl-but-silence-redecl-diag-.patch  # [variant == "root_62400"]
+      - patches/root/0097-Fixes-Issue-6812.patch                                      # [variant == "root_62400"]
+      - patches/root/0098-Reset-the-LexLevel-when-parsing-recursively.patch           # [variant == "root_62400"]
+      # - patches/root/0099-Reland-another-version-of-The-Sema-LookupConstructor.patch  # [variant == "root_62400"]
+      - patches/root/0100-Add-support-for-DiagnosticEngine-state-change-within.patch  # [variant == "root_62400"]
+      - patches/root/0101-Allow-cling-as-ASTSource-to-complete-tmplt-spec.patch       # [variant == "root_62400"]
+      - patches/root/0102-When-unloading-also-forget-that-the-decl-was-emitted.patch  # [variant == "root_62400"]
+      - patches/root/0103-Improve-67b613517b-unsigned-vallues-cannot-be-negati.patch  # [variant == "root_62400"]
+      - patches/root/0104-Allow-submodules-to-contain-headers-which-may-be-mis.patch  # [variant == "root_62400"]
+      - patches/root/0105-Fix-type-printing-of-array-template-args-Apply-patch.patch  # [variant == "root_62400"]
+      - patches/root/0106-Fix-crash-in-call-to-FunctionDecl-setPure.patch             # [variant == "root_62400"]
+      - patches/root/0107-Disable-validation-of-transent-files.patch                  # [variant == "root_62400"]
+      - patches/root/0108-Mark-the-overridden-transient-file.patch                    # [variant == "root_62400"]
+      - patches/root/0109-Add-missing-include-to-fix-Dcxxmodules-On.patch             # [variant == "root_62400"]
+      - patches/root/0110-Import-various-changes-to-the-global-module-index.patch     # [variant == "root_62400"]
     folder: .
-  - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version }}/clang-tools-extra-{{ version }}.src.tar.xz
+  - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/clang-tools-extra-{{ version.replace(".rc", "rc") }}.src.tar.xz
     sha256: b26fd72a78bd7db998a26270ec9ec6a01346651d88fa87b4b323e13049fb6f07
     folder: tools/extra
 
@@ -37,9 +153,12 @@ requirements:
     # Building with ninja on windows for parallel builds
     - ninja  # [win]
     - make   # [unix]
+    - llvmdev =={{ version }}    # [build_platform != target_platform]
+    - sed  # [unix]
   host:
-    - libcxx {{cxx_compiler_version}}  # [osx]
+    - libcxx {{ cxx_compiler_version }}  # [osx]
     - llvmdev =={{ version }}
+    - zlib
 
 test:
   requires:
@@ -53,7 +172,7 @@ test:
     - $PREFIX/bin/clang-check --version  # [unix]
 
     - $PREFIX/bin/clang -v -c mytest.c      # [unix]
-    - "%LIBRARY_BIN%/clang -v -c mytest.c"  # [win]
+    - '%LIBRARY_BIN%/clang -v -c mytest.c'  # [win]
 
     - if not exist %LIBRARY_INC%\\clang\\Lex\\Lexer.h exit 1  # [win]
     - test -f $PREFIX/include/clang/Lex/Lexer.h      # [unix]
@@ -62,30 +181,34 @@ test:
 
 outputs:
   - name: clangdev
-    script: install_clangdev.sh    # [unix]
-    script: install_clangdev.bat   # [win]
+    script: install_clangdev.sh  # [unix]
+    script: install_clangdev.bat  # [win]
     build:
       track_features:
         - hcc          # [variant=="hcc"]
-      string: "{{ variant }}_h{{ PKG_HASH }}_{{ build_number }}"
+        - cling        # [variant and "root" in variant]
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       build:
         - {{ compiler('cxx') }}
         - cmake >=3.4.3
         - ninja  # [win]
         - make   # [unix]
+        - llvmdev =={{ version }}    # [build_platform != target_platform]
       host:
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clangxx", exact=True) }}
         - {{ pin_subpackage("clang-tools", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
-        - libcxx {{cxx_compiler_version}}  # [osx]
+        - {{ pin_subpackage("libclang-cpp", exact=True) }}
+        - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
       run:
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clangxx", exact=True) }}
         - {{ pin_subpackage("clang-tools", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
+        - {{ pin_subpackage("libclang-cpp", exact=True) }}
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
         - llvmdev =={{ version }}
     test:
@@ -95,21 +218,87 @@ outputs:
         - if not exist %LIBRARY_INC%\\clang/Config/config.h exit 1   # [win]
         - if not exist %LIBRARY_LIB%\\clangAST.lib exit 1            # [win]
 
-  - name: libclang
-    script: install_libclang.sh    # [unix]
-    script: install_libclang.bat   # [win]
+  - name: libclang-cpp{{ major_version }}
+    script: install_libclang_cpp.sh  # [unix]
     build:
       track_features:
         - hcc          # [variant=="hcc"]
-      string: "{{ variant }}_h{{ PKG_HASH }}_{{ build_number }}"
+        - cling        # [variant and "root" in variant]
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+      run_exports:
+        - {{ pin_subpackage("libclang-cpp" + major_version, max_pin="x.x") }}   # [unix]
+      skip: true  # [win]
     requirements:
       build:
         - {{ compiler('cxx') }}
         - cmake >=3.4.3
         - ninja  # [win]
         - make   # [unix]
+        - llvmdev =={{ version }}    # [build_platform != target_platform]
       host:
-        - libcxx {{cxx_compiler_version}}  # [osx]
+        - libcxx {{ cxx_compiler_version }}  # [osx]
+        - llvmdev =={{ version }}
+        - llvm =={{ version }}
+        - zlib
+      run:
+        - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
+    test:
+      commands:
+        - test ! -f "$PREFIX/lib/libclang-cpp.so"                           # [linux]
+        - test -f "$PREFIX/lib/libclang-cpp.so.{{ major_version }}"         # [linux]
+        - test ! -f "$PREFIX/lib/libclang-cpp.dylib"                        # [osx]
+        - test -f "$PREFIX/lib/libclang-cpp.{{ major_version }}.dylib"      # [osx]
+
+  - name: libclang-cpp
+    script: install_libclang_cpp.sh  # [unix]
+    build:
+      track_features:
+        - hcc          # [variant=="hcc"]
+        - cling        # [variant and "root" in variant]
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+      {% if not win %}
+      run_exports:   # [unix]
+        - {{ pin_subpackage("libclang-cpp" + major_version, max_pin="x.x") }}   # [unix]
+      {% endif %}
+    requirements:
+      build:
+        - {{ compiler('cxx') }}
+        - cmake >=3.4.3
+        - ninja  # [win]
+        - make   # [unix]
+        - llvmdev =={{ version }}    # [build_platform != target_platform]
+      host:
+        - libcxx {{ cxx_compiler_version }}  # [osx]
+        - llvmdev =={{ version }}
+        - llvm =={{ version }}
+        - {{ pin_subpackage("libclang-cpp" + major_version, exact=True) }}  # [unix]
+        - zlib
+      run:
+        - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
+        - {{ pin_subpackage("libclang-cpp" + major_version, exact=True) }}  # [unix]
+    test:
+      commands:
+        - test -f "$PREFIX/lib/libclang-cpp.so"                     # [linux]
+        - test -f "$PREFIX/lib/libclang-cpp.dylib"                  # [osx]
+        - if exist %LIBRARY_BIN%\\libclang-cpp.dll exit 1           # [win]
+
+  - name: libclang
+    script: install_libclang.sh  # [unix]
+    script: install_libclang.bat  # [win]
+    build:
+      track_features:
+        - hcc          # [variant=="hcc"]
+        - cling        # [variant and "root" in variant]
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+    requirements:
+      build:
+        - {{ compiler('cxx') }}
+        - cmake >=3.4.3
+        - ninja  # [win]
+        - make   # [unix]
+        - llvmdev =={{ version }}    # [build_platform != target_platform]
+      host:
+        - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
         - {{ pin_subpackage("clang", exact=True) }}
@@ -118,17 +307,18 @@ outputs:
     test:
       commands:
         - test -f "$PREFIX/lib/libclang.so"                     # [linux]
-        - test -f "$PREFIX/lib/libclang.so.{{major_version}}"   # [linux]
+        - test -f "$PREFIX/lib/libclang.so.{{ major_version }}"   # [linux]
         - test -f "$PREFIX/lib/libclang.dylib"                  # [osx]
         - if not exist %LIBRARY_BIN%\\libclang.dll exit 1       # [win]
 
-  - name: clang
-    script: install_clang.sh       # [unix]
-    script: install_clang.bat      # [win]
+  - name: clang-{{ major_version }}
+    script: install_clang.sh  # [unix]
+    script: install_clang.bat  # [win]
     build:
       track_features:
         - hcc          # [variant=="hcc"]
-      string: "{{ variant }}_h{{ PKG_HASH }}_{{ build_number }}"
+        - cling        # [variant and "root" in variant]
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       build:
         - {{ compiler('cxx') }}
@@ -136,41 +326,68 @@ outputs:
         - cmake >=3.4.3
         - ninja  # [win]
         - make   # [unix]
+        - llvmdev =={{ version }}    # [build_platform != target_platform]
       host:
-        - libcxx {{cxx_compiler_version}}  # [osx]
+        - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
+        - {{ pin_compatible("libclang-cpp" + major_version, exact=True) }}  # [unix]
+        - zlib
       run:
-        - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
+        - {{ pin_compatible("libcxx", max_pin=None) }}      # [osx]
+        - {{ pin_compatible("libclang-cpp" + major_version, exact=True) }}  # [unix]
       run_constrained:
         - clangdev {{ version }}
         - clangxx {{ version }}
         - clang-tools {{ version }}
+        - llvm-tools {{ version }}
+    test:
+      commands:
+        - clang-{{ major_version }} --version
+        - test ! -f "$PREFIX/bin/clang"   # [unix]
+        - test ! -f "$PREFIX/bin/clang-cl"   # [unix]
+        - test ! -f "$PREFIX/bin/clang-cpp"   # [unix]
+        - if exist %LIBRARY_BIN%\\clang.exe exit 1   # [win]
+        - if exist %LIBRARY_BIN%\\clang-cl.exe exit 1   # [win]
+        - if exist %LIBRARY_BIN%\\clang-cpp.exe exit 1   # [win]
+        - test ! -f "$PREFIX/lib/libclang-cpp.so"                     # [linux]
+        - test -f "$PREFIX/lib/libclang-cpp.so.{{ major_version }}"   # [linux]
+        - test ! -f "$PREFIX/lib/libclang-cpp.dylib"                  # [osx]
+        - test -f "$PREFIX/lib/clang/{{ '.'.join(version.split('.')[:3]) }}/include/stdatomic.h"                    # [unix]
+        - if not exist %LIBRARY_LIB%\\clang\\{{ '.'.join(version.split('.')[:3]) }}\\include\\stdatomic.h exit 1    # [win]
+
+  - name: clang
+    script: install_clang_symlinks.sh  # [unix]
+    script: install_clang_symlinks.bat  # [win]
+    build:
+      track_features:
+        - hcc          # [variant=="hcc"]
+        - cling        # [variant and "root" in variant]
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+    requirements:
+      - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+      - gcc_impl_{{ target_platform }}  # [linux]
     test:
       commands:
         - clang --version
         - clang-cl --version
         - clang-cpp --version
-        - clang-{{major_version}} --version   # [unix]
-        - test -f "$PREFIX/lib/libclang-cpp.so"                     # [linux]
-        - test -f "$PREFIX/lib/libclang-cpp.so.{{major_version}}"   # [linux]
-        - test -f "$PREFIX/lib/libclang-cpp.dylib"                  # [osx]
-        - test -f "$PREFIX/lib/clang/{{ version }}/include/stdatomic.h"                    # [unix]
-        - if not exist %LIBRARY_LIB%\\clang\\{{ version }}\\include\\stdatomic.h exit 1    # [win]
 
-  # Defaults provides this, so let's do the same in conda-forge
   - name: clangxx
-    script: install_clangxx.sh       # [unix]
-    script: install_clangxx.bat      # [win]
+    script: install_clangxx.sh  # [unix]
+    script: install_clangxx.bat  # [win]
     build:
       track_features:
         - hcc          # [variant=="hcc"]
-      string: "{{ variant }}_h{{ PKG_HASH }}_{{ build_number }}"
+        - cling        # [variant and "root" in variant]
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       host:
         - {{ pin_subpackage("clang", exact=True) }}
+        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
       run:
         - {{ pin_subpackage("clang", exact=True) }}
+        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
     test:
       requires:
         - {{ compiler("cxx") }}
@@ -181,12 +398,13 @@ outputs:
         - clang++ -v -c mytest.cxx
 
   - name: clang-tools
-    script: install_clang_tools.sh    # [unix]
-    script: install_clang_tools.bat   # [win]
+    script: install_clang_tools.sh  # [unix]
+    script: install_clang_tools.bat  # [win]
     build:
       track_features:
         - hcc          # [variant=="hcc"]
-      string: "{{ variant }}_h{{ PKG_HASH }}_{{ build_number }}"
+        - cling        # [variant and "root" in variant]
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       build:
         # "compiling .pyc files" fails without this
@@ -195,11 +413,12 @@ outputs:
         - cmake >=3.4.3
         - ninja  # [win]
         - make   # [unix]
+        - llvmdev =={{ version }}    # [build_platform != target_platform]
       host:
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clangxx", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
-        - libcxx {{cxx_compiler_version}}  # [osx]
+        - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
       run:
@@ -218,17 +437,18 @@ outputs:
       noarch: python
       # Building this output using this recipe is only supported on unix
       # It can still be installed on Windows as it is marked as `noarch: python`
-      skip: true  # [win]
+      skip: true  # [win or variant=="hcc" or (variant and "root" in variant) or (build_platform != target_platform)]
       track_features:
         - hcc          # [variant=="hcc"]
-      string: "{{ variant }}_h{{ PKG_HASH }}_{{ build_number }}"
+        - cling        # [variant and "root" in variant]
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     script: build_python_bindings.sh
     requirements:
       host:
         - python
       run:
         - python
-        - libclang =={{version}}
+        - libclang =={{ version }}
     test:
       requires:
         - nose
@@ -254,5 +474,6 @@ extra:
     - inducer
     - isuruf
     - jakirkham
-    - mattwala
     - SylvainCorlay
+    - timsnyder
+    - chrisburr

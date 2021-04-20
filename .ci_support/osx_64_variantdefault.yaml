@@ -10,12 +10,14 @@ cxx_compiler_version:
 - '*'
 macos_machine:
 - x86_64-apple-darwin13.4.0
-macos_min_version:
-- '10.9'
 pin_run_as_build:
-  vc:
-    max_pin: x
+  zlib:
+    max_pin: x.x
+target_platform:
+- osx-64
 variant:
 - default
 vc:
 - '14'
+zlib:
+- '1.2'
