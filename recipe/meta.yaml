@@ -1,6 +1,6 @@
 {% set version = "9.0.1" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 1 %}
+{% set build_number = 2 %}
 
 package:
   name: clang_packages
@@ -20,6 +20,9 @@ source:
       - patches/apple-silicon.diff
       - patches/amd-roc-2.7.0.diff   # [variant != "hcc"]
       - patches/amd-roc-hcc-2.7.0.diff  # [variant == "hcc"]
+      # Conda-specific patches for clang
+      - patches/root/0000-Manually-set-linux-sysroot-for-conda.patch                  # [linux and variant == "root_62400"]
+      - patches/root/0000-Use-external-char-instead-of-std-string-to-avoid-pre.patch  # [linux and variant == "root_62400"]
       # Taken from cloning http://root.cern/git/clang.git and running
       # git format-patch cc54f73e76332c635d97a53b5ec369901173be53~1..0d387254997cf7fcc456b60db1e7a5bf764f8611
       # Corrosponds to ROOT 6.24.00

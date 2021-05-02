@@ -18,6 +18,17 @@ if [[ "$variant" == "root"* ]]; then
   patch -p1 < "${RECIPE_DIR}/patches/root/llvm/0001-Fix-the-compilation.patch"
   patch -p1 < "${RECIPE_DIR}/patches/root/llvm/0002-Make-datamember-protected.patch"
   cd -
+
+  # Hardcode the Linux sysroot as a fallback
+  if [[ "$target_platform" == linux-* ]] && [[ "$cxx_compiler" == "gxx" ]]; then
+      INSTALL_SYSROOT=$(python -c "import os; rel = os.path.relpath('$CONDA_BUILD_SYSROOT', '$CONDA_PREFIX'); assert not rel.startswith('.'); print(os.path.join('$PREFIX', rel))")
+      echo "INSTALL_SYSROOT is ${INSTALL_SYSROOT}"
+      sed -i.bak -e 's@SYSROOT_PATH_TO_BE_REPLACED_WITH_SED@'"${INSTALL_SYSROOT}"'@g' \
+          lib/Driver/ToolChains/Linux_sysroot.cc && rm $_.bak
+
+      sed -i.bak -e 's@AddPath("/usr/local/include", System, false);@AddPath("'"${INSTALL_SYSROOT}"'", System, false);@g' \
+          lib/Frontend/InitHeaderSearch.cpp && rm $_.bak
+  fi
 fi
 
 if [[ "$CONDA_BUILD_CROSS_COMPILATION" == "1" ]]; then

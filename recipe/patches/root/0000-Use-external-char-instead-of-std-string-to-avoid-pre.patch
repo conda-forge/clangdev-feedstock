@@ -1,0 +1,65 @@
+From a20a6e52f9447daf8689a6c298e177ab516394ba Mon Sep 17 00:00:00 2001
+From: Chris Burr <christopher.burr@cern.ch>
+Date: Sun, 2 May 2021 22:15:05 +0200
+Subject: [PATCH] Use external char* instead of std::string to avoid prefix
+
+---
+ lib/Driver/CMakeLists.txt              | 1 +
+ lib/Driver/ToolChains/Linux.cpp        | 7 ++++++-
+ lib/Driver/ToolChains/Linux_sysroot.cc | 7 +++++++
+ 3 files changed, 14 insertions(+), 1 deletion(-)
+ create mode 100644 lib/Driver/ToolChains/Linux_sysroot.cc
+
+diff --git a/lib/Driver/CMakeLists.txt b/lib/Driver/CMakeLists.txt
+index d90c0ff4..233e9904 100644
+--- a/lib/Driver/CMakeLists.txt
++++ b/lib/Driver/CMakeLists.txt
+@@ -49,6 +49,7 @@ add_clang_library(clangDriver
+   ToolChains/HIP.cpp
+   ToolChains/Hexagon.cpp
+   ToolChains/Hurd.cpp
++  ToolChains/Linux_sysroot.cc
+   ToolChains/Linux.cpp
+   ToolChains/MipsLinux.cpp
+   ToolChains/MinGW.cpp
+diff --git a/lib/Driver/ToolChains/Linux.cpp b/lib/Driver/ToolChains/Linux.cpp
+index 278282e7..3600d90c 100644
+--- a/lib/Driver/ToolChains/Linux.cpp
++++ b/lib/Driver/ToolChains/Linux.cpp
+@@ -468,6 +468,11 @@ Tool *Linux::buildAssembler() const {
+   return new tools::gnutools::Assembler(*this);
+ }
+ 
++extern "C"
++{
++  const char *conda_sysroot_directory();
++}
++
+ std::string Linux::computeSysRoot() const {
+   if (char *env = ::getenv("CONDA_BUILD_SYSROOT")) {
+     // We only use this value as the default if it is an absolute path and exists
+@@ -475,7 +480,7 @@ std::string Linux::computeSysRoot() const {
+       return env;
+     }
+   }
+-  return "SYSROOT_PATH_TO_BE_REPLACED_WITH_SED";
++  return conda_sysroot_directory();
+ }
+ 
+ std::string Linux::getDynamicLinker(const ArgList &Args) const {
+diff --git a/lib/Driver/ToolChains/Linux_sysroot.cc b/lib/Driver/ToolChains/Linux_sysroot.cc
+new file mode 100644
+index 00000000..cac88b98
+--- /dev/null
++++ b/lib/Driver/ToolChains/Linux_sysroot.cc
+@@ -0,0 +1,7 @@
++extern "C"
++{
++  const char *conda_sysroot_directory()
++  {
++    return "SYSROOT_PATH_TO_BE_REPLACED_WITH_SED";
++  }
++}
+-- 
+2.30.2
+
