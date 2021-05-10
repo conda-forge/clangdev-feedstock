@@ -1,6 +1,6 @@
 {% set version = "11.1.0" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 0 %}
+{% set build_number = 1 %}
 
 {% set minor_aware_ext = major_version %}
 {% set minor_int = version.split(".")[1] | int %}
@@ -20,6 +20,7 @@ source:
       - patches/0002-Fix-sysroot-detection-for-linux.patch
       - patches/0002-clang-add-conda-specific-env-var-CONDA_BUILD_SYSROOT.patch
       - patches/0003-clang-Fix-normalizeProgramName-s-handling-of-dots-ou.patch
+      - patches/0004-clang-fix-sysroot-dupe-headers-a3a243.patch
       - patches/0001-Set-VERSION-in-osx-as-well.patch
       - patches/cross-compile.diff
       # Disable -Werror,-Wundef-prefix=TARGET_OS as they are not yet defined in the 10.9 SDK used for osx-64
