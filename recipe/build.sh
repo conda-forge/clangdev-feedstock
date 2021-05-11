@@ -35,6 +35,7 @@ cmake \
   -DLLVM_INCLUDE_DOCS=OFF \
   -DLLVM_ENABLE_LIBXML2=OFF \
   -DCMAKE_AR=$AR \
+  -DPython3_EXECUTABLE=${BUILD_PREFIX}/bin/python \
   $CMAKE_ARGS \
   ..
 
