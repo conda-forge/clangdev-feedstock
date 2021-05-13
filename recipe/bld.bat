@@ -18,6 +18,7 @@ cmake -G "Ninja" ^
     -DLLVM_INCLUDE_DOCS=OFF ^
     -DLLVM_TEMPORARILY_ALLOW_OLD_TOOLCHAIN=ON ^
     -DLLVM_ENABLE_LIBXML2=OFF ^
+    -DPython3_EXECUTABLE=%BUILD_PREFIX%\python ^
     %SRC_DIR%
 
 if errorlevel 1 exit 1
