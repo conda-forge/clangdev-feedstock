@@ -1,5 +1,5 @@
 From 6df7fb48f7d03ed28f3ecb64684b41cb86c0d237 Mon Sep 17 00:00:00 2001
-From: "Uwe L. Korn" <uwe.korn@quantco.com>
+From: Isuru Fernando <isuruf@gmail.com>
 Date: Tue, 11 May 2021 15:08:13 +0200
 Subject: [PATCH 6/7] Fix crosscompiling LLVM tools
 
