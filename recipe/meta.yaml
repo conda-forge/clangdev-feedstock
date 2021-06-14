@@ -182,11 +182,11 @@ outputs:
       build:
         - {{ compiler('cxx') }}
         - cmake >=3.4.3
-        - ninja  # [win]
-        - make   # [unix]
+        - ninja                      # [win]
+        - make                       # [unix]
         - llvmdev =={{ version }}    # [build_platform != target_platform]
       host:
-        - libcxx {{ cxx_compiler_version }}  # [osx]
+        - libcxx {{ cxx_compiler_version }}             # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
         - zlib                                          # [win]
@@ -215,11 +215,11 @@ outputs:
     requirements:
       build:
         - {{ compiler('cxx') }}
-        - libcxx                   # [osx]
+        - libcxx                             # [osx]
         - cmake >=3.4.3
-        - ninja  # [win]
-        - make   # [unix]
-        - llvmdev =={{ version }}    # [build_platform != target_platform]
+        - ninja                              # [win]
+        - make                               # [unix]
+        - llvmdev =={{ version }}            # [build_platform != target_platform]
       host:
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
@@ -237,12 +237,12 @@ outputs:
     test:
       commands:
         - clang-{{ major_version }} --version
-        - test ! -f "$PREFIX/bin/clang"   # [unix]
-        - test ! -f "$PREFIX/bin/clang-cl"   # [unix]
-        - test ! -f "$PREFIX/bin/clang-cpp"   # [unix]
-        - if exist %LIBRARY_BIN%\\clang.exe exit 1   # [win]
-        - if exist %LIBRARY_BIN%\\clang-cl.exe exit 1   # [win]
-        - if exist %LIBRARY_BIN%\\clang-cpp.exe exit 1   # [win]
+        - test ! -f "$PREFIX/bin/clang"                                   # [unix]
+        - test ! -f "$PREFIX/bin/clang-cl"                                # [unix]
+        - test ! -f "$PREFIX/bin/clang-cpp"                               # [unix]
+        - if exist %LIBRARY_BIN%\\clang.exe exit 1                        # [win]
+        - if exist %LIBRARY_BIN%\\clang-cl.exe exit 1                     # [win]
+        - if exist %LIBRARY_BIN%\\clang-cpp.exe exit 1                    # [win]
         - test ! -f "$PREFIX/lib/libclang-cpp.so"                         # [linux]
         - test -f "$PREFIX/lib/libclang-cpp.so.{{ minor_aware_ext }}"     # [linux]
         - test ! -f "$PREFIX/lib/libclang-cpp.dylib"                      # [osx]
