@@ -1,6 +1,6 @@
 {% set version = "12.0.0" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 1 %}
+{% set build_number = 2 %}
 
 {% set minor_aware_ext = major_version %}
 {% set minor_int = version.split(".")[1] | int %}
@@ -189,6 +189,7 @@ outputs:
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
+        - zlib                                          # [win]
         - {{ pin_subpackage("clang", exact=True) }}
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
@@ -223,9 +224,10 @@ outputs:
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
+        - zlib                                                                # [win]
         - {{ pin_compatible("libclang-cpp" + minor_aware_ext, exact=True) }}  # [unix]
       run:
-        - {{ pin_compatible("libcxx", max_pin=None) }}      # [osx]
+        - {{ pin_compatible("libcxx", max_pin=None) }}                        # [osx]
         - {{ pin_compatible("libclang-cpp" + minor_aware_ext, exact=True) }}  # [unix]
       run_constrained:
         - clangdev {{ version }}
@@ -252,8 +254,13 @@ outputs:
     script: install_clang_symlinks.sh  # [unix]
     script: install_clang_symlinks.bat  # [win]
     requirements:
-      - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
-      - gcc_impl_{{ target_platform }}  # [linux]
+      host:
+        - zlib                            # [win]
+        - gcc_impl_{{ target_platform }}  # [linux]
+        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+      run:
+        - gcc_impl_{{ target_platform }}  # [linux]
+        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
     test:
       commands:
         - clang --version
@@ -269,6 +276,7 @@ outputs:
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       host:
+        - zlib  # [win]
         - {{ pin_subpackage("clang", exact=True) }}
       run:
         - {{ pin_subpackage("clang", exact=True) }}
