@@ -31,8 +31,6 @@ source:
   - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/clang-tools-extra-{{ version.replace(".rc", "rc") }}.src.tar.xz
     sha256: 65659efdf97dbed70ae0caee989936b731f249dddc46f1cb4225b2f49b232ae5
     folder: tools/extra
-    patches:
-      - patches/0001-Make-clangd-CompletionModel-not-depend-on-directory-.patch
 
 build:
   number: {{ build_number }}
