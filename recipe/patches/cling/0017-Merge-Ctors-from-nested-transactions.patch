@@ -1,0 +1,48 @@
+From 97b5839c483b79b4a42769e9264e67acd851c2fc Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Tue, 27 May 2014 18:17:51 +0200
+Subject: [PATCH 17/61] Merge Ctors from nested transactions.
+
+We cannot run nested transactions' initializations until the parent is done.
+But the parent transaction must not replace the nested transactions' static initialization either.
+The only way out is to collapse all transactions' static initializers until they are run.
+This fixes
+root [0] TTree *chain = new TTree("abc","title")
+which left chain == 0 before.
+---
+ lib/CodeGen/CodeGenModule.cpp | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+
+diff --git a/lib/CodeGen/CodeGenModule.cpp b/lib/CodeGen/CodeGenModule.cpp
+index 1fd4e4cf8b..7526668051 100644
+--- a/lib/CodeGen/CodeGenModule.cpp
++++ b/lib/CodeGen/CodeGenModule.cpp
+@@ -1155,9 +1155,25 @@ void CodeGenModule::EmitCtorList(CtorList &Fns, const char *GlobalName) {
+   llvm::StructType *CtorStructTy = llvm::StructType::get(
+       Int32Ty, CtorPFTy, VoidPtrTy);
+ 
++
+   // Construct the constructor and destructor arrays.
+   ConstantInitBuilder builder(*this);
+   auto ctors = builder.beginArray(CtorStructTy);
++
++  SmallVector<llvm::Constant *, 8> CtorsConstants;
++  // Add existing ones:
++  if (llvm::GlobalVariable* OldGlobal
++      = TheModule.getGlobalVariable(GlobalName, true)) {
++    if (const llvm::ConstantArray* CArr =
++        llvm::dyn_cast<llvm::ConstantArray>(OldGlobal->getInitializer())) {
++      uint64_t OldSize = CArr->getType()->getNumElements();
++      for (uint64_t Idx = 0; Idx < OldSize; ++Idx) {
++        CtorsConstants.push_back(CArr->getAggregateElement(Idx));
++      }
++    }
++    OldGlobal->eraseFromParent();
++  }
++
+   for (const auto &I : Fns) {
+     auto ctor = ctors.beginStruct(CtorStructTy);
+     ctor.addInt(Int32Ty, I.Priority);
+-- 
+2.30.1
+

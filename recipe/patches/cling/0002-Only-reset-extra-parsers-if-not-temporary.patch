@@ -1,0 +1,30 @@
+From b9391b85d6e1b1611f0c42255dd5b76f4e40393c Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Mon, 3 Mar 2014 23:35:20 +0100
+Subject: [PATCH 02/61] Only reset extra parsers if not temporary.
+
+---
+ lib/Parse/Parser.cpp | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/lib/Parse/Parser.cpp b/lib/Parse/Parser.cpp
+index 41a59d7b59..f3d7ec83d3 100644
+--- a/lib/Parse/Parser.cpp
++++ b/lib/Parse/Parser.cpp
+@@ -430,9 +430,11 @@ Parser::~Parser() {
+ 
+   resetPragmaHandlers();
+ 
+-  PP.removeCommentHandler(CommentSemaHandler.get());
++  if (!IsTemporary)
++    PP.removeCommentHandler(CommentSemaHandler.get());
+ 
+-  PP.clearCodeCompletionHandler();
++  if (!IsTemporary)
++    PP.clearCodeCompletionHandler();
+ 
+   if (getLangOpts().DelayedTemplateParsing &&
+       !PP.isIncrementalProcessingEnabled() && !TemplateIds.empty()) {
+-- 
+2.30.1
+

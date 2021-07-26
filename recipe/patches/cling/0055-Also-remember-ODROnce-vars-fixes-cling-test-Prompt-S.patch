@@ -1,0 +1,35 @@
+From 6a29bb44120e846269a15ffa0215ce9538ebfb01 Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Wed, 5 Apr 2017 10:46:51 +0200
+Subject: [PATCH 55/61] Also remember ODROnce vars; fixes
+ cling/test/Prompt/Strings.C
+
+---
+ lib/CodeGen/CodeGenModule.h | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/lib/CodeGen/CodeGenModule.h b/lib/CodeGen/CodeGenModule.h
+index d28d66f22f..f0acf3e100 100644
+--- a/lib/CodeGen/CodeGenModule.h
++++ b/lib/CodeGen/CodeGenModule.h
+@@ -344,9 +344,14 @@ private:
+   /// Decls that were DeferredDecls and have now been emitted.
+   std::map<StringRef, GlobalDecl> EmittedDeferredDecls;
+   void addEmittedDeferredDecl(GlobalDecl GD, StringRef MangledName) {
+-    if (!isa<FunctionDecl>(GD.getDecl()))
+-      return;
+-    auto L = getFunctionLinkage(GD);
++    bool IsAFunction = isa<FunctionDecl>(GD.getDecl());
++    const VarDecl* VD = IsAFunction ? nullptr : dyn_cast<VarDecl>(GD.getDecl());
++    assert((IsAFunction || VD) && "Unexpected Decl type!");
++    bool ExcludeCtor = false; // FIXME: this is too simple!
++    llvm::GlobalValue::LinkageTypes L
++      = IsAFunction ? getFunctionLinkage(GD) :
++      getLLVMLinkageVarDefinition(VD, isTypeConstant(VD->getType(),
++                                                     ExcludeCtor));
+     if (llvm::GlobalValue::isLinkOnceLinkage(L)
+         || llvm::GlobalValue::isWeakLinkage(L)) {
+       if (MangledName.empty())
+-- 
+2.30.1
+

@@ -16,7 +16,7 @@ pin_run_as_build:
 target_platform:
 - linux-ppc64le
 variant:
-- root_62400
+- cling_v0.9
 vc:
 - '14'
 zlib:

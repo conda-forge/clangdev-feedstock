@@ -36,6 +36,7 @@ if [[ "$target_platform" == "linux-ppc64le" ]]; then
   # > relocation truncated to fit: R_PPC64_REL24 against symbol
   export CXXFLAGS="${CXXFLAGS/O3/Os}"
   export CFLAGS="${CFLAGS/O3/Os}"
+  export CFLAGS="${CFLAGS} -mcmodel=large"
   CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_CXX_FLAGS_RELEASE=-Os"
 fi
 
