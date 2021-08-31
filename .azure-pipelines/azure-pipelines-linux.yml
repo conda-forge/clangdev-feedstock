@@ -5,45 +5,54 @@
 jobs:
 - job: linux
   pool:
-    vmImage: ubuntu-16.04
+    vmImage: ubuntu-latest
   strategy:
     matrix:
       linux_64_variantdefault:
         CONFIG: linux_64_variantdefault
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-comp7
+        SHORT_CONFIG_NAME: linux_64_variantdefault
       linux_64_varianthcc:
         CONFIG: linux_64_varianthcc
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-comp7
+        SHORT_CONFIG_NAME: linux_64_varianthcc
       linux_64_variantroot_62400:
         CONFIG: linux_64_variantroot_62400
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-comp7
+        SHORT_CONFIG_NAME: linux_64_variantroot_62400
       linux_aarch64_variantdefault:
         CONFIG: linux_aarch64_variantdefault
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-comp7
+        SHORT_CONFIG_NAME: linux_aarch64_variantdefault
       linux_aarch64_varianthcc:
         CONFIG: linux_aarch64_varianthcc
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-comp7
+        SHORT_CONFIG_NAME: linux_aarch64_varianthcc
       linux_aarch64_variantroot_62400:
         CONFIG: linux_aarch64_variantroot_62400
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-comp7
+        SHORT_CONFIG_NAME: linux_aarch64_variantroot_62400
       linux_ppc64le_variantdefault:
         CONFIG: linux_ppc64le_variantdefault
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-comp7
+        SHORT_CONFIG_NAME: linux_ppc64le_variantdefault
       linux_ppc64le_varianthcc:
         CONFIG: linux_ppc64le_varianthcc
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-comp7
+        SHORT_CONFIG_NAME: linux_ppc64le_varianthcc
       linux_ppc64le_variantroot_62400:
         CONFIG: linux_ppc64le_variantroot_62400
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-comp7
+        SHORT_CONFIG_NAME: linux_ppc64le_variantroot_62400
   timeoutInMinutes: 360
 
   steps:
@@ -71,8 +80,7 @@ jobs:
       FEEDSTOCK_TOKEN: $(FEEDSTOCK_TOKEN)
       STAGING_BINSTAR_TOKEN: $(STAGING_BINSTAR_TOKEN)
   - script: |
-        full_artifact_name="conda_artifacts_$(build.BuildId)_$(CONFIG)"
-        artifact_name=`echo "$full_artifact_name" | head -c 80`
+        artifact_name="conda_artifacts_$(build.BuildId)_$(SHORT_CONFIG_NAME)"
         echo "##vso[task.setVariable variable=ARTIFACT_NAME]$artifact_name"
         if [ -d build_artifacts ]; then
           echo "##vso[task.setVariable variable=CONDA_BLD_DIR_EXISTS]true"

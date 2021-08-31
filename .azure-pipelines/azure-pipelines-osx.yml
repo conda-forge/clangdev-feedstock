@@ -11,15 +11,19 @@ jobs:
       osx_64_variantdefault:
         CONFIG: osx_64_variantdefault
         UPLOAD_PACKAGES: 'True'
+        SHORT_CONFIG_NAME: osx_64_variantdefault
       osx_64_variantroot_62400:
         CONFIG: osx_64_variantroot_62400
         UPLOAD_PACKAGES: 'True'
+        SHORT_CONFIG_NAME: osx_64_variantroot_62400
       osx_arm64_variantdefault:
         CONFIG: osx_arm64_variantdefault
         UPLOAD_PACKAGES: 'True'
+        SHORT_CONFIG_NAME: osx_arm64_variantdefault
       osx_arm64_variantroot_62400:
         CONFIG: osx_arm64_variantroot_62400
         UPLOAD_PACKAGES: 'True'
+        SHORT_CONFIG_NAME: osx_arm64_variantroot_62400
   timeoutInMinutes: 360
 
   steps:
@@ -36,8 +40,7 @@ jobs:
       FEEDSTOCK_TOKEN: $(FEEDSTOCK_TOKEN)
       STAGING_BINSTAR_TOKEN: $(STAGING_BINSTAR_TOKEN)
   - script: |
-        full_artifact_name="conda_artifacts_$(build.BuildId)_$(CONFIG)"
-        artifact_name=`echo "$full_artifact_name" | head -c 80`
+        artifact_name="conda_artifacts_$(build.BuildId)_$(SHORT_CONFIG_NAME)"
         echo "##vso[task.setVariable variable=ARTIFACT_NAME]$artifact_name"
         if [ -d /Users/runner/miniforge3/conda-bld/ ]; then
           echo "##vso[task.setVariable variable=CONDA_BLD_DIR_EXISTS]true"
