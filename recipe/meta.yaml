@@ -156,6 +156,7 @@ requirements:
     - llvmdev =={{ version }}    # [build_platform != target_platform]
     - sed    # [unix]
     - posix  # [win]
+    - m2-patch  # [win]
   host:
     - libcxx {{ cxx_compiler_version }}  # [osx]
     - llvmdev =={{ version }}
