@@ -9,6 +9,7 @@ set "CXX=cl.exe"
 set "CC=cl.exe"
 
 bash %RECIPE_DIR%/root-patch.sh
+if errorlevel 1 exit 1
 
 cmake -G "Ninja" ^
     -DCMAKE_BUILD_TYPE="Release" ^
