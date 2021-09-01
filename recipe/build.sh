@@ -29,7 +29,7 @@ if [[ "$target_platform" == "linux-ppc64le" ]]; then
   # > relocation truncated to fit: R_PPC64_REL24 against symbol
   export CXXFLAGS="$CXXFLAGS -mcmodel=medium -Os"
   export CFLAGS="$CFLAGS -mcmodel=medium -Os"
-  CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_CXX_FLAGS_RELEASE='-mcmodel=medium -Os' -DCMAKE_EXE_LINKER_FLAGS=-mcmodel=medium -DCMAKE_MODULE_LINKER_FLAGS=-mcmodel=medium -DCMAKE_SHARED_LINKER_FLAGS=-mcmodel=medium -DCMAKE_STATIC_LINKER_FLAGS="
+  CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_EXE_LINKER_FLAGS=-mcmodel=medium -DCMAKE_MODULE_LINKER_FLAGS=-mcmodel=medium -DCMAKE_SHARED_LINKER_FLAGS=-mcmodel=medium -DCMAKE_STATIC_LINKER_FLAGS= -DCMAKE_VERBOSE_MAKEFILE=ON"
 fi
 
 mkdir build
