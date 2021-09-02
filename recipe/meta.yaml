@@ -18,6 +18,7 @@ source:
       - patches/Improve-logic-for-finding-the-macos-sysroot-for-cond.patch  # [osx]
       - patches/cross-compile.diff
       - patches/apple-silicon.diff
+      - patches/0004-Prefer-__vector-over-vector-keyword-for-altivec.patch
       - patches/amd-roc-2.7.0.diff   # [variant != "hcc"]
       - patches/amd-roc-hcc-2.7.0.diff  # [variant == "hcc"]
       # Taken from cloning http://root.cern/git/clang.git and running
