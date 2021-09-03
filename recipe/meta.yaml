@@ -176,6 +176,8 @@ outputs:
       track_features:
         - hcc          # [variant=="hcc"]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+      run_exports:
+        - libclang {{ minor_aware_ext }}.*   # [unix]
     requirements:
       build:
         - {{ compiler('cxx') }}
