@@ -177,7 +177,7 @@ outputs:
         - hcc          # [variant=="hcc"]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:
-        - libclang {{ minor_aware_ext }}.*   # [unix]
+        - libclang {{ minor_aware_ext }}.*
     requirements:
       build:
         - {{ compiler('cxx') }}
