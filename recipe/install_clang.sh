@@ -12,7 +12,7 @@ rm -rf bin2
 
 mv lib lib2
 mkdir -p lib
-cp lib2/libclang-cpp.* lib/
+mv lib2/libclang-cpp.* lib/
 rm lib/libclang-cpp${SHLIB_EXT}
 cp -Rf lib2/clang lib/
 rm -rf lib2
