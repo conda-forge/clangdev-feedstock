@@ -1,6 +1,6 @@
-{% set version = "11.1.0" %}
+{% set version = "12.0.1" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 1 %}
+{% set build_number = 3 %}
 
 {% set minor_aware_ext = major_version %}
 {% set minor_int = version.split(".")[1] | int %}
@@ -14,22 +14,22 @@ package:
 
 source:
   - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/clang-{{ version.replace(".rc", "rc") }}.src.tar.xz
-    sha256: 0a8288f065d1f57cb6d96da4d2965cbea32edc572aa972e466e954d17148558b
+    sha256: 6e912133bcf56e9cfe6a346fa7e5c52c2cde3e4e48b7a6cc6fcc7c75047da45f
     patches:
       - patches/0001-Find-conda-gcc-installation.patch
       - patches/0002-Fix-sysroot-detection-for-linux.patch
-      - patches/0002-clang-add-conda-specific-env-var-CONDA_BUILD_SYSROOT.patch
-      - patches/0003-clang-Fix-normalizeProgramName-s-handling-of-dots-ou.patch
-      - patches/0001-Set-VERSION-in-osx-as-well.patch
-      - patches/cross-compile.diff
+      - patches/0003-clang-add-conda-specific-env-var-CONDA_BUILD_SYSROOT.patch
+      - patches/0004-Fix-normalizeProgramName-s-handling-of-dots-outside-.patch
+      - patches/0005-Set-VERSION-in-osx-as-well.patch
+      - patches/0006-Fix-crosscompiling-LLVM-tools.patch
       # Disable -Werror,-Wundef-prefix=TARGET_OS as they are not yet defined in the 10.9 SDK used for osx-64
       # Only enable it for TARGET_OS_OSX.
-      - patches/disable-wundef-prefix.patch  # [osx and x86_64]
+      - patches/0007-Only-error-on-undefined-TARGET_OS_OSX.patch  # [osx and x86_64]
       #- patches/amd-roc-2.7.0.diff   # [variant != "hcc"]
       #- patches/amd-roc-hcc-2.7.0.diff  # [variant == "hcc"]
     folder: .
   - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/clang-tools-extra-{{ version.replace(".rc", "rc") }}.src.tar.xz
-    sha256: 76707c249de7a9cde3456b960c9a36ed9bbde8e3642c01f0ef61a43d61e0c1a2
+    sha256: 65659efdf97dbed70ae0caee989936b731f249dddc46f1cb4225b2f49b232ae5
     folder: tools/extra
 
 build:
@@ -176,17 +176,20 @@ outputs:
       track_features:
         - hcc          # [variant=="hcc"]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+      run_exports:
+        - libclang {{ minor_aware_ext }}.*
     requirements:
       build:
         - {{ compiler('cxx') }}
         - cmake >=3.4.3
-        - ninja  # [win]
-        - make   # [unix]
+        - ninja                      # [win]
+        - make                       # [unix]
         - llvmdev =={{ version }}    # [build_platform != target_platform]
       host:
-        - libcxx {{ cxx_compiler_version }}  # [osx]
+        - libcxx {{ cxx_compiler_version }}             # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
+        - zlib                                          # [win]
         - {{ pin_subpackage("clang", exact=True) }}
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
@@ -212,18 +215,19 @@ outputs:
     requirements:
       build:
         - {{ compiler('cxx') }}
-        - libcxx                   # [osx]
+        - libcxx                             # [osx]
         - cmake >=3.4.3
-        - ninja  # [win]
-        - make   # [unix]
-        - llvmdev =={{ version }}    # [build_platform != target_platform]
+        - ninja                              # [win]
+        - make                               # [unix]
+        - llvmdev =={{ version }}            # [build_platform != target_platform]
       host:
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
+        - zlib                                                                # [win]
         - {{ pin_compatible("libclang-cpp" + minor_aware_ext, exact=True) }}  # [unix]
       run:
-        - {{ pin_compatible("libcxx", max_pin=None) }}      # [osx]
+        - {{ pin_compatible("libcxx", max_pin=None) }}                        # [osx]
         - {{ pin_compatible("libclang-cpp" + minor_aware_ext, exact=True) }}  # [unix]
       run_constrained:
         - clangdev {{ version }}
@@ -233,12 +237,12 @@ outputs:
     test:
       commands:
         - clang-{{ major_version }} --version
-        - test ! -f "$PREFIX/bin/clang"   # [unix]
-        - test ! -f "$PREFIX/bin/clang-cl"   # [unix]
-        - test ! -f "$PREFIX/bin/clang-cpp"   # [unix]
-        - if exist %LIBRARY_BIN%\\clang.exe exit 1   # [win]
-        - if exist %LIBRARY_BIN%\\clang-cl.exe exit 1   # [win]
-        - if exist %LIBRARY_BIN%\\clang-cpp.exe exit 1   # [win]
+        - test ! -f "$PREFIX/bin/clang"                                   # [unix]
+        - test ! -f "$PREFIX/bin/clang-cl"                                # [unix]
+        - test ! -f "$PREFIX/bin/clang-cpp"                               # [unix]
+        - if exist %LIBRARY_BIN%\\clang.exe exit 1                        # [win]
+        - if exist %LIBRARY_BIN%\\clang-cl.exe exit 1                     # [win]
+        - if exist %LIBRARY_BIN%\\clang-cpp.exe exit 1                    # [win]
         - test ! -f "$PREFIX/lib/libclang-cpp.so"                         # [linux]
         - test -f "$PREFIX/lib/libclang-cpp.so.{{ minor_aware_ext }}"     # [linux]
         - test ! -f "$PREFIX/lib/libclang-cpp.dylib"                      # [osx]
@@ -250,8 +254,13 @@ outputs:
     script: install_clang_symlinks.sh  # [unix]
     script: install_clang_symlinks.bat  # [win]
     requirements:
-      - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
-      - gcc_impl_{{ target_platform }}  # [linux]
+      host:
+        - zlib                            # [win]
+        - gcc_impl_{{ target_platform }}  # [linux]
+        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+      run:
+        - gcc_impl_{{ target_platform }}  # [linux]
+        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
     test:
       commands:
         - clang --version
@@ -267,6 +276,7 @@ outputs:
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       host:
+        - zlib  # [win]
         - {{ pin_subpackage("clang", exact=True) }}
       run:
         - {{ pin_subpackage("clang", exact=True) }}
@@ -299,13 +309,15 @@ outputs:
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clangxx", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
+        - {{ pin_subpackage("libclang-cpp", exact=True) }}
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
+        - zlib                            # [win]
       run:
-        - {{ pin_subpackage("clang", exact=True) }}
-        - {{ pin_subpackage("clangxx", exact=True) }}
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
+        - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, max_pin="x.x") }}   # [unix]
+        - libclang {{ minor_aware_ext }}.*   # [unix]
       run_constrained:
         - clangdev {{ version }}
     test:
@@ -358,3 +370,4 @@ extra:
     - SylvainCorlay
     - timsnyder
     - chrisburr
+    - xhochy
