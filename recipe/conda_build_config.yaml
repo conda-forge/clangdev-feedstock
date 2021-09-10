@@ -12,7 +12,9 @@ vc:
   - 14
 
 c_compiler_version:     # [osx or ppc64le]
-  - "*"                 # [osx or ppc64le]
+  - "*"                 # [osx]
+  # linking error with gcc 9
+  - 8                   # [ppc64le]
 
 cxx_compiler_version:   # [osx or ppc64le]
   - "*"                 # [osx]
