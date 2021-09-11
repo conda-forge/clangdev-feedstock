@@ -24,14 +24,6 @@ if [[ "$target_platform" == osx* ]]; then
   export CXXFLAGS="$CXXFLAGS -DTARGET_OS_OSX=1"
 fi
 
-if [[ "$target_platform" == "linux-ppc64le" ]]; then
-  # Needed to avoid errors when compiling with gcc 9 (not present with gcc 7)
-  # > relocation truncated to fit: R_PPC64_REL24 against symbol
-  export CXXFLAGS="$CXXFLAGS -mcmodel=medium -Os"
-  export CFLAGS="$CFLAGS -mcmodel=medium -Os"
-  export LDFLAGS="$LDFLAGS -mcmodel=medium -Os -Wl,-Os"
-fi
-
 mkdir build
 cd build
 
