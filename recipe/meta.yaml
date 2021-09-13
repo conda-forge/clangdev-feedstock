@@ -22,7 +22,7 @@ source:
       - patches/amd-roc-hcc-2.7.0.diff  # [variant == "hcc"]
       # Taken from cloning http://root.cern/git/clang.git and running
       # git format-patch cc54f73e76332c635d97a53b5ec369901173be53~1..0d387254997cf7fcc456b60db1e7a5bf764f8611
-      # Corrosponds to ROOT 6.24.00
+      # Corresponds to ROOT 6.24.00
       - patches/root/0001-Temporary-parsers-should-not-manipulate-global-parse.patch  # [variant == "root_62400"]
       - patches/root/0002-Only-reset-extra-parsers-if-not-temporary.patch             # [variant == "root_62400"]
       - patches/root/0003-Let-autoload-act-on-fwd-declares.patch                      # [variant == "root_62400"]
@@ -133,6 +133,71 @@ source:
       - patches/root/0108-Mark-the-overridden-transient-file.patch                    # [variant == "root_62400"]
       - patches/root/0109-Add-missing-include-to-fix-Dcxxmodules-On.patch             # [variant == "root_62400"]
       - patches/root/0110-Import-various-changes-to-the-global-module-index.patch     # [variant == "root_62400"]
+
+      # Taken from cloning http://root.cern/git/clang.git and running
+      # git format-patch cling-v0.9..bed37d4b18ce6993fc2567e8de61f6b30fd0cb75
+      # Corresponds to Cling 0.9
+      - patches/cling/0001-Temporary-parsers-should-not-manipulate-global-parse.patch  # [variant == "cling_v0.9"]
+      - patches/cling/0002-Only-reset-extra-parsers-if-not-temporary.patch             # [variant == "cling_v0.9"]
+      - patches/cling/0003-Let-autoload-act-on-fwd-declares.patch                      # [variant == "cling_v0.9"]
+      - patches/cling/0004-Do-not-complain-about-invalid-sources-for-PCH-files.patch   # [variant == "cling_v0.9"]
+      - patches/cling/0005-Extend-SubstTemplateTypeParmType-to-support-non-cano.patch  # [variant == "cling_v0.9"]
+      - patches/cling/0006-Remove-macro-and-print-macro.patch                          # [variant == "cling_v0.9"]
+      - patches/cling/0007-From-Vassil-add-debug-printout-of-ModuleBuilder-data.patch  # [variant == "cling_v0.9"]
+      - patches/cling/0008-Cleanup-cached-constant-.str-from-codegen.patch             # [variant == "cling_v0.9"]
+      - patches/cling/0009-Implement-FileManager-uncaching.patch                       # [variant == "cling_v0.9"]
+      - patches/cling/0010-Adapt-the-user-of-invalidateCache-to-its-new-signatu.patch  # [variant == "cling_v0.9"]
+      - patches/cling/0011-Mark-the-file-entry-invalid-until-reread.-Invalidate.patch  # [variant == "cling_v0.9"]
+      - patches/cling/0012-In-cases-of-nested-parsing-at-execution-time-sometim.patch  # [variant == "cling_v0.9"]
+      - patches/cling/0013-Implement-soft-reset-of-the-diagnostics-engine.patch        # [variant == "cling_v0.9"]
+      - patches/cling/0014-Access-sema-internals-and-revert-the-list-of-unused-.patch  # [variant == "cling_v0.9"]
+      - patches/cling/0015-Propagate-cache-flags-from-LookupFile-to-FileManager.patch  # [variant == "cling_v0.9"]
+      - patches/cling/0016-Pass-the-OpenFile-flag-also-to-DirectoryLookup.patch        # [variant == "cling_v0.9"]
+      - patches/cling/0017-Merge-Ctors-from-nested-transactions.patch                  # [variant == "cling_v0.9"]
+      - patches/cling/0018-SrcMan-can-happen-for-Locs-from-the-command-line.patch      # [variant == "cling_v0.9"]
+      - patches/cling/0019-Make-sure-the-inode-did-not-get-updated-since-we-rea.patch  # [variant == "cling_v0.9"]
+      - patches/cling/0020-More-RAIIs-for-autoloading.patch                            # [variant == "cling_v0.9"]
+      - patches/cling/0021-Fix-cling-teardown-issues-when-a-pch-is-attached.-Ku.patch  # [variant == "cling_v0.9"]
+      - patches/cling/0022-Use-raw-string-literals-to-correctly-stringify-and-i.patch  # [variant == "cling_v0.9"]
+      - patches/cling/0023-Accessor-to-is-file-opened-this-is-crucial-info-for-.patch  # [variant == "cling_v0.9"]
+      - patches/cling/0024-Buffer-the-pending-instantiations-in-case-or-recursi.patch  # [variant == "cling_v0.9"]
+      - patches/cling/0025-Also-store-Parser-paren-numbers-likely-fixes-ROOT-69.patch  # [variant == "cling_v0.9"]
+      - patches/cling/0026-Allow-switching-of-CodeGen-llvm-Module.patch                # [variant == "cling_v0.9"]
+      - patches/cling/0027-Avoid-dupe-llvm.ident-operands.patch                        # [variant == "cling_v0.9"]
+      - patches/cling/0028-Hand-over-deferred-objects-to-the-new-CGModule-fixes.patch  # [variant == "cling_v0.9"]
+      - patches/cling/0029-CGModule-can-have-pending-WeakRefReferences-carry-ov.patch  # [variant == "cling_v0.9"]
+      - patches/cling/0030-Survive-pragma-once-from-virtual-file.patch                 # [variant == "cling_v0.9"]
+      - patches/cling/0031-Provide-possibly-updated-CodegenOpts-to-StartModule.patch   # [variant == "cling_v0.9"]
+      - patches/cling/0032-Clear-pending-decls-from-Builder-in-case-of-errors-R.patch  # [variant == "cling_v0.9"]
+      - patches/cling/0033-Add-ASTConsumer-HandleInvalidTagDeclDefinition.patch        # [variant == "cling_v0.9"]
+      - patches/cling/0034-Fix-ROOT-7775-by-making-all-static-init-function-nam.patch  # [variant == "cling_v0.9"]
+      - patches/cling/0035-Inject-DeclUnloader-as-a-friend.patch                       # [variant == "cling_v0.9"]
+      - patches/cling/0036-Do-not-load-the-source-file-just-to-get-an-irrelevan.patch  # [variant == "cling_v0.9"]
+      - patches/cling/0037-Construct-DestroyTemplateIdAnnotationsRAIIObj-given-.patch  # [variant == "cling_v0.9"]
+      - patches/cling/0038-Keep-track-of-emitted-deferred-decls-in-case-cling-n.patch  # [variant == "cling_v0.9"]
+      - patches/cling/0039-Forget-Decls-by-removing-them-from-the-DeferredDecls.patch  # [variant == "cling_v0.9"]
+      - patches/cling/0040-Find-an-easier-way-of-accessing-CodeGenModule-intern.patch  # [variant == "cling_v0.9"]
+      - patches/cling/0041-Keep-the-collection-of-EmittedDeferredDecls-for-subs.patch  # [variant == "cling_v0.9"]
+      - patches/cling/0042-Track-previously-deferred-emitted-symbol-put-back-as.patch  # [variant == "cling_v0.9"]
+      - patches/cling/0043-CLING-Move-cling-DeclUnloader-and-ParserStateRAII-in.patch  # [variant == "cling_v0.9"]
+      - patches/cling/0044-Fix-assertion-when-removing-decls-coming-from-a-pch-.patch  # [variant == "cling_v0.9"]
+      - patches/cling/0045-Do-not-collect-DeleteExprs-over-incremental-end-of-T.patch  # [variant == "cling_v0.9"]
+      - patches/cling/0046-In-the-RAII-ctor-set-private-Parser-fields-to-defaul.patch  # [variant == "cling_v0.9"]
+      - patches/cling/0047-Do-not-remove-DeferredDecls-when-they-become-Emitted.patch  # [variant == "cling_v0.9"]
+      - patches/cling/0048-Keep-track-of-immediately-emitted-deferred-decls.-Di.patch  # [variant == "cling_v0.9"]
+      - patches/cling/0049-Only-keep-track-of-weak-symbols.-Move-to-addDeferred.patch  # [variant == "cling_v0.9"]
+      - patches/cling/0050-Make-sure-no-EmittedDeferredDecls-are-left.patch            # [variant == "cling_v0.9"]
+      - patches/cling/0051-Keep-DeferredDecl-entry-when-forgetting-symbols-from.patch  # [variant == "cling_v0.9"]
+      - patches/cling/0052-Move-addEmittedDeferredDecl-into-separate-function-a.patch  # [variant == "cling_v0.9"]
+      - patches/cling/0053-Pass-mangled-name-to-CodeGenerator-forgetDecl.-From-.patch  # [variant == "cling_v0.9"]
+      - patches/cling/0054-Clear-also-EmittedDeferredDecls.patch                       # [variant == "cling_v0.9"]
+      - patches/cling/0055-Also-remember-ODROnce-vars-fixes-cling-test-Prompt-S.patch  # [variant == "cling_v0.9"]
+      - patches/cling/0056-Keep-into-account-if-files-were-virtual.patch               # [variant == "cling_v0.9"]
+      - patches/cling/0057-cxxmodules-Don-t-complain-when-modulemap-for-implici.patch  # [variant == "cling_v0.9"]
+      - patches/cling/0058-Enable-ROOT-s-builtin_llvm-Off.patch                        # [variant == "cling_v0.9"]
+      - patches/cling/0059-Reimplement-the-replaceStmts-logic.patch                    # [variant == "cling_v0.9"]
+      - patches/cling/0060-Preserve-AnonStructIds-of-mangling-ctx.patch                # [variant == "cling_v0.9"]
+      - patches/cling/0061-Allow-interfaces-to-operate-on-in-memory-buffers-wit.patch  # [variant == "cling_v0.9"]
     folder: .
   - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/clang-tools-extra-{{ version.replace(".rc", "rc") }}.src.tar.xz
     sha256: b26fd72a78bd7db998a26270ec9ec6a01346651d88fa87b4b323e13049fb6f07
@@ -177,7 +242,6 @@ test:
     - if not exist %LIBRARY_INC%\\clang\\Lex\\Lexer.h exit 1  # [win]
     - test -f $PREFIX/include/clang/Lex/Lexer.h      # [unix]
     - test -f $PREFIX/lib/libclangBasic.a            # [unix]
-
 
 outputs:
   - name: clangdev

@@ -11,13 +11,21 @@ c_compiler:
 vc:
   - 14
 
-c_compiler_version:     # [osx]
-  - "*"                 # [osx]
 
-cxx_compiler_version:   # [osx]
+# GCC 9.4 poses some issues on ppc64le
+# with error "relocation truncated to fit ..."
+
+c_compiler_version:     # [osx or ppc64le]
   - "*"                 # [osx]
+  - 8                   # [ppc64le]
+
+cxx_compiler_version:   # [osx or ppc64le]
+  - "*"                 # [osx]
+  - 8                   # [ppc64le]
 
 variant:
   - default
   - hcc   # [linux]
   - root_62400  # [linux or osx]
+  - cling_v0.9  # Tag is cling-v0.8
+
