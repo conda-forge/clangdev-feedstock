@@ -27,5 +27,5 @@ variant:
   - default
   - hcc   # [linux]
   - root_62400  # [linux or osx]
-  - cling_v0.9  # Tag is cling-v0.8
+  - cling_v0.9  # Tag is cling-v0.9
 
