@@ -325,6 +325,28 @@ outputs:
         - clang-check --version
         - clang-tidy --version
 
+  - name: clang-format
+    build:
+      track_features:
+        - hcc          # [variant=="hcc"]
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+    files:
+      - bin/clang-format
+      - bin/clang-format-{{ major_version }}
+      - lib/lib/libclang-cpp.so.{{ major_version }}
+      - lib/lib/libclang.so.{{ major_version }}
+      - lib/libLLVM-{{ major_version }}.so
+      - lib/libstdc++*
+      - lib/libgfortran*
+    requirements:
+      run:
+        - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, max_pin="x.x") }}   # [unix]
+      run_constrained:
+        - clangdev {{ version }}
+    test:
+      commands:
+        - clang-format --version
+
   - name: python-clang
     build:
       noarch: python
