@@ -325,6 +325,43 @@ outputs:
       commands:
         - clang-format-{{ major_version }} --version
 
+  - name: clang-format
+    script: install_clang_tools.sh  # [unix]
+    script: install_clang_tools.bat  # [win]
+    build:
+      track_features:
+        - hcc          # [variant=="hcc"]
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+    files:
+      - bin/clang-format      # [unix]
+      - bin/clang-format.exe  # [win]
+    requirements:
+      build:
+        # "compiling .pyc files" fails without this
+        - python >3
+        - {{ compiler('cxx') }}
+        - cmake >=3.4.3
+        - ninja  # [win]
+        - make   # [unix]
+        - llvmdev =={{ version }}    # [build_platform != target_platform]
+      host:
+        - {{ pin_subpackage("clang", exact=True) }}
+        - {{ pin_subpackage("clangxx", exact=True) }}
+        - {{ pin_subpackage("libclang", exact=True) }}
+        - {{ pin_subpackage("libclang-cpp", exact=True) }}
+        - {{ pin_subpackage("clang-format-" + major_version, exact=True) }}   # [unix]
+        - libcxx {{ cxx_compiler_version }}  # [osx]
+        - llvmdev =={{ version }}
+        - llvm =={{ version }}
+        - zlib                            # [win]
+      run:
+        - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
+        - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, max_pin="x.x") }}   # [unix]
+        - {{ pin_subpackage("clang-format-" + major_version, exact=True) }}   # [unix]
+    test:
+      commands:
+        - clang-format --version
+
   - name: clang-tools
     script: install_clang_tools.sh  # [unix]
     script: install_clang_tools.bat  # [win]
@@ -346,14 +383,14 @@ outputs:
         - {{ pin_subpackage("clangxx", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
         - {{ pin_subpackage("libclang-cpp", exact=True) }}
-        - {{ pin_subpackage("clang-format-" + major_version, exact=True) }}  # [unix]
+        - {{ pin_subpackage("clang-format", exact=True) }}
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
         - zlib                            # [win]
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
-        - {{ pin_subpackage("clang-format-" + major_version, exact=True) }}  # [unix]
+        - {{ pin_subpackage("clang-format", exact=True) }}
         - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, max_pin="x.x") }}   # [unix]
         - libclang {{ minor_aware_ext }}.*   # [unix]
       run_constrained:
