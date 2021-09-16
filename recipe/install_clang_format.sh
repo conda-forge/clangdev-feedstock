@@ -10,5 +10,5 @@ mkdir -p bin
 cp bin2/clang-format bin/clang-format-${MAJOR_VERSION}
 rm -rf bin2
 if [[ "$PKG_NAME" == "clang-format" ]]; then
-  ln -sf bin/clang-format-${MAJOR_VERSION} bin/clang-format
+  ln -sf $PREFIX/bin/clang-format-${MAJOR_VERSION} $PREFIX/bin/clang-format
 fi
