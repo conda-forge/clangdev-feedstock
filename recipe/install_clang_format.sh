@@ -8,7 +8,7 @@ MAJOR_VERSION=$(echo ${PKG_VERSION} | cut -f1 -d".")
 mv bin bin2
 mkdir -p bin
 cp bin2/clang-format bin/clang-format-${MAJOR_VERSION}
-rm -rf bin
+rm -rf bin2
 if [[ "$PKG_NAME" == "clang-format" ]]; then
-  ln -sf clang-format-${MAJOR_VERSION} clang-format
+  ln -sf bin/clang-format-${MAJOR_VERSION} bin/clang-format
 fi
