@@ -1,6 +1,6 @@
 {% set version = "12.0.1" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 3 %}
+{% set build_number = 4 %}
 
 {% set minor_aware_ext = major_version %}
 {% set minor_int = version.split(".")[1] | int %}
@@ -290,16 +290,14 @@ outputs:
         - clang++ -v -c mytest.cxx
 
   - name: clang-format-{{ major_version }}
-    script: install_clang_tools.sh  # [unix]
-    script: install_clang_tools.bat  # [win]
+    script: install_clang_format.sh  # [unix]
+    script: install_clang_format.bat  # [win]
     build:
       track_features:
         - hcc          # [variant=="hcc"]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
-      # for windows, use the clang-tools package.
+      # for windows, use the clang-format package.
       skip: True  # [win]
-    files:
-      - bin/clang-format-{{ major_version }}
     requirements:
       build:
         # "compiling .pyc files" fails without this
@@ -318,23 +316,25 @@ outputs:
         - llvmdev =={{ version }}
         - llvm =={{ version }}
         - zlib                            # [win]
+        - libxml2                         # [win]
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
         - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, max_pin="x.x") }}   # [unix]
     test:
       commands:
         - clang-format-{{ major_version }} --version
+        - test ! -f ${PREFIX}/bin/clang-format                   # [unix]
+        - if exist %LIBRARY_BIN%\\clang-format.exe exit 1        # [win]
+        - test ! -f ${PREFIX}/bin/c-index-test                   # [unix]
+        - if exist %LIBRARY_BIN%\\c-index-test.exe exit 1        # [win]
 
   - name: clang-format
-    script: install_clang_tools.sh  # [unix]
-    script: install_clang_tools.bat  # [win]
+    script: install_clang_format.sh  # [unix]
+    script: install_clang_format.bat  # [win]
     build:
       track_features:
         - hcc          # [variant=="hcc"]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
-    files:
-      - bin/clang-format      # [unix]
-      - bin/clang-format.exe  # [win]
     requirements:
       build:
         # "compiling .pyc files" fails without this
@@ -361,6 +361,8 @@ outputs:
     test:
       commands:
         - clang-format --version
+        - test ! -f ${PREFIX}/bin/c-index-test                   # [unix]
+        - if exist %LIBRARY_BIN%\\c-index-test.exe exit 1        # [win]
 
   - name: clang-tools
     script: install_clang_tools.sh  # [unix]
