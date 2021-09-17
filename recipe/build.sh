@@ -19,6 +19,7 @@ fi
 
 if [[ "$target_platform" == osx* ]]; then
   export CXXFLAGS="$CXXFLAGS -DTARGET_OS_OSX=1"
+  CMAKE_ARGS="${CMAKE_ARGS} -DLLVM_ENABLE_LTO=THIN"
 fi
 
 mkdir build
@@ -34,7 +35,6 @@ cmake \
   -DLLVM_INCLUDE_TESTS=OFF \
   -DLLVM_INCLUDE_DOCS=OFF \
   -DLLVM_ENABLE_LIBXML2=OFF \
-  -DLLVM_ENABLE_LTO=ON \
   -DCMAKE_AR=$AR \
   -DPython3_EXECUTABLE=${BUILD_PREFIX}/bin/python \
   $CMAKE_ARGS \
