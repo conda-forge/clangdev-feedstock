@@ -20,6 +20,11 @@ fi
 if [[ "$target_platform" == osx* ]]; then
   export CXXFLAGS="$CXXFLAGS -DTARGET_OS_OSX=1"
   CMAKE_ARGS="${CMAKE_ARGS} -DLLVM_ENABLE_LTO=THIN"
+else
+  export CFLAGS="$CFLAGS -flto -fuse-linker-plugin"
+  export CXXFLAGS="$CXXFLAGS -flto -fuse-linker-plugin"
+  export LDFLAGS="LDFLAGS -flto -fuse-linker-plugin"
+  CMAKE_ARGS="${CMAKE_ARGS} -DLLVM_ENABLE_LTO=FULL"
 fi
 
 mkdir build
