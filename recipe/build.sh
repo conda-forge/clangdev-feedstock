@@ -19,6 +19,7 @@ fi
 
 if [[ "$target_platform" == osx* ]]; then
   export CXXFLAGS="$CXXFLAGS -DTARGET_OS_OSX=1"
+  CMAKE_ARGS="${CMAKE_ARGS} -DLLVM_ENABLE_LTO=Thin"
 fi
 
 mkdir build
