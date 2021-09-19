@@ -1,6 +1,12 @@
 {% set version = "9.0.1" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 1 %}
+{% set build_number = 2 %}
+
+{% if not variant %}
+{% set variant = "default" %}
+{% endif %}
+
+{% set llvm_variant = variant if variant.startswith("cling") else "default" %}
 
 package:
   name: clang_packages
@@ -218,11 +224,11 @@ requirements:
     # Building with ninja on windows for parallel builds
     - ninja  # [win]
     - make   # [unix]
-    - llvmdev =={{ version }}    # [build_platform != target_platform]
+    - llvmdev =={{ version }} {{ llvm_variant }}*   # [build_platform != target_platform]
     - sed  # [unix]
   host:
     - libcxx {{ cxx_compiler_version }}  # [osx]
-    - llvmdev =={{ version }}
+    - llvmdev =={{ version }} {{ llvm_variant }}*
     - zlib
 
 test:
@@ -251,6 +257,7 @@ outputs:
       track_features:
         - hcc          # [variant=="hcc"]
         - cling        # [variant and "root" in variant]
+        - cling        # [variant and "cling" in variant]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       build:
@@ -258,7 +265,7 @@ outputs:
         - cmake >=3.4.3
         - ninja  # [win]
         - make   # [unix]
-        - llvmdev =={{ version }}    # [build_platform != target_platform]
+        - llvmdev =={{ version }} {{ llvm_variant }}*   # [build_platform != target_platform]
       host:
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clangxx", exact=True) }}
@@ -266,7 +273,7 @@ outputs:
         - {{ pin_subpackage("libclang", exact=True) }}
         - {{ pin_subpackage("libclang-cpp", exact=True) }}
         - libcxx {{ cxx_compiler_version }}  # [osx]
-        - llvmdev =={{ version }}
+        - llvmdev =={{ version }} {{ llvm_variant }}*
       run:
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clangxx", exact=True) }}
@@ -274,7 +281,7 @@ outputs:
         - {{ pin_subpackage("libclang", exact=True) }}
         - {{ pin_subpackage("libclang-cpp", exact=True) }}
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
-        - llvmdev =={{ version }}
+        - llvmdev =={{ version }} {{ llvm_variant }}*
     test:
       commands:
         - test -f "$PREFIX/include/clang/Config/config.h"   # [unix]
@@ -288,6 +295,7 @@ outputs:
       track_features:
         - hcc          # [variant=="hcc"]
         - cling        # [variant and "root" in variant]
+        - cling        # [variant and "cling" in variant]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:
         - {{ pin_subpackage("libclang-cpp" + major_version, max_pin="x.x") }}   # [unix]
@@ -298,11 +306,11 @@ outputs:
         - cmake >=3.4.3
         - ninja  # [win]
         - make   # [unix]
-        - llvmdev =={{ version }}    # [build_platform != target_platform]
+        - llvmdev =={{ version }} {{ llvm_variant }}*   # [build_platform != target_platform]
       host:
         - libcxx {{ cxx_compiler_version }}  # [osx]
-        - llvmdev =={{ version }}
-        - llvm =={{ version }}
+        - llvmdev =={{ version }} {{ llvm_variant }}*
+        - llvm =={{ version }} {{ llvm_variant }}*
         - zlib
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
@@ -319,6 +327,7 @@ outputs:
       track_features:
         - hcc          # [variant=="hcc"]
         - cling        # [variant and "root" in variant]
+        - cling        # [variant and "cling" in variant]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       {% if not win %}
       run_exports:   # [unix]
@@ -330,11 +339,11 @@ outputs:
         - cmake >=3.4.3
         - ninja  # [win]
         - make   # [unix]
-        - llvmdev =={{ version }}    # [build_platform != target_platform]
+        - llvmdev =={{ version }} {{ llvm_variant }}*   # [build_platform != target_platform]
       host:
         - libcxx {{ cxx_compiler_version }}  # [osx]
-        - llvmdev =={{ version }}
-        - llvm =={{ version }}
+        - llvmdev =={{ version }} {{ llvm_variant }}*
+        - llvm =={{ version }} {{ llvm_variant }}*
         - {{ pin_subpackage("libclang-cpp" + major_version, exact=True) }}  # [unix]
         - zlib
       run:
@@ -353,6 +362,7 @@ outputs:
       track_features:
         - hcc          # [variant=="hcc"]
         - cling        # [variant and "root" in variant]
+        - cling        # [variant and "cling" in variant]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       build:
@@ -360,11 +370,11 @@ outputs:
         - cmake >=3.4.3
         - ninja  # [win]
         - make   # [unix]
-        - llvmdev =={{ version }}    # [build_platform != target_platform]
+        - llvmdev =={{ version }} {{ llvm_variant }}*    # [build_platform != target_platform]
       host:
         - libcxx {{ cxx_compiler_version }}  # [osx]
-        - llvmdev =={{ version }}
-        - llvm =={{ version }}
+        - llvmdev =={{ version }} {{ llvm_variant }}*
+        - llvm =={{ version }} {{ llvm_variant }}*
         - {{ pin_subpackage("clang", exact=True) }}
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
@@ -382,6 +392,7 @@ outputs:
       track_features:
         - hcc          # [variant=="hcc"]
         - cling        # [variant and "root" in variant]
+        - cling        # [variant and "cling" in variant]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       build:
@@ -390,11 +401,11 @@ outputs:
         - cmake >=3.4.3
         - ninja  # [win]
         - make   # [unix]
-        - llvmdev =={{ version }}    # [build_platform != target_platform]
+        - llvmdev =={{ version }} {{ llvm_variant }}*   # [build_platform != target_platform]
       host:
         - libcxx {{ cxx_compiler_version }}  # [osx]
-        - llvmdev =={{ version }}
-        - llvm =={{ version }}
+        - llvmdev =={{ version }} {{ llvm_variant }}*
+        - llvm =={{ version }} {{ llvm_variant }}*
         - {{ pin_compatible("libclang-cpp" + major_version, exact=True) }}  # [unix]
         - zlib
       run:
@@ -427,6 +438,7 @@ outputs:
       track_features:
         - hcc          # [variant=="hcc"]
         - cling        # [variant and "root" in variant]
+        - cling        # [variant and "cling" in variant]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
@@ -444,6 +456,7 @@ outputs:
       track_features:
         - hcc          # [variant=="hcc"]
         - cling        # [variant and "root" in variant]
+        - cling        # [variant and "cling" in variant]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       host:
@@ -468,6 +481,7 @@ outputs:
       track_features:
         - hcc          # [variant=="hcc"]
         - cling        # [variant and "root" in variant]
+        - cling        # [variant and "cling" in variant]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       build:
@@ -477,14 +491,14 @@ outputs:
         - cmake >=3.4.3
         - ninja  # [win]
         - make   # [unix]
-        - llvmdev =={{ version }}    # [build_platform != target_platform]
+        - llvmdev =={{ version }} {{ llvm_variant }}*    # [build_platform != target_platform]
       host:
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clangxx", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
         - libcxx {{ cxx_compiler_version }}  # [osx]
-        - llvmdev =={{ version }}
-        - llvm =={{ version }}
+        - llvmdev =={{ version }} {{ llvm_variant }}*
+        - llvm =={{ version }} {{ llvm_variant }}*
       run:
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clangxx", exact=True) }}
@@ -505,6 +519,7 @@ outputs:
       track_features:
         - hcc          # [variant=="hcc"]
         - cling        # [variant and "root" in variant]
+        - cling        # [variant and "cling" in variant]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     script: build_python_bindings.sh
     requirements:
