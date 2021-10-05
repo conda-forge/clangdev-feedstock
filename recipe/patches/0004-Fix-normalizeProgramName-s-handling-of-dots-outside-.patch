@@ -40,7 +40,7 @@ index 6c1b88141c45..369955206817 100644
 +StringRef program_name_stem(StringRef path) {
 +  StringRef fname = llvm::sys::path::filename(path);
 +  size_t pos = StringRef::npos;
-+  if (fname.endswith_lower(".exe")) {
++  if (fname.endswith_insensitive(".exe")) {
 +    pos = fname.find_last_of('.');
 +  }
 +  if (pos == StringRef::npos)
