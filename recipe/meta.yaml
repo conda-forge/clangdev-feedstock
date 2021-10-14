@@ -423,8 +423,6 @@ outputs:
         - python
         - libclang =={{ version }}
     test:
-      requires:
-        - nose
       source_files:
         - bindings/python/tests
         - bindings/python/examples/cindex
@@ -433,8 +431,7 @@ outputs:
         - clang.cindex
       commands:
         - cd bindings/python
-        - cp tests/cindex/util.py tests
-        - nosetests -v
+        - python -m unittest discover -v
 
 about:
   home: http://llvm.org/
