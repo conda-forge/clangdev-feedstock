@@ -1,6 +1,6 @@
-{% set version = "12.0.1" %}
+{% set version = "13.0.0" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 4 %}
+{% set build_number = 0 %}
 
 {% set minor_aware_ext = major_version %}
 {% set minor_int = version.split(".")[1] | int %}
@@ -14,7 +14,7 @@ package:
 
 source:
   - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/clang-{{ version.replace(".rc", "rc") }}.src.tar.xz
-    sha256: 6e912133bcf56e9cfe6a346fa7e5c52c2cde3e4e48b7a6cc6fcc7c75047da45f
+    sha256: 5d611cbb06cfb6626be46eb2f23d003b2b80f40182898daa54b1c4e8b5b9e17e
     patches:
       - patches/0001-Find-conda-gcc-installation.patch
       - patches/0002-Fix-sysroot-detection-for-linux.patch
@@ -29,7 +29,7 @@ source:
       #- patches/amd-roc-hcc-2.7.0.diff  # [variant == "hcc"]
     folder: .
   - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/clang-tools-extra-{{ version.replace(".rc", "rc") }}.src.tar.xz
-    sha256: 65659efdf97dbed70ae0caee989936b731f249dddc46f1cb4225b2f49b232ae5
+    sha256: 428b6060a28b22adf0cdf5d827abbc2ba81809f4661ede3d02b1d3fedaa3ead5
     folder: tools/extra
 
 build:
@@ -51,6 +51,7 @@ requirements:
   host:
     - libcxx {{ cxx_compiler_version }}  # [osx]
     - llvmdev =={{ version }}
+    - zlib                               # [linux]
 
 test:
   requires:
@@ -94,6 +95,7 @@ outputs:
         - {{ pin_subpackage("libclang-cpp", exact=True) }}
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
+        - zlib                               # [linux]
       run:
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clangxx", exact=True) }}
@@ -129,6 +131,7 @@ outputs:
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
+        - zlib   # [linux]
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
     test:
@@ -159,6 +162,7 @@ outputs:
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
+        - zlib   # [linux]
         - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, exact=True) }}  # [unix]
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
@@ -189,7 +193,7 @@ outputs:
         - libcxx {{ cxx_compiler_version }}             # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
-        - zlib                                          # [win]
+        - zlib                                          # [linux or win]
         - {{ pin_subpackage("clang", exact=True) }}
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
@@ -224,7 +228,7 @@ outputs:
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
-        - zlib                                                                # [win]
+        - zlib                               # [linux or win]
         - {{ pin_compatible("libclang-cpp" + minor_aware_ext, exact=True) }}  # [unix]
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}                        # [osx]
@@ -297,7 +301,7 @@ outputs:
         - hcc          # [variant=="hcc"]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       # for windows, use the clang-format package.
-      skip: True  # [win]
+      skip: true  # [win]
     requirements:
       build:
         # "compiling .pyc files" fails without this
@@ -315,7 +319,7 @@ outputs:
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
-        - zlib                            # [win]
+        - zlib                            # [linux or win]
         - libxml2                         # [win]
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
@@ -353,7 +357,7 @@ outputs:
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
-        - zlib                            # [win]
+        - zlib                               # [linux or win]
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
         - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, max_pin="x.x") }}   # [unix]
@@ -389,7 +393,7 @@ outputs:
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
-        - zlib                            # [win]
+        - zlib                               # [linux or win]
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
         - {{ pin_subpackage("clang-format", exact=True) }}
@@ -419,8 +423,6 @@ outputs:
         - python
         - libclang =={{ version }}
     test:
-      requires:
-        - nose
       source_files:
         - bindings/python/tests
         - bindings/python/examples/cindex
@@ -429,8 +431,7 @@ outputs:
         - clang.cindex
       commands:
         - cd bindings/python
-        - cp tests/cindex/util.py tests
-        - nosetests -v
+        - python -m unittest discover -v
 
 about:
   home: http://llvm.org/
@@ -448,3 +449,4 @@ extra:
     - timsnyder
     - chrisburr
     - xhochy
+    - h-vetinari
