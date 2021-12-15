@@ -11,17 +11,11 @@ c_compiler:
 vc:
   - 14
 
-
-# GCC 9.4 poses some issues on ppc64le
-# with error "relocation truncated to fit ..."
-
-c_compiler_version:     # [osx or ppc64le]
+c_compiler_version:     # [osx]
   - "*"                 # [osx]
-  - 8                   # [ppc64le]
 
-cxx_compiler_version:   # [osx or ppc64le]
+cxx_compiler_version:   # [osx]
   - "*"                 # [osx]
-  - 8                   # [ppc64le]
 
 variant:
   - default
