@@ -7,6 +7,6 @@ cd $PREFIX
 rm -rf libexec share bin include
 mv lib lib2
 mkdir lib
-cp lib2/${PKG_NAME}.* lib/
+mv lib2/${PKG_NAME}.* lib/
 rm -rf lib2
 

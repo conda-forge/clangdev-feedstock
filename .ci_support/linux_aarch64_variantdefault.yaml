@@ -5,18 +5,23 @@ cdt_arch:
 cdt_name:
 - cos7
 channel_sources:
-- conda-forge/label/llvm_rc,conda-forge,defaults
+- conda-forge
 channel_targets:
-- conda-forge llvm_rc
+- conda-forge main
 cxx_compiler:
 - gxx
 cxx_compiler_version:
-- '7'
+- '9'
 docker_image:
-- condaforge/linux-anvil-comp7
+- quay.io/condaforge/linux-anvil-comp7
+pin_run_as_build:
+  zlib:
+    max_pin: x.x
 target_platform:
 - linux-aarch64
 variant:
 - default
 vc:
 - '14'
+zlib:
+- '1.2'
