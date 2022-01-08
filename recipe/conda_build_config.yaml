@@ -1,15 +1,10 @@
 cxx_compiler:
   - clang_bootstrap  # [osx]
   - gxx              # [linux]
-  - vs2017           # [win]
 
 c_compiler:
   - clang_bootstrap  # [osx]
   - gcc              # [linux]
-  - vs2017           # [win]
-
-vc:
-  - 14
 
 c_compiler_version:     # [osx]
   - "*"                 # [osx and x86_64]
