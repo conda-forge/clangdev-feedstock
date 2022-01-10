@@ -1,6 +1,6 @@
 {% set version = "9.0.1" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 2 %}
+{% set build_number = 3 %}
 
 {% if not variant %}
 {% set variant = "default" %}
@@ -235,6 +235,7 @@ test:
   requires:
     - {{ compiler('cxx') }}
     - cmake >=3.4.3
+    - make
   files:
     - mytest.c
   commands:
