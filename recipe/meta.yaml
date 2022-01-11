@@ -4,9 +4,8 @@
 
 {% if not variant %}
 {% set variant = "default" %}
+{% set llvm_variant = "default" %}
 {% endif %}
-
-{% set llvm_variant = variant if variant.startswith("cling") else "default" %}
 
 package:
   name: clang_packages
