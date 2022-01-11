@@ -8,14 +8,14 @@ jobs:
     vmImage: windows-2019
   strategy:
     matrix:
-      win_64_variantcling_v0.9:
-        CONFIG: win_64_variantcling_v0.9
+      win_64_llvm_variantcling_v0.9variantcling_v0.9:
+        CONFIG: win_64_llvm_variantcling_v0.9variantcling_v0.9
         UPLOAD_PACKAGES: 'True'
-        SHORT_CONFIG: win_64_variantcling_v0.9
-      win_64_variantdefault:
-        CONFIG: win_64_variantdefault
+        SHORT_CONFIG: win_64_llvm_variantcling_v0.9variantcling_v0.9
+      win_64_llvm_variantdefaultvariantdefault:
+        CONFIG: win_64_llvm_variantdefaultvariantdefault
         UPLOAD_PACKAGES: 'True'
-        SHORT_CONFIG: win_64_variantdefault
+        SHORT_CONFIG: win_64_llvm_variantdefaultvariantdefault
   timeoutInMinutes: 360
   variables:
     CONDA_BLD_PATH: D:\\bld\\

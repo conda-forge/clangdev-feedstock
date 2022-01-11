@@ -8,30 +8,30 @@ jobs:
     vmImage: macOS-10.15
   strategy:
     matrix:
-      osx_64_variantcling_v0.9:
-        CONFIG: osx_64_variantcling_v0.9
+      osx_64_llvm_variantcling_v0.9variantcling_v0.9:
+        CONFIG: osx_64_llvm_variantcling_v0.9variantcling_v0.9
         UPLOAD_PACKAGES: 'True'
-        SHORT_CONFIG: osx_64_variantcling_v0.9
-      osx_64_variantdefault:
-        CONFIG: osx_64_variantdefault
+        SHORT_CONFIG: osx_64_llvm_variantcling_v0.9variantcling_v0.9
+      osx_64_llvm_variantcling_v0.9variantroot_62400:
+        CONFIG: osx_64_llvm_variantcling_v0.9variantroot_62400
         UPLOAD_PACKAGES: 'True'
-        SHORT_CONFIG: osx_64_variantdefault
-      osx_64_variantroot_62400:
-        CONFIG: osx_64_variantroot_62400
+        SHORT_CONFIG: osx_64_llvm_variantcling_v0.9variantroot_62400
+      osx_64_llvm_variantdefaultvariantdefault:
+        CONFIG: osx_64_llvm_variantdefaultvariantdefault
         UPLOAD_PACKAGES: 'True'
-        SHORT_CONFIG: osx_64_variantroot_62400
-      osx_arm64_variantcling_v0.9:
-        CONFIG: osx_arm64_variantcling_v0.9
+        SHORT_CONFIG: osx_64_llvm_variantdefaultvariantdefault
+      osx_arm64_llvm_variantcling_v0.9variantcling_v0.9:
+        CONFIG: osx_arm64_llvm_variantcling_v0.9variantcling_v0.9
         UPLOAD_PACKAGES: 'True'
-        SHORT_CONFIG: osx_arm64_variantcling_v0.9
-      osx_arm64_variantdefault:
-        CONFIG: osx_arm64_variantdefault
+        SHORT_CONFIG: osx_arm64_llvm_variantcling_v0.9var_h5016f2ec58
+      osx_arm64_llvm_variantcling_v0.9variantroot_62400:
+        CONFIG: osx_arm64_llvm_variantcling_v0.9variantroot_62400
         UPLOAD_PACKAGES: 'True'
-        SHORT_CONFIG: osx_arm64_variantdefault
-      osx_arm64_variantroot_62400:
-        CONFIG: osx_arm64_variantroot_62400
+        SHORT_CONFIG: osx_arm64_llvm_variantcling_v0.9var_h0d73f080d9
+      osx_arm64_llvm_variantdefaultvariantdefault:
+        CONFIG: osx_arm64_llvm_variantdefaultvariantdefault
         UPLOAD_PACKAGES: 'True'
-        SHORT_CONFIG: osx_arm64_variantroot_62400
+        SHORT_CONFIG: osx_arm64_llvm_variantdefaultvariantdefault
   timeoutInMinutes: 360
 
   steps:
