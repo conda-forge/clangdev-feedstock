@@ -1,6 +1,11 @@
 #!/bin/bash
 set -x
 
+if [[ "${target_platform}" == "linux-ppc64le" ]]; then
+  export CXXFLAGS="${CXXFLAGS} -fplt"
+  export CFLAGS="${CFLAGS} -fplt"
+fi
+
 IFS='.' read -r -a PKG_VER_ARRAY <<< "${PKG_VERSION}"
 
 sed -i.bak "s/libLTO.dylib/libLTO.${PKG_VER_ARRAY[0]}.dylib/g" lib/Driver/ToolChains/Darwin.cpp
@@ -14,10 +19,6 @@ fi
 if [[ "$variant" == "root"* ]]; then
   # Cling needs some minor patches to the LLVM sources
   sed -i "s@LLVM_LINK_LLVM_DYLIB yes@LLVM_LINK_LLVM_DYLIB no@g" "${PREFIX}/lib/cmake/llvm/LLVMConfig.cmake"
-  cd "${PREFIX}"
-  patch -p1 < "${RECIPE_DIR}/patches/root/llvm/0001-Fix-the-compilation.patch"
-  patch -p1 < "${RECIPE_DIR}/patches/root/llvm/0002-Make-datamember-protected.patch"
-  cd -
 fi
 
 if [[ "$CONDA_BUILD_CROSS_COMPILATION" == "1" ]]; then
@@ -29,14 +30,6 @@ fi
 
 if [[ "$target_platform" == osx* ]]; then
   export CXXFLAGS="$CXXFLAGS -DTARGET_OS_OSX=1"
-fi
-
-if [[ "$target_platform" == "linux-ppc64le" ]]; then
-  # Needed to avoid errors when compiling with gcc 9 (not present with gcc 7)
-  # > relocation truncated to fit: R_PPC64_REL24 against symbol
-  export CXXFLAGS="${CXXFLAGS/O3/Os}"
-  export CFLAGS="${CFLAGS/O3/Os}"
-  CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_CXX_FLAGS_RELEASE=-Os"
 fi
 
 mkdir build
