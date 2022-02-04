@@ -1,7 +1,7 @@
 #!/bin/bash
 set -x -e
 cd ${SRC_DIR}/build
-make install
+make install VERBOSE=1
 
 cd $PREFIX
 rm -rf libexec share bin include
