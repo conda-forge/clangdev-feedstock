@@ -19,9 +19,3 @@ cxx_compiler_version:   # [osx or (linux and ppc64le)]
 variant:
   - default
   - hcc   # [linux]
-
-channel_targets:
-  - conda-forge llvm_rc
-
-channel_sources:
-  - conda-forge/label/llvm_rc,conda-forge
