@@ -14,5 +14,3 @@ target_platform:
 - osx-64
 variant:
 - default
-vc:
-- '14'
