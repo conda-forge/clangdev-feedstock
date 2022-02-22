@@ -1,4 +1,4 @@
-From 31d103bb665332fbc7eaa94ff419eac866444429 Mon Sep 17 00:00:00 2001
+From e3f4b615d9d18f713d3c7962edaef12d3925a840 Mon Sep 17 00:00:00 2001
 From: Ray Donnelly <mingw.android@gmail.com>
 Date: Wed, 30 Aug 2017 20:01:49 +0100
 Subject: [PATCH 4/7] Fix normalizeProgramName()'s handling of dots outside of
@@ -18,7 +18,7 @@ x86_64-apple-darwin13.4
  1 file changed, 22 insertions(+), 1 deletion(-)
 
 diff --git a/lib/Driver/ToolChain.cpp b/lib/Driver/ToolChain.cpp
-index 6c1b88141c45..369955206817 100644
+index d657d21bfcdb..581d59451040 100644
 --- a/lib/Driver/ToolChain.cpp
 +++ b/lib/Driver/ToolChain.cpp
 @@ -50,6 +50,7 @@ using namespace driver;
@@ -58,9 +58,9 @@ index 6c1b88141c45..369955206817 100644
  static std::string normalizeProgramName(llvm::StringRef Argv0) {
 -  std::string ProgName = std::string(llvm::sys::path::stem(Argv0));
 +  std::string ProgName = std::string(program_name_stem(Argv0));
- #ifdef _WIN32
-   // Transform to lowercase for case insensitive file systems.
-   std::transform(ProgName.begin(), ProgName.end(), ProgName.begin(), ::tolower);
+   if (is_style_windows(llvm::sys::path::Style::native)) {
+     // Transform to lowercase for case insensitive file systems.
+     std::transform(ProgName.begin(), ProgName.end(), ProgName.begin(),
 -- 
 2.32.0.windows.2
 
