@@ -439,6 +439,7 @@ about:
   license_file: LICENSE.TXT
   license_family: Apache
   summary: Development headers and libraries for Clang
+  dev_url: https://github.com/llvm/llvm-project
 
 extra:
   recipe-maintainers:
