@@ -1,10 +1,11 @@
-cxx_compiler:
-  - clang_bootstrap  # [osx]
-  - gxx              # [linux]
-
 c_compiler:
   - clang_bootstrap  # [osx]
   - gcc              # [linux]
+  - vs2019           # [win]
+cxx_compiler:
+  - clang_bootstrap  # [osx]
+  - gxx              # [linux]
+  - vs2019           # [win]
 
 variant:
   - default
