@@ -514,7 +514,7 @@ outputs:
       noarch: python
       # Building this output using this recipe is only supported on unix
       # It can still be installed on Windows as it is marked as `noarch: python`
-      skip: true  # [win or variant=="hcc" or (build_platform != target_platform)]
+      skip: true  # [not linux64]
       track_features:
         - hcc          # [variant=="hcc"]
         - root         # [variant and variant.startswith("root_")]
