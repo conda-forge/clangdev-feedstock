@@ -26,7 +26,8 @@ source:
       - patches/amd-roc-2.7.0.diff   # [variant != "hcc"]
       - patches/amd-roc-hcc-2.7.0.diff  # [variant == "hcc"]
       # Taken from cloning http://root.cern/git/clang.git and running
-      # git format-patch cc54f73e76332c635d97a53b5ec369901173be53~1..0d387254997cf7fcc456b60db1e7a5bf764f8611
+      # git show origin/ROOT-patches --quiet -> c43832868861f1fad029e29246381dd427a7dcd8
+      # git format-patch cc54f73e76332c635d97a53b5ec369901173be53~1..c43832868861f1fad029e29246381dd427a7dcd8
       - patches/root/0001-Temporary-parsers-should-not-manipulate-global-parse.patch  # [variant and variant.startswith("root_")]
       - patches/root/0002-Only-reset-extra-parsers-if-not-temporary.patch             # [variant and variant.startswith("root_")]
       - patches/root/0003-Let-autoload-act-on-fwd-declares.patch                      # [variant and variant.startswith("root_")]
@@ -59,7 +60,6 @@ source:
       - patches/root/0030-Survive-pragma-once-from-virtual-file.patch                 # [variant and variant.startswith("root_")]
       - patches/root/0031-Provide-possibly-updated-CodegenOpts-to-StartModule.patch   # [variant and variant.startswith("root_")]
       - patches/root/0032-Clear-pending-decls-from-Builder-in-case-of-errors-R.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0033-Add-ASTConsumer-HandleInvalidTagDeclDefinition.patch        # [variant and variant.startswith("root_")]
       - patches/root/0034-Fix-ROOT-7775-by-making-all-static-init-function-nam.patch  # [variant and variant.startswith("root_")]
       - patches/root/0035-Inject-DeclUnloader-as-a-friend.patch                       # [variant and variant.startswith("root_")]
       - patches/root/0036-Do-not-load-the-source-file-just-to-get-an-irrelevan.patch  # [variant and variant.startswith("root_")]
@@ -85,9 +85,9 @@ source:
       - patches/root/0056-Keep-into-account-if-files-were-virtual.patch               # [variant and variant.startswith("root_")]
       - patches/root/0057-cxxmodules-Don-t-complain-when-modulemap-for-implici.patch  # [variant and variant.startswith("root_")]
       - patches/root/0058-Enable-ROOT-s-builtin_llvm-Off.patch                        # [variant and variant.startswith("root_")]
-      - patches/root/0059-Reimplement-the-replaceStmts-logic.patch                    # [variant and variant.startswith("root_")]
       - patches/root/0060-Preserve-AnonStructIds-of-mangling-ctx.patch                # [variant and variant.startswith("root_")]
       - patches/root/0061-Allow-interfaces-to-operate-on-in-memory-buffers-wit.patch  # [variant and variant.startswith("root_")]
+      - patches/root/0061-Swap-also-TBAA-as-it-references-OldBuilder-CXXABI.patch     # [variant and variant.startswith("root_")]
       - patches/root/0062-cxxmodules-Don-t-complain-when-modulemap-for-implici.patch  # [variant and variant.startswith("root_")]
       - patches/root/0063-meld.patch                                                  # [variant and variant.startswith("root_")]
       - patches/root/0064-Temporary-workaround-to-the-vector-reallocation-cras.patch  # [variant and variant.startswith("root_")]
@@ -97,7 +97,6 @@ source:
       - patches/root/0068-Reinstate-version-of-root-project-root-c9307811.patch       # [variant and variant.startswith("root_")]
       - patches/root/0069-Don-t-complain-when-modulemap-for-implicit-modules-h.patch  # [variant and variant.startswith("root_")]
       - patches/root/0070-Improve-ROOT-startup-time-by-not-merging-identifier-.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0071-Add-ASTConsumer-HandleInvalidTagDeclDefinition.patch        # [variant and variant.startswith("root_")]
       - patches/root/0072-Default-template-parameter-of-class-template-instanc.patch  # [variant and variant.startswith("root_")]
       - patches/root/0073-New-file-for-4453ba7.patch                                  # [variant and variant.startswith("root_")]
       - patches/root/0074-Make-llvm_unreachable-an-assert-for-uncomparable-src.patch  # [variant and variant.startswith("root_")]
@@ -131,13 +130,11 @@ source:
       - patches/root/0102-When-unloading-also-forget-that-the-decl-was-emitted.patch  # [variant and variant.startswith("root_")]
       - patches/root/0103-Improve-67b613517b-unsigned-vallues-cannot-be-negati.patch  # [variant and variant.startswith("root_")]
       - patches/root/0104-Allow-submodules-to-contain-headers-which-may-be-mis.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0105-Fix-type-printing-of-array-template-args-Apply-patch.patch  # [variant and variant.startswith("root_")]
       - patches/root/0106-Fix-crash-in-call-to-FunctionDecl-setPure.patch             # [variant and variant.startswith("root_")]
       - patches/root/0107-Disable-validation-of-transent-files.patch                  # [variant and variant.startswith("root_")]
       - patches/root/0108-Mark-the-overridden-transient-file.patch                    # [variant and variant.startswith("root_")]
       - patches/root/0109-Add-missing-include-to-fix-Dcxxmodules-On.patch             # [variant and variant.startswith("root_")]
       - patches/root/0110-Import-various-changes-to-the-global-module-index.patch     # [variant and variant.startswith("root_")]
-      - patches/root/0111-Swap-also-TBAA-as-it-references-OldBuilder-CXXABI.patch     # [variant and variant.startswith("root_")]
 
       # Taken from cloning http://root.cern/git/clang.git and running
       # git format-patch cling-v0.9..bed37d4b18ce6993fc2567e8de61f6b30fd0cb75
