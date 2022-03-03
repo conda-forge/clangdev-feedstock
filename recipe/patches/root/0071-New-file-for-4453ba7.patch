@@ -12,7 +12,7 @@ diff --git a/lib/Sema/HackForDefaultTemplateArg.h b/lib/Sema/HackForDefaultTempl
 new file mode 100644
 index 0000000000..e6af62c414
 --- /dev/null
-+++ b/lib/Sema/HackForDefaultTemplateArg.h
++++ lib/Sema/HackForDefaultTemplateArg.h
 @@ -0,0 +1,52 @@
 +//===------- HackForDefaultTemplateArg.h - Make template argument substitution mroe permissive -----*- C++ -*-===//
 +//
