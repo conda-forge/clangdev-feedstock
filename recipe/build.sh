@@ -19,6 +19,9 @@ fi
 if [[ "$variant" == "root"* ]]; then
   # Cling needs some minor patches to the LLVM sources
   sed -i "s@LLVM_LINK_LLVM_DYLIB yes@LLVM_LINK_LLVM_DYLIB no@g" "${PREFIX}/lib/cmake/llvm/LLVMConfig.cmake"
+  if [[ "${target_platform}" = linux* ]]; then
+    CMAKE_ARGS="$CMAKE_ARGS -DDEFAULT_SYSROOT=../x86_64-conda-linux-gnu/sysroot"
+  fi
 fi
 
 if [[ "$CONDA_BUILD_CROSS_COMPILATION" == "1" ]]; then
