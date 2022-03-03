@@ -1,0 +1,27 @@
+From 5c7ec4f70427b3cb60f6b7a0d56bd5aeb0cfdfde Mon Sep 17 00:00:00 2001
+From: Chris Burr <christopher.burr@cern.ch>
+Date: Thu, 3 Mar 2022 23:19:02 +0100
+Subject: [PATCH] Remove trailing null bytes from the sysroot that come from
+ conda's relocation
+
+---
+ lib/Driver/Driver.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/lib/Driver/Driver.cpp b/lib/Driver/Driver.cpp
+index a9a273529b..e3b628f3ba 100644
+--- a/lib/Driver/Driver.cpp
++++ b/lib/Driver/Driver.cpp
+@@ -135,6 +135,9 @@ Driver::Driver(StringRef ClangExecutable, StringRef TargetTriple,
+   if (!this->VFS)
+     this->VFS = llvm::vfs::getRealFileSystem();
+ 
++  // Remove trailing null bytes from the sysroot that come from conda's relocation
++  SysRoot = std::string(SysRoot.c_str());
++
+   Name = llvm::sys::path::filename(ClangExecutable);
+   Dir = llvm::sys::path::parent_path(ClangExecutable);
+   InstalledDir = Dir; // Provide a sensible default installed dir.
+-- 
+2.35.0
+
