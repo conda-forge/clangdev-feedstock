@@ -1,7 +1,7 @@
 From 92c46720e445c8cd558aae9945225190222ab624 Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Mon, 26 Aug 2013 15:08:12 +0200
-Subject: [PATCH 020/110] More RAIIs for autoloading.
+Subject: [PATCH 020/107] More RAIIs for autoloading.
 
 ---
  include/clang/Lex/Preprocessor.h | 63 ++++++++++++++++++++++++++++++++
@@ -129,5 +129,5 @@ index 6080a6a373..d81e1ee3cc 100644
    /// a function body.
    class SynthesizedFunctionScope {
 -- 
-2.29.2
+2.35.1
 

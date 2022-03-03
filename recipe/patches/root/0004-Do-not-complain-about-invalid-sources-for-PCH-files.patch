@@ -1,7 +1,7 @@
 From 437b9864fe995cf273a39ea750a0af4cbc495250 Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Mon, 26 Aug 2013 14:32:50 +0200
-Subject: [PATCH 004/110] Do not complain about invalid sources for PCH files.
+Subject: [PATCH 004/107] Do not complain about invalid sources for PCH files.
 
 ---
  lib/Serialization/ASTReader.cpp | 2 +-
@@ -21,5 +21,5 @@ index 7f2c7f09e8..ecc69ae75d 100644
      bool OverriddenBuffer = IF.isOverridden();
  
 -- 
-2.29.2
+2.35.1
 

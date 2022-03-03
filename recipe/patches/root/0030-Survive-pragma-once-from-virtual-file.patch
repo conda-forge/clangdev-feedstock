@@ -1,7 +1,7 @@
 From 728e1b3286030fad2297fbeac959be24121d8beb Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Fri, 27 Feb 2015 10:57:02 +0100
-Subject: [PATCH 030/110] Survive #pragma once from virtual file.
+Subject: [PATCH 030/107] Survive #pragma once from virtual file.
 
 ---
  lib/Lex/Pragma.cpp | 8 +++++---
@@ -27,5 +27,5 @@ index 4e4db66855..25231abf96 100644
  
  void Preprocessor::HandlePragmaMark() {
 -- 
-2.29.2
+2.35.1
 

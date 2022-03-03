@@ -1,0 +1,52 @@
+From 0dc5a9e6ee3fab2c75fd202103c6abb5175de4c8 Mon Sep 17 00:00:00 2001
+From: Vassil Vassilev <v.g.vassilev@gmail.com>
+Date: Wed, 17 May 2017 15:22:25 +0200
+Subject: [PATCH 055/107] Keep into account if files were virtual.
+
+In some cases we do not have files on disk. They are only available in the
+FileManager as virtual files and the SourceManager overrides their content.
+---
+ lib/Basic/SourceManager.cpp               | 12 +++++++++---
+ lib/Frontend/VerifyDiagnosticConsumer.cpp |  3 +++
+ 2 files changed, 12 insertions(+), 3 deletions(-)
+
+diff --git a/lib/Basic/SourceManager.cpp b/lib/Basic/SourceManager.cpp
+index ed50c8dc3a..e5144efa8d 100644
+--- a/lib/Basic/SourceManager.cpp
++++ b/lib/Basic/SourceManager.cpp
+@@ -1245,9 +1245,15 @@ ComputeLineNumbers(DiagnosticsEngine &Diag, ContentCache *FI,
+ static void ComputeLineNumbers(DiagnosticsEngine &Diag, ContentCache *FI,
+                                llvm::BumpPtrAllocator &Alloc,
+                                const SourceManager &SM, bool &Invalid) {
+-  // Note that calling 'getBuffer()' may lazily page in the file.
+-  const MemoryBuffer *Buffer =
+-      FI->getBuffer(Diag, SM, SourceLocation(), &Invalid);
++  const MemoryBuffer *Buffer = nullptr;
++  if (SM.isFileOverridden(FI->ContentsEntry))
++    Buffer
++      = const_cast<SourceManager&>(SM).getMemoryBufferForFile(FI->ContentsEntry,
++                                                              &Invalid);
++  else
++    // Note that calling 'getBuffer()' may lazily page in the file.
++    Buffer = FI->getBuffer(Diag, SM, SourceLocation(), &Invalid);
++
+   if (Invalid)
+     return;
+ 
+diff --git a/lib/Frontend/VerifyDiagnosticConsumer.cpp b/lib/Frontend/VerifyDiagnosticConsumer.cpp
+index a68ef03d4d..a4da3eca16 100644
+--- a/lib/Frontend/VerifyDiagnosticConsumer.cpp
++++ b/lib/Frontend/VerifyDiagnosticConsumer.cpp
+@@ -531,6 +531,9 @@ static bool ParseDirective(StringRef S, ExpectedData *ED, SourceManager &SM,
+         const FileEntry *FE =
+             PP->LookupFile(Pos, Filename, false, nullptr, nullptr, CurDir,
+                            nullptr, nullptr, nullptr, nullptr, nullptr);
++        // Check if the file was virtual
++        if (!FE)
++          FE = SM.getFileManager().getFile(Filename);
+         if (!FE) {
+           Diags.Report(Pos.getLocWithOffset(PH.C-PH.Begin),
+                        diag::err_verify_missing_file) << Filename << KindStr;
+-- 
+2.35.1
+

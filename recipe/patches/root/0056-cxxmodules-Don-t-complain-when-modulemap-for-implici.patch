@@ -1,0 +1,176 @@
+From c03fcd63d668bee0f95bd2f7d71d27353bb05e5f Mon Sep 17 00:00:00 2001
+From: Vassil Vassilev <v.g.vassilev@gmail.com>
+Date: Thu, 21 Feb 2019 09:29:38 +0200
+Subject: [PATCH 056/107] [cxxmodules] Don't complain when modulemap for
+ implicit modules has changed
+
+This patch (also) aims to make runtime module installable.
+
+This part of code in Clang is comparing the location of "modulemap which
+is currently loaded and gives a definition of current module (say, stl)
+and "the location of the modulemap where the current implicit module (like stl) was built".
+
+This was problematic for CMSSW, as they should install modulemaps
+and prebuilt pcms to other directory. stl and libc pcms should be
+prebuilt, installed and used from installed directory, so this check is
+redundant for that usecase.
+---
+ include/clang/Frontend/CompilerInvocation.h | 23 +++++++++-
+ lib/Frontend/CompilerInvocation.cpp         |  7 +--
+ lib/Serialization/ASTReader.cpp             | 49 ++++++++++++++++++---
+ 3 files changed, 70 insertions(+), 9 deletions(-)
+
+diff --git a/include/clang/Frontend/CompilerInvocation.h b/include/clang/Frontend/CompilerInvocation.h
+index 413134be4c..bfbcd1bd45 100644
+--- a/include/clang/Frontend/CompilerInvocation.h
++++ b/include/clang/Frontend/CompilerInvocation.h
+@@ -21,6 +21,7 @@
+ #include "clang/Frontend/PreprocessorOutputOptions.h"
+ #include "clang/StaticAnalyzer/Core/AnalyzerOptions.h"
+ #include "llvm/ADT/IntrusiveRefCntPtr.h"
++#include "llvm/Support/VirtualFileSystem.h"
+ #include <memory>
+ #include <string>
+ 
+@@ -112,6 +113,10 @@ public:
+   }
+ };
+ 
++namespace vfs {
++  class FileSystem;
++}
++
+ /// Helper class for holding the data necessary to invoke the compiler.
+ ///
+ /// This class is designed to represent an abstract "invocation" of the
+@@ -138,8 +143,12 @@ class CompilerInvocation : public CompilerInvocationBase {
+   /// Options controlling preprocessed output.
+   PreprocessorOutputOptions PreprocessorOutputOpts;
+ 
++  /// List of overlay files
++  IntrusiveRefCntPtr<llvm::vfs::OverlayFileSystem> Overlay;
++
+ public:
+-  CompilerInvocation() : AnalyzerOpts(new AnalyzerOptions()) {}
++  CompilerInvocation() : AnalyzerOpts(new AnalyzerOptions()),
++    Overlay(new llvm::vfs::OverlayFileSystem(llvm::vfs::getRealFileSystem())) {}
+ 
+   /// @name Utility Methods
+   /// @{
+@@ -202,6 +211,18 @@ public:
+     return DependencyOutputOpts;
+   }
+ 
++  void addOverlay(const IntrusiveRefCntPtr<llvm::vfs::FileSystem>& FS) {
++    Overlay->pushOverlay(FS);
++  }
++
++  IntrusiveRefCntPtr<llvm::vfs::OverlayFileSystem> &getOverlay() {
++    return Overlay;
++  }
++
++  const IntrusiveRefCntPtr<llvm::vfs::OverlayFileSystem> &getOverlay() const {
++    return Overlay;
++  }
++
+   FileSystemOptions &getFileSystemOpts() { return FileSystemOpts; }
+ 
+   const FileSystemOptions &getFileSystemOpts() const {
+diff --git a/lib/Frontend/CompilerInvocation.cpp b/lib/Frontend/CompilerInvocation.cpp
+index bc54e38a1a..17b6752bc8 100644
+--- a/lib/Frontend/CompilerInvocation.cpp
++++ b/lib/Frontend/CompilerInvocation.cpp
+@@ -3559,9 +3559,10 @@ IntrusiveRefCntPtr<llvm::vfs::FileSystem> createVFSFromCompilerInvocation(
+     const CompilerInvocation &CI, DiagnosticsEngine &Diags,
+     IntrusiveRefCntPtr<llvm::vfs::FileSystem> BaseFS) {
+   if (CI.getHeaderSearchOpts().VFSOverlayFiles.empty())
+-    return BaseFS;
++    return CI.getOverlay();
+ 
+   IntrusiveRefCntPtr<llvm::vfs::FileSystem> Result = BaseFS;
++
+   // earlier vfs files are on the bottom
+   for (const auto &File : CI.getHeaderSearchOpts().VFSOverlayFiles) {
+     llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>> Buffer =
+@@ -3579,9 +3580,9 @@ IntrusiveRefCntPtr<llvm::vfs::FileSystem> createVFSFromCompilerInvocation(
+       continue;
+     }
+ 
+-    Result = FS;
++    CI.getOverlay()->pushOverlay(FS);
+   }
+-  return Result;
++  return CI.getOverlay();
+ }
+ 
+ } // namespace clang
+diff --git a/lib/Serialization/ASTReader.cpp b/lib/Serialization/ASTReader.cpp
+index ecc69ae75d..a089e86509 100644
+--- a/lib/Serialization/ASTReader.cpp
++++ b/lib/Serialization/ASTReader.cpp
+@@ -2743,6 +2743,26 @@ ASTReader::ReadControlBlock(ModuleFile &F,
+         else
+           SkipPath(Record, Idx);
+ 
++        // Check if ImportedFile exists on disk
++        if (!llvm::sys::fs::is_directory(ImportedFile)) {
++          StringRef ModuleName = llvm::sys::path::filename(ImportedFile.c_str());
++          ModuleName.consume_back(".pcm");
++          // Get clang::Module pointer by looking up the module name
++          HeaderSearch &HS = PP.getHeaderSearchInfo();
++          Module *M = HS.lookupModule(ModuleName, /*AllowSearch*/ true,
++                                      /*AllowExtraModuleMapSearch*/ true);
++          if (M) {
++            std::string Path = HS.getPrebuiltModuleFileName(M->Name);
++                           if (Path.empty())
++              Path = HS.getCachedModuleFileName(M->Name,
++                   HS.getModuleMap().getModuleMapFileForUniquing(M)->getName());
++            // FIXME: Add a hash comparison to check if ImportedFile's hash and the
++            // new Modules Path's hash matches or not.
++            if (!Path.empty())
++              ImportedFile = Path;
++          }
++        }
++
+         // If our client can't cope with us being out of date, we can't cope with
+         // our dependency being missing.
+         unsigned Capabilities = ClientLoadCapabilities;
+@@ -3746,11 +3766,30 @@ void ASTReader::ReadModuleOffsetMap(ModuleFile &F) const {
+                       ? ModuleMgr.lookupByModuleName(Name)
+                       : ModuleMgr.lookupByFileName(Name));
+     if (!OM) {
+-      std::string Msg =
+-          "SourceLocation remap refers to unknown module, cannot find ";
+-      Msg.append(Name);
+-      Error(Msg);
+-      return;
++      StringRef ModuleName = llvm::sys::path::filename(Name);
++      ModuleName.consume_back(".pcm");
++      HeaderSearch &HS = PP.getHeaderSearchInfo();
++      Module *M = HS.lookupModule(ModuleName, /*AllowSearch*/ true,
++                                  /*AllowExtraModuleMapSearch*/ true);
++      std::string Path;
++      // If module definition exists in modulemap, search the modulepath in HeaderSearchInfo
++      if (M) {
++        Path = HS.getPrebuiltModuleFileName(M->Name);
++        if (Path.empty())
++          Path = HS.getCachedModuleFileName(M->Name,
++                   HS.getModuleMap().getModuleMapFileForUniquing(M)->getName());
++
++      }
++
++      StringRef NewName = StringRef(Path);
++      OM = ModuleMgr.lookupByFileName(NewName);
++      if (!OM) {
++        std::string Msg =
++           "SourceLocation remap refers to unknown module, cannot find ";
++        Msg.append(std::string(NewName));
++        Error(Msg);
++        return;
++      }
+     }
+ 
+     uint32_t SLocOffset =
+-- 
+2.35.1
+

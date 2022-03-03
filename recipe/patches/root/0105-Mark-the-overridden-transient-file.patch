@@ -1,0 +1,45 @@
+From b539e0f4d2831318feaad2cdaaaea39cd265d1c6 Mon Sep 17 00:00:00 2001
+From: Vassil Vassilev <v.g.vassilev@gmail.com>
+Date: Tue, 8 Oct 2019 11:14:16 +0300
+Subject: [PATCH 105/107] Mark the overridden transient file.
+
+This patch is a complementary chenge to root-project/root@d2c0929e0d
+It will turn off the isOutOfDate checks for transient files with different
+size on disk. This is quite dangerous but we are supposed to control the
+build environment which prepares the distributable binaries.
+
+This should fix the cmssw issue:
+
+StdDictionaries/src/DataFormatsStdDictionaries/a/DataFormatsStdDictionaries_all_def.xml
+input_line_8:1:22: error: file '/usr/include/linux/falloc.h' from the precompiled header has been overridden
+                     ^
+rootcling: /build/cmsbld/jenkins/workspace/build-any-ib/w/BUILD/slc7_amd64_gcc820/lcg/root/6.17.01/root-6.17.01/interpreter/llvm/src/tools/clang/include/clang/Serialization/Module.h:72: clang::serialization::InputFile::InputFile(const clang::FileEntry*, bool, bool): Assertion `!(isOverridden && isOutOfDate) && "an overridden cannot be out-of-date"' failed.
+
+The error tells us that `falloc.h` has different file size on the build machine and
+on the distribution machine. We should probably rely on an environment variable
+to turn off this diagnostic selectively and more the reponsibility if something goes
+wrong to the distribution team. They should have better knowledge what is safe to
+be ignored anyway.
+---
+ lib/Serialization/ASTReader.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/lib/Serialization/ASTReader.cpp b/lib/Serialization/ASTReader.cpp
+index 6acfd87063..fd8ed4e1f9 100644
+--- a/lib/Serialization/ASTReader.cpp
++++ b/lib/Serialization/ASTReader.cpp
+@@ -2285,8 +2285,10 @@ InputFile ASTReader::getInputFile(ModuleFile &F, unsigned ID, bool Complain) {
+ 
+   // For an overridden file, create a virtual file with the stored
+   // size/timestamp.
+-  if ((Overridden || Transient) && (DisableValidation || File == nullptr))
++  if ((Overridden || Transient) && (DisableValidation || File == nullptr)) {
+     File = FileMgr.getVirtualFile(Filename, StoredSize, StoredTime);
++    Overridden = true;
++  }
+ 
+   if (File == nullptr) {
+     if (Complain) {
+-- 
+2.35.1
+

@@ -1,7 +1,7 @@
 From 29f4158fb9189f0ca237b4928d5386d73e80a6a4 Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Mon, 26 Aug 2013 14:30:31 +0200
-Subject: [PATCH 003/110] Let autoload act on fwd declares.
+Subject: [PATCH 003/107] Let autoload act on fwd declares.
 
 ---
  lib/Sema/SemaLookup.cpp | 8 +++++++-
@@ -28,5 +28,5 @@ index 8a24dd884a..2958dd1412 100644
  
    // If we didn't find a use of this identifier, and if the identifier
 -- 
-2.29.2
+2.35.1
 

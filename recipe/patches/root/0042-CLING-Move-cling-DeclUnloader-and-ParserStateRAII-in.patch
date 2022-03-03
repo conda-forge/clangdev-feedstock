@@ -1,0 +1,85 @@
+From 821cdbe4736960c1b95d67e0ff40340b66550d09 Mon Sep 17 00:00:00 2001
+From: Frederich Munch <marsupial@users.noreply.github.com>
+Date: Fri, 9 Sep 2016 16:48:28 -0400
+Subject: [PATCH 042/107] CLING: Move cling DeclUnloader and ParserStateRAII
+ into cling namespace.
+
+---
+ include/clang/AST/Decl.h     | 2 ++
+ include/clang/AST/DeclCXX.h  | 2 +-
+ include/clang/Parse/Parser.h | 5 +++--
+ include/clang/Sema/Sema.h    | 2 +-
+ 4 files changed, 7 insertions(+), 4 deletions(-)
+
+diff --git a/include/clang/AST/Decl.h b/include/clang/AST/Decl.h
+index 02742801f3..79af5352c2 100644
+--- a/include/clang/AST/Decl.h
++++ b/include/clang/AST/Decl.h
+@@ -48,6 +48,8 @@
+ #include <string>
+ #include <utility>
+ 
++namespace cling { class DeclUnloader; }
++
+ namespace clang {
+ 
+ class ASTContext;
+diff --git a/include/clang/AST/DeclCXX.h b/include/clang/AST/DeclCXX.h
+index 2d22ddd360..29a2f74bf5 100644
+--- a/include/clang/AST/DeclCXX.h
++++ b/include/clang/AST/DeclCXX.h
+@@ -306,7 +306,7 @@ class CXXRecordDecl : public RecordDecl {
+   friend class ASTWriter;
+   friend class DeclContext;
+   friend class LambdaExpr;
+-  friend class DeclUnloader;
++  friend class ::cling::DeclUnloader;
+ 
+   friend void FunctionDecl::setPure(bool);
+   friend void TagDecl::startDefinition();
+diff --git a/include/clang/Parse/Parser.h b/include/clang/Parse/Parser.h
+index b7781b450d..4f955408d9 100644
+--- a/include/clang/Parse/Parser.h
++++ b/include/clang/Parse/Parser.h
+@@ -30,6 +30,8 @@
+ #include <memory>
+ #include <stack>
+ 
++namespace cling { class ParserStateRAII; }
++
+ namespace clang {
+   class PragmaHandler;
+   class Scope;
+@@ -39,7 +41,6 @@ namespace clang {
+   class DiagnosticBuilder;
+   struct LoopHint;
+   class Parser;
+-  class ParserStateRAII;
+   class ParsingDeclRAIIObject;
+   class ParsingDeclSpec;
+   class ParsingDeclarator;
+@@ -64,7 +65,7 @@ class Parser : public CodeCompletionHandler {
+   friend class ParenBraceBracketBalancer;
+   friend class BalancedDelimiterTracker;
+   friend class DestroyTemplateIdAnnotationsRAIIObj;
+-  friend class ParserStateRAII;
++  friend class ::cling::ParserStateRAII;
+ 
+   Preprocessor &PP;
+ 
+diff --git a/include/clang/Sema/Sema.h b/include/clang/Sema/Sema.h
+index 20a0b39d16..e78b1d3b56 100644
+--- a/include/clang/Sema/Sema.h
++++ b/include/clang/Sema/Sema.h
+@@ -11165,7 +11165,7 @@ protected:
+   friend class ASTReader;
+   friend class ASTDeclReader;
+   friend class ASTWriter;
+-  friend class DeclUnloader;
++  friend class ::cling::DeclUnloader;
+ 
+ public:
+   /// Retrieve the keyword associated
+-- 
+2.35.1
+

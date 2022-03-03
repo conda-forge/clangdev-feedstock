@@ -1,0 +1,35 @@
+From 4d75bcfc9d9e84c3607600be2375fdebc2d70bd7 Mon Sep 17 00:00:00 2001
+From: Vassil Vassilev <v.g.vassilev@gmail.com>
+Date: Fri, 13 Nov 2020 11:54:29 +0000
+Subject: [PATCH 063/107] Temporary workaround to the vector reallocation crash
+ in llvm.
+
+DeclContext::lookup returns a pointer the the StoredDeclsList which is a vector.
+While iterating over the candidates we can add more lookup candidates (notably
+from the ASTReader). Unfortunately if the exceed the capacity the vector content
+gets rellocated and we end up accessing invalid memory and crashing.
+
+This patch adds more preallocated storage while figuring out the best way to
+fix the issue.
+
+See https://reviews.llvm.org/D91524
+---
+ include/clang/AST/DeclContextInternals.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/clang/AST/DeclContextInternals.h b/include/clang/AST/DeclContextInternals.h
+index e6a4cd4381..c80e13fc7c 100644
+--- a/include/clang/AST/DeclContextInternals.h
++++ b/include/clang/AST/DeclContextInternals.h
+@@ -33,7 +33,7 @@ class DependentDiagnostic;
+ /// one entry.
+ struct StoredDeclsList {
+   /// When in vector form, this is what the Data pointer points to.
+-  using DeclsTy = SmallVector<NamedDecl *, 4>;
++  using DeclsTy = SmallVector<NamedDecl *, 8>;
+ 
+   /// A collection of declarations, with a flag to indicate if we have
+   /// further external declarations.
+-- 
+2.35.1
+

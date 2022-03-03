@@ -1,0 +1,29 @@
+From a220dcaa578654f8c325be939cd8dd36edcebf51 Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Thu, 18 Sep 2014 23:40:14 +0200
+Subject: [PATCH 081/107] Silence enum typed/untyped redecl until fwd decl can
+ handle it.
+
+---
+ lib/Sema/SemaDecl.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/lib/Sema/SemaDecl.cpp b/lib/Sema/SemaDecl.cpp
+index e89beef17e..9e541e0c14 100644
+--- a/lib/Sema/SemaDecl.cpp
++++ b/lib/Sema/SemaDecl.cpp
+@@ -14260,9 +14260,11 @@ bool Sema::CheckEnumRedeclaration(SourceLocation EnumLoc, bool IsScoped,
+       return true;
+     }
+   } else if (IsFixed != Prev->isFixed()) {
++#if 0
+     Diag(EnumLoc, diag::err_enum_redeclare_fixed_mismatch)
+       << Prev->isFixed();
+     Diag(Prev->getLocation(), diag::note_previous_declaration);
++#endif
+     return true;
+   }
+ 
+-- 
+2.35.1
+

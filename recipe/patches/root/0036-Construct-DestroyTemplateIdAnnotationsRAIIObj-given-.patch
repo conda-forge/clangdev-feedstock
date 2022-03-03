@@ -1,0 +1,27 @@
+From 3eb6ba986b56e3486c4ecf529a1bba12d6d4b8db Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Fri, 22 Apr 2016 15:59:00 +0200
+Subject: [PATCH 036/107] Construct DestroyTemplateIdAnnotationsRAIIObj given a
+ Parser.
+
+---
+ include/clang/Parse/RAIIObjectsForParser.h | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/include/clang/Parse/RAIIObjectsForParser.h b/include/clang/Parse/RAIIObjectsForParser.h
+index 558106eb68..5de0bd4dc1 100644
+--- a/include/clang/Parse/RAIIObjectsForParser.h
++++ b/include/clang/Parse/RAIIObjectsForParser.h
+@@ -451,6 +451,9 @@ namespace clang {
+         SmallVectorImpl<TemplateIdAnnotation *> &Container)
+         : Container(Container) {}
+ 
++    DestroyTemplateIdAnnotationsRAIIObj(Parser& P)
++        : Container(P.TemplateIds) {}
++
+     ~DestroyTemplateIdAnnotationsRAIIObj() {
+       for (SmallVectorImpl<TemplateIdAnnotation *>::iterator I =
+                Container.begin(),
+-- 
+2.35.1
+

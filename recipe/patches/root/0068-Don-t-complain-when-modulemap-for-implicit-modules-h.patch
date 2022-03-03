@@ -1,0 +1,37 @@
+From 2a3cd283724a0f3b40a4b7d89de195659ebdce40 Mon Sep 17 00:00:00 2001
+From: Yuka Takahashi <yukatkh@gmail.com>
+Date: Mon, 17 Dec 2018 11:58:39 +0100
+Subject: [PATCH 068/107] Don't complain when modulemap for implicit modules
+ has changed
+
+This patch (also) aims to make runtime module installable.
+
+This part of code in Clang is comparing the location of "modulemap which
+is currently loaded and gives a definition of current module (say, stl)
+and "the location of the modulemap where the current implicit module (like stl) was built".
+
+This was problematic for CMSSW, as they should install modulemaps
+and prebuilt pcms to other directory. stl and libc pcms should be
+prebuilt, installed and used from installed directory, so this check is
+redundant for that usecase.
+---
+ lib/Serialization/ASTReader.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/lib/Serialization/ASTReader.cpp b/lib/Serialization/ASTReader.cpp
+index f7881cffe0..dba4b49275 100644
+--- a/lib/Serialization/ASTReader.cpp
++++ b/lib/Serialization/ASTReader.cpp
+@@ -3879,7 +3879,8 @@ ASTReader::ReadModuleMapFileBlock(RecordData &Record, ModuleFile &F,
+ 
+     // Check the primary module map file.
+     const FileEntry *StoredModMap = FileMgr.getFile(F.ModuleMapPath);
+-    if (StoredModMap == nullptr || StoredModMap != ModMap) {
++    if (!PP.getPreprocessorOpts().DisablePCHValidation &&
++          (StoredModMap == nullptr || StoredModMap != ModMap)) {
+       assert(ModMap && "found module is missing module map file");
+       assert(ImportedBy && "top-level import should be verified");
+       if ((ClientLoadCapabilities & ARR_OutOfDate) == 0)
+-- 
+2.35.1
+

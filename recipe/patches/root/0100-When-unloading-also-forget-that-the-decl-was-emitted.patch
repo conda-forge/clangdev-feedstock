@@ -1,0 +1,25 @@
+From df4c989a84efdf8c22b29d31b9825489d40c2368 Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Thu, 4 Feb 2021 11:52:26 +0100
+Subject: [PATCH 100/107] When unloading, also forget that the decl was
+ emitted.
+
+---
+ lib/CodeGen/ModuleBuilder.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/lib/CodeGen/ModuleBuilder.cpp b/lib/CodeGen/ModuleBuilder.cpp
+index 56ddf2be99..26eae177dc 100644
+--- a/lib/CodeGen/ModuleBuilder.cpp
++++ b/lib/CodeGen/ModuleBuilder.cpp
+@@ -306,6 +306,7 @@ namespace clang {
+ 
+     void forgetDecl(const GlobalDecl& GD, llvm::StringRef MangledName) {
+       Builder->DeferredDecls.erase(MangledName);
++      Builder->Manglings.erase(MangledName);
+     }
+ 
+     void Initialize(ASTContext &Context) override {
+-- 
+2.35.1
+

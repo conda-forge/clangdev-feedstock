@@ -1,7 +1,7 @@
 From b9391b85d6e1b1611f0c42255dd5b76f4e40393c Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Mon, 3 Mar 2014 23:35:20 +0100
-Subject: [PATCH 002/110] Only reset extra parsers if not temporary.
+Subject: [PATCH 002/107] Only reset extra parsers if not temporary.
 
 ---
  lib/Parse/Parser.cpp | 6 ++++--
@@ -26,5 +26,5 @@ index 41a59d7b59..f3d7ec83d3 100644
    if (getLangOpts().DelayedTemplateParsing &&
        !PP.isIncrementalProcessingEnabled() && !TemplateIds.empty()) {
 -- 
-2.29.2
+2.35.1
 

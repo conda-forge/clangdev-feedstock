@@ -1,7 +1,7 @@
 From 48b665c333cf867ea2e4516a491a2d2c765213e8 Mon Sep 17 00:00:00 2001
 From: Philippe Canal <pcanal@fnal.gov>
 Date: Thu, 24 Oct 2013 10:49:05 -0500
-Subject: [PATCH 005/110] Extend SubstTemplateTypeParmType to support
+Subject: [PATCH 005/107] Extend SubstTemplateTypeParmType to support
  non-canonical types.
 
 Previously SubstTemplateTypeParmType could only keep the canonical
@@ -66,5 +66,5 @@ index 93bdaafc2a..c513f0017b 100644
      SubstTemplateTypeParmTypes.InsertNode(SubstParm, InsertPos);
    }
 -- 
-2.29.2
+2.35.1
 
