@@ -13,11 +13,11 @@ jobs:
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-cos7-x86_64
         SHORT_CONFIG: linux_64_llvm_variantcling_v0.9variantcling_v0.9
-      linux_64_llvm_variantcling_v0.9variantroot_62400:
-        CONFIG: linux_64_llvm_variantcling_v0.9variantroot_62400
+      linux_64_llvm_variantcling_v0.9variantroot_62600:
+        CONFIG: linux_64_llvm_variantcling_v0.9variantroot_62600
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-cos7-x86_64
-        SHORT_CONFIG: linux_64_llvm_variantcling_v0.9variantroot_62400
+        SHORT_CONFIG: linux_64_llvm_variantcling_v0.9variantroot_62600
       linux_64_llvm_variantdefaultvariantdefault:
         CONFIG: linux_64_llvm_variantdefaultvariantdefault
         UPLOAD_PACKAGES: 'True'
@@ -33,11 +33,11 @@ jobs:
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-cos7-x86_64
         SHORT_CONFIG: linux_aarch64_llvm_variantcling_v0._h84afe2b6ec
-      linux_aarch64_llvm_variantcling_v0.9variantroot_62400:
-        CONFIG: linux_aarch64_llvm_variantcling_v0.9variantroot_62400
+      linux_aarch64_llvm_variantcling_v0.9variantroot_62600:
+        CONFIG: linux_aarch64_llvm_variantcling_v0.9variantroot_62600
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-cos7-x86_64
-        SHORT_CONFIG: linux_aarch64_llvm_variantcling_v0._h0bce1b141b
+        SHORT_CONFIG: linux_aarch64_llvm_variantcling_v0._hb822cd12e7
       linux_aarch64_llvm_variantdefaultvariantdefault:
         CONFIG: linux_aarch64_llvm_variantdefaultvariantdefault
         UPLOAD_PACKAGES: 'True'
@@ -53,11 +53,11 @@ jobs:
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-cos7-x86_64
         SHORT_CONFIG: linux_ppc64le_llvm_variantcling_v0._h15e92ca226
-      linux_ppc64le_llvm_variantcling_v0.9variantroot_62400:
-        CONFIG: linux_ppc64le_llvm_variantcling_v0.9variantroot_62400
+      linux_ppc64le_llvm_variantcling_v0.9variantroot_62600:
+        CONFIG: linux_ppc64le_llvm_variantcling_v0.9variantroot_62600
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-cos7-x86_64
-        SHORT_CONFIG: linux_ppc64le_llvm_variantcling_v0._h4b288e252b
+        SHORT_CONFIG: linux_ppc64le_llvm_variantcling_v0._h97396965a6
       linux_ppc64le_llvm_variantdefaultvariantdefault:
         CONFIG: linux_ppc64le_llvm_variantdefaultvariantdefault
         UPLOAD_PACKAGES: 'True'
