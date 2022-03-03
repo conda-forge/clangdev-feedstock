@@ -1,6 +1,6 @@
 {% set version = "9.0.1" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 3 %}
+{% set build_number = 4 %}
 
 {% if not variant %}
 {% set variant = "default" %}
@@ -26,6 +26,7 @@ source:
       - patches/amd-roc-2.7.0.diff   # [variant != "hcc"]
       - patches/amd-roc-hcc-2.7.0.diff  # [variant == "hcc"]
       - patches/0008-Allow--DDEFAULT_SYSROOT-to-be-a-relative-path.patch              # [variant and variant.startswith("root_")]
+      - patches/0009-Prefer-__vector-over-vector-keyword-for-altivec.patch
       # Taken from cloning http://root.cern/git/clang.git and running
       # git show origin/ROOT-patches --quiet -> c43832868861f1fad029e29246381dd427a7dcd8
       # git format-patch cc54f73e76332c635d97a53b5ec369901173be53~1..c43832868861f1fad029e29246381dd427a7dcd8
