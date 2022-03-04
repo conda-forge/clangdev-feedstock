@@ -1,0 +1,24 @@
+From 4320b8c4a8eb2443fb5ac598ce06b91c606966e4 Mon Sep 17 00:00:00 2001
+From: Vassil Vassilev <v.g.vassilev@gmail.com>
+Date: Sat, 15 Aug 2020 06:39:01 +0000
+Subject: [PATCH 106/107] Add missing include to fix -Dcxxmodules=On
+
+---
+ include/clang/Serialization/GlobalModuleIndex.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/include/clang/Serialization/GlobalModuleIndex.h b/include/clang/Serialization/GlobalModuleIndex.h
+index 5f48126262..859c79ddb3 100644
+--- a/include/clang/Serialization/GlobalModuleIndex.h
++++ b/include/clang/Serialization/GlobalModuleIndex.h
+@@ -16,6 +16,7 @@
+ #define LLVM_CLANG_SERIALIZATION_GLOBALMODULEINDEX_H
+ 
+ #include "llvm/ADT/DenseMap.h"
++#include <llvm/ADT/DenseSet.h>
+ #include "llvm/ADT/SmallPtrSet.h"
+ #include "llvm/ADT/SmallVector.h"
+ #include "llvm/ADT/StringMap.h"
+-- 
+2.35.1
+

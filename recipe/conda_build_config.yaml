@@ -20,7 +20,7 @@ cxx_compiler_version:   # [osx]
 variant:
   - default
   - hcc   # [linux]
-  - root_62400  # [linux or osx]
+  - root_62600  # [linux or osx]
   - cling_v0.9  # Tag is cling-v0.9
 
 # ROOT uses the cling variant of llvm

@@ -1,7 +1,7 @@
 From b38ce02ad072c7299b63c3b453d078b4efcba58a Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Tue, 13 Jan 2015 14:52:16 +0100
-Subject: [PATCH 029/110] CGModule can have pending WeakRefReferences; carry
+Subject: [PATCH 029/107] CGModule can have pending WeakRefReferences; carry
  over.
 
 ---
@@ -36,5 +36,5 @@ index 93f92e64c7..7c672a8249 100644
  
        return M.get();
 -- 
-2.29.2
+2.35.1
 

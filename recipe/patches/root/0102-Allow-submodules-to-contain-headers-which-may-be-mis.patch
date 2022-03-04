@@ -1,0 +1,69 @@
+From e375f63b535fea0b55e49268131a6aa2218e91e6 Mon Sep 17 00:00:00 2001
+From: Vassil Vassilev <v.g.vassilev@gmail.com>
+Date: Sun, 28 Feb 2021 14:16:52 +0000
+Subject: [PATCH 102/107] Allow submodules to contain headers which may be
+ missing.
+
+This allows us to use a single modulemap file across multiple libstdc++
+versions and gives us a way forward to deal with deprecated files.
+
+This patch will be submitted for a review upstream. It fixes our
+gcc 4.8 builds where codecvt, cuchar and string_view header files do not exist.
+---
+ lib/Basic/Module.cpp | 14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
+
+diff --git a/lib/Basic/Module.cpp b/lib/Basic/Module.cpp
+index f394f26e55..bda3d994df 100644
+--- a/lib/Basic/Module.cpp
++++ b/lib/Basic/Module.cpp
+@@ -104,7 +104,7 @@ static bool isPlatformEnvironment(const TargetInfo &Target, StringRef Feature) {
+ /// Determine whether a translation unit built using the current
+ /// language options has the given feature.
+ static bool hasFeature(StringRef Feature, const LangOptions &LangOpts,
+-                       const TargetInfo &Target) {
++                       const TargetInfo &Target, bool HasMissingHeaders) {
+   bool HasFeature = llvm::StringSwitch<bool>(Feature)
+                         .Case("altivec", LangOpts.AltiVec)
+                         .Case("blocks", LangOpts.Blocks)
+@@ -121,6 +121,7 @@ static bool hasFeature(StringRef Feature, const LangOptions &LangOpts,
+                         .Case("objc", LangOpts.ObjC)
+                         .Case("objc_arc", LangOpts.ObjCAutoRefCount)
+                         .Case("opencl", LangOpts.OpenCL)
++                        .Case("header_existence", !HasMissingHeaders)
+                         .Case("tls", Target.isTLSSupported())
+                         .Case("zvector", LangOpts.ZVector)
+                         .Default(Target.hasFeature(Feature) ||
+@@ -144,14 +145,16 @@ bool Module::isAvailable(const LangOptions &LangOpts, const TargetInfo &Target,
+       ShadowingModule = Current->ShadowingModule;
+       return false;
+     }
++    bool HasMissingHeaders = !Current->MissingHeaders.empty();
+     for (unsigned I = 0, N = Current->Requirements.size(); I != N; ++I) {
+-      if (hasFeature(Current->Requirements[I].first, LangOpts, Target) !=
+-              Current->Requirements[I].second) {
++      if (hasFeature(Current->Requirements[I].first, LangOpts, Target,
++                     HasMissingHeaders) !=
++          Current->Requirements[I].second) {
+         Req = Current->Requirements[I];
+         return false;
+       }
+     }
+-    if (!Current->MissingHeaders.empty()) {
++    if (HasMissingHeaders) {
+       MissingHeader = Current->MissingHeaders.front();
+       return false;
+     }
+@@ -279,7 +282,8 @@ void Module::addRequirement(StringRef Feature, bool RequiredState,
+   Requirements.push_back(Requirement(Feature, RequiredState));
+ 
+   // If this feature is currently available, we're done.
+-  if (hasFeature(Feature, LangOpts, Target) == RequiredState)
++  if (hasFeature(Feature, LangOpts, Target, !MissingHeaders.empty()) ==
++      RequiredState)
+     return;
+ 
+   markUnavailable(/*MissingRequirement*/true);
+-- 
+2.35.1
+

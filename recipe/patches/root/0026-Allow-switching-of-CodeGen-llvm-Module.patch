@@ -1,7 +1,7 @@
 From 661301fea7641086db9d21b67ec90442bd8dc6df Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Wed, 7 Jan 2015 10:28:02 +0100
-Subject: [PATCH 026/110] Allow switching of CodeGen llvm::Module.
+Subject: [PATCH 026/107] Allow switching of CodeGen llvm::Module.
 
 ---
  include/clang/CodeGen/ModuleBuilder.h |  4 ++++
@@ -57,5 +57,5 @@ index ff59a5664f..5857982443 100644
      DiagnosticsEngine &Diags, llvm::StringRef ModuleName,
      const HeaderSearchOptions &HeaderSearchOpts,
 -- 
-2.29.2
+2.35.1
 

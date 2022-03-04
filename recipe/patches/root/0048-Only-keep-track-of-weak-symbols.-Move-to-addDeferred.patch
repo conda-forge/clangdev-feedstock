@@ -1,0 +1,119 @@
+From bf8202d1137b333f19c07026fb8ded667a7079ff Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Wed, 29 Mar 2017 17:21:21 +0200
+Subject: [PATCH 048/107] Only keep track of weak symbols. Move to
+ addDeferredDeclToEmit.
+
+---
+ lib/CodeGen/CodeGenModule.cpp | 23 ++++++++++-------------
+ lib/CodeGen/CodeGenModule.h   | 19 ++++++++++++++++---
+ 2 files changed, 26 insertions(+), 16 deletions(-)
+
+diff --git a/lib/CodeGen/CodeGenModule.cpp b/lib/CodeGen/CodeGenModule.cpp
+index 158b2f1003..178d74f26e 100644
+--- a/lib/CodeGen/CodeGenModule.cpp
++++ b/lib/CodeGen/CodeGenModule.cpp
+@@ -2104,10 +2104,11 @@ void CodeGenModule::EmitDeferred() {
+ 
+   // Grab the list of decls to emit. If EmitGlobalDefinition schedules more
+   // work, it will not interfere with this.
+-  std::vector<GlobalDecl> CurDeclsToEmit;
++  std::vector<DeferredGlobal> CurDeclsToEmit;
+   CurDeclsToEmit.swap(DeferredDeclsToEmit);
+ 
+-  for (GlobalDecl &D : CurDeclsToEmit) {
++  for (DeferredGlobal &DG : CurDeclsToEmit) {
++    GlobalDecl &D = DG.GD;
+     // We should call GetAddrOfGlobal with IsForDefinition set to true in order
+     // to get GlobalValue with exactly the type we need, not something that
+     // might had been created for another decl with the same mangled name but
+@@ -2540,15 +2541,13 @@ void CodeGenModule::EmitGlobal(GlobalDecl GD) {
+   }
+ 
+   StringRef MangledName = getMangledName(GD);
+-  if (GetGlobalValue(MangledName) != nullptr) {
++  if (auto *GV = GetGlobalValue(MangledName)) {
+     // The value has already been used and should therefore be emitted.
+-    addDeferredDeclToEmit(GV, GD);
+-    EmittedDeferredDecls[MangledName] = GD;
++    addDeferredDeclToEmit(GV, GD, MangledName);
+   } else if (MustBeEmitted(Global)) {
+     // The value must be emitted, but cannot be emitted eagerly.
+     assert(!MayBeEmittedEagerly(Global));
+-    addDeferredDeclToEmit(/*GV=*/nullptr, GD);
+-    EmittedDeferredDecls[MangledName] = GD;
++    addDeferredDeclToEmit(/*GV=*/nullptr, GD, MangledName);
+   } else {
+     // Otherwise, remember that we saw a deferred decl with this name.  The
+     // first use of the mangled name will cause it to move into
+@@ -3142,7 +3141,7 @@ llvm::Constant *CodeGenModule::GetOrCreateLLVMFunction(
+     if (D && isa<CXXDestructorDecl>(D) &&
+         getCXXABI().useThunkForDtorVariant(cast<CXXDestructorDecl>(D),
+                                            GD.getDtorType()))
+-      addDeferredDeclToEmit(GD);
++      addDeferredDeclToEmit(F, GD, MangledName);
+ 
+     // This is the first use or definition of a mangled name.  If there is a
+     // deferred decl with this name, remember that we need to emit it at the end
+@@ -3152,8 +3151,7 @@ llvm::Constant *CodeGenModule::GetOrCreateLLVMFunction(
+       // Move the potentially referenced deferred decl to the
+       // DeferredDeclsToEmit list, and remove it from DeferredDecls (since we
+       // don't need it anymore).
+-      addDeferredDeclToEmit(F, DDI->second);
+-      EmittedDeferredDecls[DDI->first] = DDI->second;
++      addDeferredDeclToEmit(F, DDI->second, MangledName);
+       DeferredDecls.erase(DDI);
+ 
+       // Otherwise, there are cases we have to worry about where we're
+@@ -3173,7 +3171,7 @@ llvm::Constant *CodeGenModule::GetOrCreateLLVMFunction(
+            FD = FD->getPreviousDecl()) {
+         if (isa<CXXRecordDecl>(FD->getLexicalDeclContext())) {
+           if (FD->doesThisDeclarationHaveABody()) {
+-            addDeferredDeclToEmit(GD.getWithDecl(FD));
++            addDeferredDeclToEmit(F, GD.getWithDecl(FD), MangledName);
+             break;
+           }
+         }
+@@ -3407,8 +3405,7 @@ CodeGenModule::GetOrCreateLLVMGlobal(StringRef MangledName,
+   if (DDI != DeferredDecls.end()) {
+     // Move the potentially referenced deferred decl to the DeferredDeclsToEmit
+     // list, and remove it from DeferredDecls (since we don't need it anymore).
+-    addDeferredDeclToEmit(GV, DDI->second);
+-    EmittedDeferredDecls[DDI->first] = DDI->second;
++    addDeferredDeclToEmit(GV, DDI->second, MangledName);
+     DeferredDecls.erase(DDI);
+   }
+ 
+diff --git a/lib/CodeGen/CodeGenModule.h b/lib/CodeGen/CodeGenModule.h
+index 462bf89402..17d1b4efbf 100644
+--- a/lib/CodeGen/CodeGenModule.h
++++ b/lib/CodeGen/CodeGenModule.h
+@@ -343,9 +343,22 @@ private:
+ 
+   /// This is a list of deferred decls which we have seen that *are* actually
+   /// referenced. These get code generated when the module is done.
+-  std::vector<GlobalDecl> DeferredDeclsToEmit;
+-  void addDeferredDeclToEmit(GlobalDecl GD) {
+-    DeferredDeclsToEmit.emplace_back(GD);
++  struct DeferredGlobal {
++    DeferredGlobal(llvm::GlobalValue *GV, GlobalDecl GD) : GV(GV), GD(GD) {}
++    llvm::TrackingVH<llvm::GlobalValue> GV;
++    GlobalDecl GD;
++  };
++  std::vector<DeferredGlobal> DeferredDeclsToEmit;
++  void addDeferredDeclToEmit(llvm::GlobalValue *GV, GlobalDecl GD,
++                             StringRef MangledName) {
++    if (const ValueDecl* VD = dyn_cast<ValueDecl>(GD.getDecl())) {
++      if (VD->isWeak()) {
++        if (MangledName.empty())
++          MangledName = getMangledName(GD);
++        EmittedDeferredDecls[MangledName] = GD;
++      }
++    }
++    DeferredDeclsToEmit.emplace_back(GV, GD);
+   }
+ 
+   /// Decls that were DeferredDecls and have now been emitted.
+-- 
+2.35.1
+

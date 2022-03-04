@@ -1,7 +1,7 @@
 From 97b5839c483b79b4a42769e9264e67acd851c2fc Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Tue, 27 May 2014 18:17:51 +0200
-Subject: [PATCH 017/110] Merge Ctors from nested transactions.
+Subject: [PATCH 017/107] Merge Ctors from nested transactions.
 
 We cannot run nested transactions' initializations until the parent is done.
 But the parent transaction must not replace the nested transactions' static initialization either.
@@ -44,5 +44,5 @@ index 1fd4e4cf8b..7526668051 100644
      auto ctor = ctors.beginStruct(CtorStructTy);
      ctor.addInt(Int32Ty, I.Priority);
 -- 
-2.29.2
+2.35.1
 

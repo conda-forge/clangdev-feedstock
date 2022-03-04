@@ -1,0 +1,24 @@
+From e58a4db65565e52c7479d24c0d967c3da872f3d7 Mon Sep 17 00:00:00 2001
+From: Vassil Vassilev <v.g.vassilev@gmail.com>
+Date: Fri, 12 Mar 2021 17:10:56 +0000
+Subject: [PATCH 062/107] meld
+
+---
+ include/clang/AST/Type.h | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/include/clang/AST/Type.h b/include/clang/AST/Type.h
+index ef0cb47fa4..07d9448397 100644
+--- a/include/clang/AST/Type.h
++++ b/include/clang/AST/Type.h
+@@ -4682,7 +4682,6 @@ class SubstTemplateTypeParmType : public Type, public llvm::FoldingSetNode {
+              Canon->isVariablyModifiedType(),
+              Canon->containsUnexpandedParameterPack()),
+         Replaced(Param), Replacement(ReplacementType) {}
+-  friend class ASTContext;
+ 
+ public:
+   /// Gets the template parameter that was substituted for.
+-- 
+2.35.1
+

@@ -1,0 +1,36 @@
+From 38b6000720e23dc0f23085054ed7d442e116b5c9 Mon Sep 17 00:00:00 2001
+From: Vassil Vassilev <v.g.vassilev@gmail.com>
+Date: Thu, 21 Feb 2019 09:29:38 +0200
+Subject: [PATCH 061/107] [cxxmodules] Don't complain when modulemap for
+ implicit modules has changed
+
+This patch (also) aims to make runtime module installable.
+
+This part of code in Clang is comparing the location of "modulemap which
+is currently loaded and gives a definition of current module (say, stl)
+and "the location of the modulemap where the current implicit module (like stl) was built".
+
+This was problematic for CMSSW, as they should install modulemaps
+and prebuilt pcms to other directory. stl and libc pcms should be
+prebuilt, installed and used from installed directory, so this check is
+redundant for that usecase.
+---
+ lib/Serialization/ASTReader.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/Serialization/ASTReader.cpp b/lib/Serialization/ASTReader.cpp
+index a089e86509..718e49ada7 100644
+--- a/lib/Serialization/ASTReader.cpp
++++ b/lib/Serialization/ASTReader.cpp
+@@ -2753,7 +2753,7 @@ ASTReader::ReadControlBlock(ModuleFile &F,
+                                       /*AllowExtraModuleMapSearch*/ true);
+           if (M) {
+             std::string Path = HS.getPrebuiltModuleFileName(M->Name);
+-                           if (Path.empty())
++            if (Path.empty())
+               Path = HS.getCachedModuleFileName(M->Name,
+                    HS.getModuleMap().getModuleMapFileForUniquing(M)->getName());
+             // FIXME: Add a hash comparison to check if ImportedFile's hash and the
+-- 
+2.35.1
+

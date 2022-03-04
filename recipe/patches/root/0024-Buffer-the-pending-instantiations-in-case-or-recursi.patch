@@ -1,7 +1,7 @@
 From 6a76961bc1707b9ed1afeadb4c1a6c3f0f3d08cd Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Tue, 2 Dec 2014 17:43:18 +0100
-Subject: [PATCH 024/110] Buffer the pending instantiations in case or
+Subject: [PATCH 024/107] Buffer the pending instantiations in case or
  recursive parsing.
 
 ---
@@ -38,5 +38,5 @@ index bd905601d9..20a0b39d16 100644
  
    TypeSourceInfo *SubstType(TypeSourceInfo *T,
 -- 
-2.29.2
+2.35.1
 

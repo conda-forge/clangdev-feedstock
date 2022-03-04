@@ -1,7 +1,7 @@
 From 758e42e823bf921ab94aa9b845e2cc12750606c5 Mon Sep 17 00:00:00 2001
 From: Vassil Vassilev <vvasilev@cern.ch>
 Date: Tue, 8 Apr 2014 18:00:07 +0200
-Subject: [PATCH 010/110] Adapt the user of invalidateCache to its new
+Subject: [PATCH 010/107] Adapt the user of invalidateCache to its new
  signature. Note: this might be change of behavior, because the new
  implementation doesn't erase the entry from the ADT.
 
@@ -31,5 +31,5 @@ index 6ae0c4f575..0306dadb3b 100644
        StringRef ModuleName = victim->ModuleName;
        if (Module *mod = modMap->findModule(ModuleName)) {
 -- 
-2.29.2
+2.35.1
 

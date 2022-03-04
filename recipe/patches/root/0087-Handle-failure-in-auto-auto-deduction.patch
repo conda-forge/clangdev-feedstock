@@ -1,0 +1,31 @@
+From ee7a6357e426b62dd67572d86bb52d208048fc6d Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Thu, 1 Sep 2016 14:24:09 +0200
+Subject: [PATCH 087/107] Handle failure in auto auto deduction.
+
+---
+ lib/Sema/SemaExpr.cpp | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/lib/Sema/SemaExpr.cpp b/lib/Sema/SemaExpr.cpp
+index 51a60d378b..87775fd4be 100644
+--- a/lib/Sema/SemaExpr.cpp
++++ b/lib/Sema/SemaExpr.cpp
+@@ -12531,7 +12531,13 @@ ExprResult Sema::CreateBuiltinBinOp(SourceLocation OpLoc,
+             ASTContext& C = getASTContext();
+             TypeSourceInfo* TrivialTSI
+               = C.getTrivialTypeSourceInfo(VD->getType());
+-            DeduceAutoType(TrivialTSI, RHSExpr, ResTy);
++            if (DeduceAutoType(TrivialTSI, RHSExpr, ResTy) != DAR_Succeeded) {
++               Diag(VD->getLocation(), diag::err_auto_var_requires_init)
++                  << VD->getDeclName() << VD->getType();
++               VD->setInvalidDecl();
++
++               return ExprError();
++            }
+             VD->setTypeSourceInfo(C.getTrivialTypeSourceInfo(ResTy));
+             VD->setType(ResTy);
+             VD->setInit(RHSExpr);
+-- 
+2.35.1
+

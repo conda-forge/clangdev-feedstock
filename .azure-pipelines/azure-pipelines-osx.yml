@@ -12,10 +12,10 @@ jobs:
         CONFIG: osx_64_llvm_variantcling_v0.9variantcling_v0.9
         UPLOAD_PACKAGES: 'True'
         SHORT_CONFIG: osx_64_llvm_variantcling_v0.9variantcling_v0.9
-      osx_64_llvm_variantcling_v0.9variantroot_62400:
-        CONFIG: osx_64_llvm_variantcling_v0.9variantroot_62400
+      osx_64_llvm_variantcling_v0.9variantroot_62600:
+        CONFIG: osx_64_llvm_variantcling_v0.9variantroot_62600
         UPLOAD_PACKAGES: 'True'
-        SHORT_CONFIG: osx_64_llvm_variantcling_v0.9variantroot_62400
+        SHORT_CONFIG: osx_64_llvm_variantcling_v0.9variantroot_62600
       osx_64_llvm_variantdefaultvariantdefault:
         CONFIG: osx_64_llvm_variantdefaultvariantdefault
         UPLOAD_PACKAGES: 'True'
@@ -24,10 +24,10 @@ jobs:
         CONFIG: osx_arm64_llvm_variantcling_v0.9variantcling_v0.9
         UPLOAD_PACKAGES: 'True'
         SHORT_CONFIG: osx_arm64_llvm_variantcling_v0.9var_h5016f2ec58
-      osx_arm64_llvm_variantcling_v0.9variantroot_62400:
-        CONFIG: osx_arm64_llvm_variantcling_v0.9variantroot_62400
+      osx_arm64_llvm_variantcling_v0.9variantroot_62600:
+        CONFIG: osx_arm64_llvm_variantcling_v0.9variantroot_62600
         UPLOAD_PACKAGES: 'True'
-        SHORT_CONFIG: osx_arm64_llvm_variantcling_v0.9var_h0d73f080d9
+        SHORT_CONFIG: osx_arm64_llvm_variantcling_v0.9var_h07b1950602
       osx_arm64_llvm_variantdefaultvariantdefault:
         CONFIG: osx_arm64_llvm_variantdefaultvariantdefault
         UPLOAD_PACKAGES: 'True'

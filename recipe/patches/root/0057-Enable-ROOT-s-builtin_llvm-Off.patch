@@ -1,0 +1,65 @@
+From ad0544d98b7fe3aedf7c33eb45903762bcecd412 Mon Sep 17 00:00:00 2001
+From: Vassil Vassilev <v.g.vassilev@gmail.com>
+Date: Sat, 19 Oct 2019 21:59:23 +0300
+Subject: [PATCH 057/107] Enable ROOT's builtin_llvm=Off
+
+This patch allows ROOT to be built against compatible external llvm (5.0
+or 5.0.1). Note that we still need to build clang (eg. we require
+builtin_clang=On) due to the ROOT-specific patches which are not yet
+upstream.
+
+Since we have externally installed llvm, we configure and build clang as
+a standalone project. The configuration relies on finding llvm-config-5.0
+and uses an adapted version of the standard clang standalone build
+procedure.
+
+Clang provides dependencies such as FileCheck and not which are used by
+cling's testsuite and are not being installed with the standard llvm
+package.
+
+Cling (which depends on llvm and clang) is built as a clang tool to avoid
+unresolved dependencies to clang and complicating further the already
+complicated cmake setup.
+
+This patch intends a minimal change and follows the initial (suboptimal)
+design to configure and build llvm, clang and cling as part of ROOT. An
+ultimate solution would be to have llvm, clang and cling built as separate
+standalone projects (following the recommended way by the LLVM cmake
+developers).
+---
+ tools/driver/cc1_main.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/tools/driver/cc1_main.cpp b/tools/driver/cc1_main.cpp
+index 7315a13570..113c2c8168 100644
+--- a/tools/driver/cc1_main.cpp
++++ b/tools/driver/cc1_main.cpp
+@@ -72,11 +72,13 @@ static void LLVMErrorHandler(void *UserData, const std::string &Message,
+   exit(GenCrashDiag ? 70 : 1);
+ }
+ 
++#if 0
+ #ifdef LINK_POLLY_INTO_TOOLS
+ namespace polly {
+ void initializePollyPasses(llvm::PassRegistry &Registry);
+ }
+ #endif
++#endif
+ 
+ #ifdef CLANG_HAVE_RLIMITS
+ #if defined(__linux__) && defined(__PIE__)
+@@ -203,9 +205,11 @@ int cc1_main(ArrayRef<const char *> Argv, const char *Argv0, void *MainAddr) {
+   llvm::InitializeAllAsmPrinters();
+   llvm::InitializeAllAsmParsers();
+ 
++#if 0
+ #ifdef LINK_POLLY_INTO_TOOLS
+   llvm::PassRegistry &Registry = *llvm::PassRegistry::getPassRegistry();
+   polly::initializePollyPasses(Registry);
++#endif
+ #endif
+ 
+   // Buffer diagnostics from argument parsing so that we can output them using a
+-- 
+2.35.1
+

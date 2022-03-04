@@ -1,7 +1,7 @@
 From b33cdd9074c86cfb6c5c25b086e5ba1bdbc6fa04 Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Mon, 12 Jan 2015 14:30:17 +0100
-Subject: [PATCH 027/110] Avoid dupe "llvm.ident" operands.
+Subject: [PATCH 027/107] Avoid dupe "llvm.ident" operands.
 
 ---
  lib/CodeGen/CodeGenModule.cpp | 3 +++
@@ -22,5 +22,5 @@ index 7526668051..21a931c050 100644
    llvm::LLVMContext &Ctx = TheModule.getContext();
  
 -- 
-2.29.2
+2.35.1
 

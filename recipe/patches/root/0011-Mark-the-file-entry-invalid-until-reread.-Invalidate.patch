@@ -1,7 +1,7 @@
 From 6006318a56ff49868cb78bd2dc660a9c304d81dd Mon Sep 17 00:00:00 2001
 From: Vassil Vassilev <vvasilev@cern.ch>
 Date: Tue, 8 Apr 2014 16:48:23 +0200
-Subject: [PATCH 011/110] Mark the file entry invalid, until reread. Invalidate
+Subject: [PATCH 011/107] Mark the file entry invalid, until reread. Invalidate
  SLocEntry cache, readd it on reread.
 
 Do not use translateFile, because it pulls in parts of the pch.
@@ -85,5 +85,5 @@ index 5b59b74c05..ed50c8dc3a 100644
  
  void SourceManager::initializeForReplay(const SourceManager &Old) {
 -- 
-2.29.2
+2.35.1
 
