@@ -1,12 +1,17 @@
-{% set version = "13.0.1.rc1" %}
+{% set version = "14.0.0.rc2" %}
 {% set major_version = version.split(".")[0] %}
 {% set build_number = 0 %}
 
 {% set minor_aware_ext = major_version %}
-{% set minor_int = version.split(".")[1] | int %}
-{% if minor_int > 0 %}
+{% if version.split(".")[1] | int > 0 %}
 {% set minor_aware_ext = major_version + "." + version.split(".")[1] %}
 {% endif %}
+
+# Starting from LLVM 14, the ABI of libclang doesn't necessarily
+# match the major version anymore, but only on linux apparently
+# (also the ABI of libclang-cpp _does_ stay in lockstep) - cf.
+# https://github.com/llvm/llvm-project/issues/54004
+{% set abi_version = "13" %}
 
 package:
   name: clang_packages
@@ -14,7 +19,7 @@ package:
 
 source:
   - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/clang-{{ version.replace(".rc", "rc") }}.src.tar.xz
-    sha256: c8359a51f702e22dc43eebbd5bb8b32f524ae95ce196ed62c524a0a3e6d4fd4d
+    sha256: bb8fd20397493f7a5ba685c698e880f4ebef09b035bece53985edfbfe0ade95c
     patches:
       - patches/0001-Find-conda-gcc-installation.patch
       - patches/0002-Fix-sysroot-detection-for-linux.patch
@@ -29,7 +34,7 @@ source:
       #- patches/amd-roc-hcc-2.7.0.diff  # [variant == "hcc"]
     folder: .
   - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/clang-tools-extra-{{ version.replace(".rc", "rc") }}.src.tar.xz
-    sha256: f04f8713734f2e1cd80a0060336296cf1aa841552a1ca7f958dbfcb897dd8eb4
+    sha256: 56dbc9ff374427b165d7011fae29a54361b4f72836fbb02d134d3a852eb9d996
     folder: tools/extra
 
 build:
@@ -181,6 +186,9 @@ outputs:
         - hcc          # [variant=="hcc"]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:
+        # note this run_export refers to the cf-version of the package;
+        # theoretically it should reflect CLANG_SONAME, but that would
+        # need more surgery on the infrastructure.
         - libclang {{ minor_aware_ext }}.*
     requirements:
       build:
@@ -200,9 +208,11 @@ outputs:
     test:
       commands:
         - test -f "$PREFIX/lib/libclang.so"                           # [linux]
-        - test -f "$PREFIX/lib/libclang.so.{{ minor_aware_ext }}"     # [linux]
-        {% if minor_aware_ext != major_version %}
+        - test -f "$PREFIX/lib/libclang.so.{{ abi_version }}"         # [linux]
+        {% if abi_version != major_version %}
         - test ! -f "$PREFIX/lib/libclang.so.{{ major_version }}"     # [linux]
+        {% elif minor_aware_ext != major_version %}
+        # different behaviour between linux and osx, see comment at the top
         - test ! -f "$PREFIX/lib/libclang.{{ major_version }}.dylib"  # [osx]
         {% endif %}
         - test -f "$PREFIX/lib/libclang.dylib"                        # [osx]
@@ -411,9 +421,7 @@ outputs:
       noarch: python
       # Building this output using this recipe is only supported on unix
       # It can still be installed on Windows as it is marked as `noarch: python`
-      skip: true  # [win or variant=="hcc" or (build_platform != target_platform)]
-      track_features:
-        - hcc          # [variant=="hcc"]
+      skip: true  # [not linux64]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     script: build_python_bindings.sh
     requirements:
@@ -439,6 +447,7 @@ about:
   license_file: LICENSE.TXT
   license_family: Apache
   summary: Development headers and libraries for Clang
+  dev_url: https://github.com/llvm/llvm-project
 
 extra:
   recipe-maintainers:
