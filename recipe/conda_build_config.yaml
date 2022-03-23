@@ -10,9 +10,3 @@ cxx_compiler:
 variant:
   - default
   - hcc   # [linux]
-
-channel_targets:
-  - conda-forge llvm_rc
-
-channel_sources:
-  - conda-forge/label/llvm_rc,conda-forge
