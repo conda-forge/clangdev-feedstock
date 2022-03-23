@@ -9,6 +9,8 @@ Feedstock license: [BSD-3-Clause](https://github.com/conda-forge/clangdev-feedst
 
 Summary: Development headers and libraries for Clang
 
+Development: https://github.com/llvm/llvm-project
+
 Current build status
 ====================
 
