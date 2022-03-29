@@ -236,10 +236,8 @@ outputs:
       track_features:
         - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
-      {% if not win %}
-      run_exports:   # [unix]
+      run_exports:                                                                # [unix]
         - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, max_pin="x.x") }}   # [unix]
-      {% endif %}
     requirements:
       build:
         - {{ stdlib('c') }}
