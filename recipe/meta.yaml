@@ -18,8 +18,8 @@ package:
   version: {{ version }}
 
 source:
-  - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/clang-{{ version.replace(".rc", "rc") }}.src.tar.xz
-    sha256: f5d7ffb86ed57f97d7c471d542c4e5685db4b75fb817c4c3f027bfa49e561b9b
+  - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/llvm-project-{{ version.replace(".rc", "rc") }}.src.tar.xz
+    sha256: 35ce9edbc8f774fe07c8f4acdf89ec8ac695c8016c165dd86b8d10e7cba07e23
     patches:
       - patches/0001-Find-conda-gcc-installation.patch
       - patches/0002-Fix-sysroot-detection-for-linux.patch
@@ -30,12 +30,8 @@ source:
       # Disable -Werror,-Wundef-prefix=TARGET_OS as they are not yet defined in the 10.9 SDK used for osx-64
       # Only enable it for TARGET_OS_OSX.
       - patches/0007-Only-error-on-undefined-TARGET_OS_OSX.patch  # [osx and x86_64]
-      #- patches/amd-roc-2.7.0.diff   # [variant != "hcc"]
-      #- patches/amd-roc-hcc-2.7.0.diff  # [variant == "hcc"]
-    folder: .
-  - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/clang-tools-extra-{{ version.replace(".rc", "rc") }}.src.tar.xz
-    sha256: f49de4b4502a6608425338e2d93bbe4529cac0a22f2dc1c119ef175a4e1b5bf0
-    folder: tools/extra
+      # - patches/amd-roc-2.7.0.diff   # [variant != "hcc"]
+      # - patches/amd-roc-hcc-2.7.0.diff  # [variant == "hcc"]
 
 build:
   number: {{ build_number }}
@@ -463,19 +459,19 @@ outputs:
         - libclang =={{ version }}
     test:
       source_files:
-        - bindings/python/tests
-        - bindings/python/examples/cindex
+        - clang/bindings/python/tests
+        - clang/bindings/python/examples/cindex
       imports:
         - clang
         - clang.cindex
       commands:
-        - cd bindings/python
+        - cd clang/bindings/python
         - python -m unittest discover -v
 
 about:
   home: http://llvm.org/
   license: Apache-2.0 WITH LLVM-exception
-  license_file: LICENSE.TXT
+  license_file: clang/LICENSE.TXT
   license_family: Apache
   summary: Development headers and libraries for Clang
   dev_url: https://github.com/llvm/llvm-project

@@ -1,3 +1,12 @@
+@echo on
+
+:: move clang-tools-extra to clang/tools/extra, see
+:: https://github.com/llvm/llvm-project/blob/main/clang-tools-extra/README.txt
+mkdir clang\tools\extra
+robocopy clang-tools-extra clang\tools\extra /E
+:: do not check %ERRORLEVEL%! robocopy returns an exit code
+:: of 1 if one or more files were successfully copied.
+
 mkdir build
 cd build
 
@@ -19,7 +28,7 @@ cmake -G "Ninja" ^
     -DLLVM_TEMPORARILY_ALLOW_OLD_TOOLCHAIN=ON ^
     -DLLVM_ENABLE_LIBXML2=OFF ^
     -DPython3_EXECUTABLE=%BUILD_PREFIX%\python ^
-    %SRC_DIR%
+    %SRC_DIR%\clang
 if %ERRORLEVEL% neq 0 exit 1
 
 ninja -j%CPU_COUNT%

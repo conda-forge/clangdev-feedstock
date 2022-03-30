@@ -1,17 +1,17 @@
-From ed31ecc26fc4d680b8bbffad2fe4b5924b1ab89b Mon Sep 17 00:00:00 2001
+From 3ef3a30e7b28d29f8e33150111d49503192f6d3e Mon Sep 17 00:00:00 2001
 From: Nehal J Wani <nehaljw.kkd1@gmail.com>
 Date: Sat, 25 Aug 2018 09:20:04 -0500
 Subject: [PATCH 3/7] clang: add conda specific env var CONDA_BUILD_SYSROOT
 
 ---
- lib/Driver/Driver.cpp        | 9 +++++++--
- lib/Lex/InitHeaderSearch.cpp | 6 +++++-
+ clang/lib/Driver/Driver.cpp        | 9 +++++++--
+ clang/lib/Lex/InitHeaderSearch.cpp | 6 +++++-
  2 files changed, 12 insertions(+), 3 deletions(-)
 
-diff --git a/lib/Driver/Driver.cpp b/lib/Driver/Driver.cpp
+diff --git a/clang/lib/Driver/Driver.cpp b/clang/lib/Driver/Driver.cpp
 index 3bfddeefc7b2..6f06900ed18a 100644
---- a/lib/Driver/Driver.cpp
-+++ b/lib/Driver/Driver.cpp
+--- a/clang/lib/Driver/Driver.cpp
++++ b/clang/lib/Driver/Driver.cpp
 @@ -1208,8 +1208,13 @@ Compilation *Driver::BuildCompilation(ArrayRef<const char *> ArgList) {
        CompilerPath = Split.second;
      }
@@ -28,10 +28,10 @@ index 3bfddeefc7b2..6f06900ed18a 100644
    if (const Arg *A = Args.getLastArg(options::OPT__dyld_prefix_EQ))
      DyldPrefix = A->getValue();
  
-diff --git a/lib/Lex/InitHeaderSearch.cpp b/lib/Lex/InitHeaderSearch.cpp
+diff --git a/clang/lib/Lex/InitHeaderSearch.cpp b/clang/lib/Lex/InitHeaderSearch.cpp
 index ec7b1505c7bf..2996c41af5f0 100644
---- a/lib/Lex/InitHeaderSearch.cpp
-+++ b/lib/Lex/InitHeaderSearch.cpp
+--- a/clang/lib/Lex/InitHeaderSearch.cpp
++++ b/clang/lib/Lex/InitHeaderSearch.cpp
 @@ -25,6 +25,7 @@
  #include "llvm/ADT/Twine.h"
  #include "llvm/Support/ErrorHandling.h"
@@ -53,5 +53,5 @@ index ec7b1505c7bf..2996c41af5f0 100644
      }
    }
 -- 
-2.32.0.windows.2
+2.35.1.windows.2
 
