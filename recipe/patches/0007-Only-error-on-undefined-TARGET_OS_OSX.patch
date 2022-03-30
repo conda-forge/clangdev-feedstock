@@ -1,16 +1,16 @@
-From 5758ee01ce81dbc4934c89ec7713e1877fe4789d Mon Sep 17 00:00:00 2001
+From 0788777ac655076c503c3db690d8926cc3cf5fd9 Mon Sep 17 00:00:00 2001
 From: "Uwe L. Korn" <uwe.korn@quantco.com>
 Date: Tue, 11 May 2021 15:09:51 +0200
-Subject: [PATCH 7/7] Only error on undefined TARGET_OS_OSX
+Subject: [PATCH 7/9] Only error on undefined TARGET_OS_OSX
 
 ---
- lib/Driver/ToolChains/Darwin.cpp | 2 +-
+ clang/lib/Driver/ToolChains/Darwin.cpp | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/lib/Driver/ToolChains/Darwin.cpp b/lib/Driver/ToolChains/Darwin.cpp
+diff --git a/clang/lib/Driver/ToolChains/Darwin.cpp b/clang/lib/Driver/ToolChains/Darwin.cpp
 index 261f522f6c49..cf28bf94dc72 100644
---- a/lib/Driver/ToolChains/Darwin.cpp
-+++ b/lib/Driver/ToolChains/Darwin.cpp
+--- a/clang/lib/Driver/ToolChains/Darwin.cpp
++++ b/clang/lib/Driver/ToolChains/Darwin.cpp
 @@ -992,7 +992,7 @@ DarwinClang::DarwinClang(const Driver &D, const llvm::Triple &Triple,
  
  void DarwinClang::addClangWarningOptions(ArgStringList &CC1Args) const {
@@ -20,6 +20,3 @@ index 261f522f6c49..cf28bf94dc72 100644
    CC1Args.push_back("-Werror=undef-prefix");
  
    // For modern targets, promote certain warnings to errors.
--- 
-2.32.0.windows.2
-

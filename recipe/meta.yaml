@@ -23,8 +23,8 @@ package:
   version: {{ version }}
 
 source:
-  - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/clang-{{ version.replace(".rc", "rc") }}.src.tar.xz
-    sha256: 787a9e2d99f5c8720aa1773e4be009461cd30d3bd40fdd24591e473467c917c9
+  - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/llvm-project-{{ version.replace(".rc", "rc") }}.src.tar.xz
+    sha256: 326335a830f2e32d06d0a36393b5455d17dc73e0bd1211065227ee014f92cbf8
     patches:
       - patches/0001-Find-conda-gcc-installation.patch
       - patches/0002-Fix-sysroot-detection-for-linux.patch
@@ -34,9 +34,10 @@ source:
       - patches/0006-Fix-crosscompiling-LLVM-tools.patch
       # Disable -Werror,-Wundef-prefix=TARGET_OS as they are not yet defined in the 10.9 SDK used for osx-64
       # Only enable it for TARGET_OS_OSX.
-      - patches/0007-Only-error-on-undefined-TARGET_OS_OSX.patch  # [osx and x86_64]
-      - patches/Improve-logic-for-finding-the-macos-sysroot-for-cond.patch  # [osx]
-      - patches/0008-Remove-trailing-null-bytes-from-the-sysroot-that-com.patch       # [variant and variant.startswith("root_")]
+      - patches/0007-Only-error-on-undefined-TARGET_OS_OSX.patch                    # [osx and x86_64]
+      - patches/0008-Improve-logic-for-finding-the-macos-sysroot-for-cond.patch     # [osx]
+      - patches/0009-Remove-trailing-null-bytes-from-the-sysroot-that-com.patch     # [variant and variant.startswith("root_")]
+
       - patches/root/0001-Temporary-parsers-should-not-manipulate-global-parse.patch  # [variant and variant.startswith("root_")]
       - patches/root/0002-Only-reset-extra-parsers-if-not-temporary.patch  # [variant and variant.startswith("root_")]
       - patches/root/0003-Let-autoload-act-on-fwd-declares.patch  # [variant and variant.startswith("root_")]
@@ -111,10 +112,6 @@ source:
       - patches/root/0072-Do-not-install-Clang-Cling-Config.cmake-in-the-proje.patch  # [variant and variant.startswith("root_")]
       - patches/root/0073-AST-Print-honor-AlwaysIncludeTypeForTemplateArgument.patch  # [variant and variant.startswith("root_")]
       - patches/root/0074-UPSTREAM-Introduce-paged-vector.patch  # [variant and variant.startswith("root_")]
-    folder: .
-  - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/clang-tools-extra-{{ version.replace(".rc", "rc") }}.src.tar.xz
-    sha256: cc2bc8598848513fa2257a270083e986fd61048347eccf1d801926ea709392d0
-    folder: tools/extra
 
 build:
   number: {{ build_number }}
@@ -530,19 +527,19 @@ outputs:
         - libclang =={{ version }}
     test:
       source_files:
-        - bindings/python/tests
-        - bindings/python/examples/cindex
+        - clang/bindings/python/tests
+        - clang/bindings/python/examples/cindex
       imports:
         - clang
         - clang.cindex
       commands:
-        - cd bindings/python
+        - cd clang/bindings/python
         - python -m unittest discover -v
 
 about:
   home: http://llvm.org/
   license: Apache-2.0 WITH LLVM-exception
-  license_file: LICENSE.TXT
+  license_file: clang/LICENSE.TXT
   license_family: Apache
   summary: Development headers and libraries for Clang
   dev_url: https://github.com/llvm/llvm-project
