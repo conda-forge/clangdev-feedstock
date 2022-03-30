@@ -453,9 +453,9 @@ outputs:
     script: build_python_bindings.sh
     requirements:
       host:
-        - python
+        - python >=3.7
       run:
-        - python
+        - python >=3.7
         - libclang =={{ version }}
     test:
       source_files:
