@@ -1,7 +1,7 @@
 From f921795451a491ba8fdd8d9d69ce61d727bdd259 Mon Sep 17 00:00:00 2001
 From: Isuru Fernando <isuruf@gmail.com>
 Date: Tue, 11 May 2021 15:08:13 +0200
-Subject: [PATCH 6/7] Fix crosscompiling LLVM tools
+Subject: [PATCH 6/8] Fix crosscompiling LLVM tools
 
 ---
  clang/CMakeLists.txt | 10 ++++++++++
@@ -29,5 +29,5 @@ index 937a8467df1d..79e310c636b0 100644
    include(HandleLLVMOptions)
    include(VersionFromVCS)
 -- 
-2.35.1.windows.2
+2.35.3.windows.1
 

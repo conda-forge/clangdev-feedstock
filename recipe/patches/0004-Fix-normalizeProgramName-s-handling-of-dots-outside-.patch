@@ -1,7 +1,7 @@
 From d7bff48e59f188aa592eda3b4e3a89ba1165039f Mon Sep 17 00:00:00 2001
 From: Ray Donnelly <mingw.android@gmail.com>
 Date: Wed, 30 Aug 2017 20:01:49 +0100
-Subject: [PATCH 4/7] Fix normalizeProgramName()'s handling of dots outside of
+Subject: [PATCH 4/8] Fix normalizeProgramName()'s handling of dots outside of
  .exe
 
 It used to strip everything after the last dot, turning:
@@ -62,5 +62,5 @@ index d657d21bfcdb..581d59451040 100644
      // Transform to lowercase for case insensitive file systems.
      std::transform(ProgName.begin(), ProgName.end(), ProgName.begin(),
 -- 
-2.35.1.windows.2
+2.35.3.windows.1
 

@@ -7,11 +7,9 @@
 {% set minor_aware_ext = major_version + "." + version.split(".")[1] %}
 {% endif %}
 
-# Starting from LLVM 14, the ABI of libclang doesn't necessarily
-# match the major version anymore, but only on linux apparently
-# (also the ABI of libclang-cpp _does_ stay in lockstep) - cf.
-# https://github.com/llvm/llvm-project/issues/54004
-{% set abi_version = "13" %}
+{% if libclang_soversion is not defined %}
+{% set libclang_soversion = "13" %}
+{% endif %}
 
 package:
   name: clang_packages
@@ -30,6 +28,7 @@ source:
       # Disable -Werror,-Wundef-prefix=TARGET_OS as they are not yet defined in the 10.9 SDK used for osx-64
       # Only enable it for TARGET_OS_OSX.
       - patches/0007-Only-error-on-undefined-TARGET_OS_OSX.patch  # [osx and x86_64]
+      - patches/0008-set-libclang-SOVERSION-unconditionally.patch
       # - patches/amd-roc-2.7.0.diff   # [variant != "hcc"]
       # - patches/amd-roc-hcc-2.7.0.diff  # [variant == "hcc"]
 
@@ -172,57 +171,62 @@ outputs:
         - test -f "$PREFIX/lib/libclang-cpp.dylib"                  # [osx]
         - if exist %LIBRARY_BIN%\\libclang-cpp.dll exit 1           # [win]
 
-  # the ABI version is not uniform across platforms,
-  # but we unconditionally choose the linux number here
-  - name: libclang{{ abi_version }}
-    script: install_libclang.sh  # [unix]
+  - name: libclang{{ libclang_soversion }}
+    script: install_libclang.sh   # [unix]
+    script: install_libclang.bat  # [win]
     build:
       track_features:
         - hcc          # [variant=="hcc"]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:
         # note that the name (e.g. libclang13) does not necessarily
-        # match the version on osx (e.g. >=14.0.0)
-        - {{ pin_subpackage("libclang" + abi_version, max_pin="x.x") }}  # [unix]
-      skip: true  # [win]
+        # match the version lower bound (e.g. >=14.0.0)
+        - {{ pin_subpackage("libclang" + libclang_soversion, max_pin="x.x") }}
     requirements:
       build:
         - {{ compiler('cxx') }}
         - cmake >=3.4.3
+        - ninja                      # [win]
         - make                       # [unix]
         - llvmdev =={{ version }}    # [build_platform != target_platform]
       host:
         - libcxx {{ cxx_compiler_version }}             # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
-        - zlib                                          # [linux]
+        - zlib                                          # [linux or win]
         - {{ pin_subpackage("clang", exact=True) }}
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
     test:
       commands:
-        - test ! -f "$PREFIX/lib/libclang.so"                         # [linux]
-        - test -f "$PREFIX/lib/libclang.so.{{ abi_version }}"         # [linux]
-        {% if abi_version != major_version %}
-        - test ! -f "$PREFIX/lib/libclang.so.{{ major_version }}"     # [linux]
-        {% elif minor_aware_ext != major_version %}
-        # different behaviour between linux and osx, see comment at the top
-        - test ! -f "$PREFIX/lib/libclang.{{ major_version }}.dylib"  # [osx]
+        # presence of versioned libraries
+        - test -f "$PREFIX/lib/libclang.so.{{ libclang_soversion }}"                # [linux]
+        - test -f "$PREFIX/lib/libclang.{{ libclang_soversion }}.dylib"             # [osx]
+        - if not exist %LIBRARY_BIN%\\libclang-{{ libclang_soversion }}.dll exit 1  # [win]
+
+        # absence of unversioned libraries
+        - test ! -f "$PREFIX/lib/libclang.so"                              # [linux]
+        - test ! -f "$PREFIX/lib/libclang.dylib"                           # [osx]
+        - if exist %LIBRARY_BIN%\\libclang.dll exit 1                      # [win]
+
+        # absence of major version if soversion is different
+        {% if libclang_soversion != major_version %}
+        - test ! -f "$PREFIX/lib/libclang.so.{{ major_version }}"          # [linux]
+        - test ! -f "$PREFIX/lib/libclang.{{ major_version }}.dylib"       # [osx]
+        - if exist %LIBRARY_BIN%\\libclang-{{ major_version }}.dll exit 1  # [win]
         {% endif %}
-        - test ! -f "$PREFIX/lib/libclang.dylib"                      # [osx]
-        - test -f "$PREFIX/lib/libclang.{{ minor_aware_ext }}.dylib"  # [osx]
 
   - name: libclang
-    script: install_libclang.sh  # [unix]
+    script: install_libclang.sh   # [unix]
     script: install_libclang.bat  # [win]
     build:
       track_features:
         - hcc          # [variant=="hcc"]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
-      run_exports:                                                       # [unix]
+      run_exports:
         # note that the name (e.g. libclang13) does not necessarily
-        # match the version on osx (e.g. >=14.0.0)
-        - {{ pin_subpackage("libclang" + abi_version, max_pin="x.x") }}  # [unix]
+        # match the version lower bound (e.g. >=14.0.0)
+        - {{ pin_subpackage("libclang" + libclang_soversion, max_pin="x.x") }}
     requirements:
       build:
         - {{ compiler('cxx') }}
@@ -236,10 +240,10 @@ outputs:
         - llvm =={{ version }}
         - zlib                                                        # [linux or win]
         - {{ pin_subpackage("clang", exact=True) }}
-        - {{ pin_subpackage("libclang" + abi_version, exact=True) }}  # [unix]
+        - {{ pin_subpackage("libclang" + libclang_soversion, exact=True) }}
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}                # [osx]
-        - {{ pin_subpackage("libclang" + abi_version, exact=True) }}  # [unix]
+        - {{ pin_subpackage("libclang" + libclang_soversion, exact=True) }}
     test:
       commands:
         - test -f "$PREFIX/lib/libclang.so"                # [linux]
@@ -435,7 +439,7 @@ outputs:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
         - {{ pin_subpackage("clang-format", exact=True) }}
         - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, max_pin="x.x") }}   # [unix]
-        - {{ pin_subpackage("libclang" + abi_version, max_pin="x.x") }}           # [unix]
+        - {{ pin_subpackage("libclang" + libclang_soversion, max_pin="x.x") }}
       run_constrained:
         - clangdev {{ version }}
     test:

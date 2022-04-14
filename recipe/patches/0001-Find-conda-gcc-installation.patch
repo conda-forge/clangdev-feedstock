@@ -1,7 +1,7 @@
 From afbd83b67e456e1cd51dd0c8917b0cd3756bcab5 Mon Sep 17 00:00:00 2001
 From: Isuru Fernando <isuruf@gmail.com>
 Date: Mon, 8 Apr 2019 16:20:03 -0500
-Subject: [PATCH 1/7] Find conda gcc installation
+Subject: [PATCH 1/8] Find conda gcc installation
 
 ---
  clang/lib/Driver/ToolChains/Gnu.cpp | 7 ++++---
@@ -40,5 +40,5 @@ index 7a9570a686f4..358d5d576a03 100644
    static const char *const RISCV32LibDirs[] = {"/lib32", "/lib"};
    static const char *const RISCV32Triples[] = {"riscv32-unknown-linux-gnu",
 -- 
-2.35.1.windows.2
+2.35.3.windows.1
 

@@ -1,7 +1,7 @@
 From adbd7661047e4ce2d1a2ca1fa3cba755ec57d6cd Mon Sep 17 00:00:00 2001
 From: Isuru Fernando <isuruf@gmail.com>
 Date: Sat, 27 Jul 2019 11:55:23 -0500
-Subject: [PATCH 5/7] Set VERSION in osx as well
+Subject: [PATCH 5/8] Set VERSION in osx as well
 
 ---
  clang/tools/libclang/CMakeLists.txt | 5 +++++
@@ -24,5 +24,5 @@ index 4e0647971ab4..d5f9c43d5d14 100644
      set_target_properties(libclang
        PROPERTIES
 -- 
-2.35.1.windows.2
+2.35.3.windows.1
 
