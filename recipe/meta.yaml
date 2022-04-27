@@ -1,4 +1,4 @@
-{% set version = "13.0.1" %}
+{% set version = "14.0.2" %}
 {% set major_version = version.split(".")[0] %}
 {% set build_number = 0 %}
 
@@ -14,7 +14,7 @@ package:
 
 source:
   - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/clang-{{ version.replace(".rc", "rc") }}.src.tar.xz
-    sha256: 787a9e2d99f5c8720aa1773e4be009461cd30d3bd40fdd24591e473467c917c9
+    sha256: 960578b785ed66a418248dd26ce49fcc10240e5d97bba4b0670a14d0d2c86592
     patches:
       - patches/0001-Find-conda-gcc-installation.patch
       - patches/0002-Fix-sysroot-detection-for-linux.patch
@@ -29,7 +29,7 @@ source:
       #- patches/amd-roc-hcc-2.7.0.diff  # [variant == "hcc"]
     folder: .
   - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/clang-tools-extra-{{ version.replace(".rc", "rc") }}.src.tar.xz
-    sha256: cc2bc8598848513fa2257a270083e986fd61048347eccf1d801926ea709392d0
+    sha256: 45dc3708c346207a9d13ac05be5b73c5c11dced37cb348da65dad4166d0da76d
     folder: tools/extra
 
 build:
