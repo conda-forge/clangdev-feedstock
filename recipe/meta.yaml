@@ -31,6 +31,10 @@ source:
       - patches/0008-set-libclang-SOVERSION-unconditionally.patch
       # - patches/amd-roc-2.7.0.diff   # [variant != "hcc"]
       # - patches/amd-roc-hcc-2.7.0.diff  # [variant == "hcc"]
+    # name folder for easier deletion; we do the equivalent of downloading
+    # the subproject sources, so the work folder then has clang in it;
+    # for details see build scripts
+    folder: llvm-project
 
 build:
   number: {{ build_number }}
