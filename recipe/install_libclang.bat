@@ -8,7 +8,6 @@ cd %LIBRARY_PREFIX%
 rmdir /s /q lib libexec share include
 
 move bin bin2
-
 mkdir bin
 
 setlocal enabledelayedexpansion

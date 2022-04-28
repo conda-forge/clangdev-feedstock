@@ -1,5 +1,6 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/bash
+set -ex
+
 IFS=$'\n\t'
 
 mkdir -p "${SP_DIR}"

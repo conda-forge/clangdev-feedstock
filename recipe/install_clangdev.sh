@@ -1,4 +1,5 @@
 #!/bin/bash
-set -x -e
+set -ex
+
 cd ${SRC_DIR}/clang/build
 make install

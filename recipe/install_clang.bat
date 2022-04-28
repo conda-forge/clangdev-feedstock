@@ -1,14 +1,14 @@
+@echo on
+
 cd %SRC_DIR%\clang\build
 ninja install
 if %ERRORLEVEL% neq 0 exit 1
 
 cd %LIBRARY_PREFIX%
 rmdir /s /q lib\cmake libexec share include
-
 del /q /f lib\*.lib
 
 move bin bin2
-
 mkdir bin
 
 setlocal enabledelayedexpansion
