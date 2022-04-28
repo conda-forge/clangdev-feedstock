@@ -113,6 +113,11 @@ source:
       - patches/root/0073-AST-Print-honor-AlwaysIncludeTypeForTemplateArgument.patch  # [variant and variant.startswith("root_")]
       - patches/root/0074-UPSTREAM-Introduce-paged-vector.patch  # [variant and variant.startswith("root_")]
 
+    # name folder for easier deletion; we do the equivalent of downloading
+    # the subproject sources, so the work folder then has clang in it;
+    # for details see build scripts
+    folder: llvm-project
+
 build:
   number: {{ build_number }}
 

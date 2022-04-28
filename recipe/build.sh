@@ -3,12 +3,20 @@ set -ex
 
 # move clang-tools-extra to clang/tools/extra, see
 # https://github.com/llvm/llvm-project/blob/main/clang-tools-extra/README.txt
-mkdir -p clang/tools/extra
-mv clang-tools-extra/* clang/tools/extra/
+mkdir -p llvm-project/clang/tools/extra
+mv llvm-project/clang-tools-extra/* llvm-project/clang/tools/extra/
+
+# using subproject sources has been effectively broken in LLVM 14,
+# so we use the entire project, but make sure we don't pick up
+# anything in-tree other than clang & the shared cmake folder
+mv llvm-project/clang ./clang
+mv llvm-project/cmake ./cmake
+rm -rf llvm-project
+cd clang
 
 IFS='.' read -r -a PKG_VER_ARRAY <<< "${PKG_VERSION}"
 
-sed -i.bak "s/libLTO.dylib/libLTO.${PKG_VER_ARRAY[0]}.dylib/g" clang/lib/Driver/ToolChains/Darwin.cpp
+sed -i.bak "s/libLTO.dylib/libLTO.${PKG_VER_ARRAY[0]}.dylib/g" lib/Driver/ToolChains/Darwin.cpp
 
 if [[ "$variant" == "hcc" ]]; then
   CMAKE_ARGS="$CMAKE_ARGS -DKALMAR_BACKEND=HCC_BACKEND_AMDGPU -DHCC_VERSION_STRING=2.7-19365-24e69cd8-24e69cd8-24e69cd8"
@@ -74,6 +82,6 @@ cmake \
   -DCMAKE_AR=$AR \
   -DPython3_EXECUTABLE=${BUILD_PREFIX}/bin/python \
   $CMAKE_ARGS \
-  ../clang
+  ..
 
 make -j${CPU_COUNT}

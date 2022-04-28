@@ -1,6 +1,6 @@
 #!/bin/bash
 set -x -e
-cd ${SRC_DIR}/build
+cd ${SRC_DIR}/clang/build
 make install
 cd $PREFIX
 rm -rf lib/cmake include lib/lib*.a
