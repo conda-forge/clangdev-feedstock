@@ -146,6 +146,7 @@ outputs:
         - test -f "$PREFIX/lib/libclang-cpp.{{ minor_aware_ext }}.dylib"      # [osx]
 
   - name: libclang-cpp
+    # note that this is just an empty wrapper on windows
     script: install_libclang_cpp.sh  # [unix]
     build:
       track_features:
