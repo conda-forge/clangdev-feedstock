@@ -5,19 +5,22 @@ ninja install
 if %ERRORLEVEL% neq 0 exit 1
 
 cd %LIBRARY_PREFIX%
-rmdir /s /q lib libexec share include
+rmdir /s /q libexec share include
 
 move bin bin2
 mkdir bin
+move lib lib2
+mkdir lib
 
 setlocal enabledelayedexpansion
 if "%PKG_NAME%"=="libclang" (
-    REM unversioned
-    move bin2\libclang.dll bin\
+    REM for unversioned output, keep only import lib; no DLLs
+    move lib2\libclang.lib lib\libclang.lib
+    if %ERRORLEVEL% neq 0 exit 1
 ) else (
-    REM versioned
-    for /f "tokens=1 delims=." %%a in ("%libclang_soversion%") do (
-        move bin2\libclang.dll bin\libclang-%%a.dll
-    )
+    REM for versioned output, keep only versioned DLL; no import lib
+    move bin2\libclang-%libclang_soversion%.dll bin\libclang-%libclang_soversion%.dll
+    if %ERRORLEVEL% neq 0 exit 1
 )
 rmdir /s /q bin2
+rmdir /s /q lib2
