@@ -1,7 +1,7 @@
-From 31d103bb665332fbc7eaa94ff419eac866444429 Mon Sep 17 00:00:00 2001
+From d7bff48e59f188aa592eda3b4e3a89ba1165039f Mon Sep 17 00:00:00 2001
 From: Ray Donnelly <mingw.android@gmail.com>
 Date: Wed, 30 Aug 2017 20:01:49 +0100
-Subject: [PATCH 4/7] Fix normalizeProgramName()'s handling of dots outside of
+Subject: [PATCH 4/8] Fix normalizeProgramName()'s handling of dots outside of
  .exe
 
 It used to strip everything after the last dot, turning:
@@ -14,13 +14,13 @@ x86_64-apple-darwin13.4
 
 .. which was then not a C++ compiler.
 ---
- lib/Driver/ToolChain.cpp | 23 ++++++++++++++++++++++-
+ clang/lib/Driver/ToolChain.cpp | 23 ++++++++++++++++++++++-
  1 file changed, 22 insertions(+), 1 deletion(-)
 
-diff --git a/lib/Driver/ToolChain.cpp b/lib/Driver/ToolChain.cpp
-index 6c1b88141c45..369955206817 100644
---- a/lib/Driver/ToolChain.cpp
-+++ b/lib/Driver/ToolChain.cpp
+diff --git a/clang/lib/Driver/ToolChain.cpp b/clang/lib/Driver/ToolChain.cpp
+index d657d21bfcdb..581d59451040 100644
+--- a/clang/lib/Driver/ToolChain.cpp
++++ b/clang/lib/Driver/ToolChain.cpp
 @@ -50,6 +50,7 @@ using namespace driver;
  using namespace tools;
  using namespace llvm;
@@ -58,9 +58,9 @@ index 6c1b88141c45..369955206817 100644
  static std::string normalizeProgramName(llvm::StringRef Argv0) {
 -  std::string ProgName = std::string(llvm::sys::path::stem(Argv0));
 +  std::string ProgName = std::string(program_name_stem(Argv0));
- #ifdef _WIN32
-   // Transform to lowercase for case insensitive file systems.
-   std::transform(ProgName.begin(), ProgName.end(), ProgName.begin(), ::tolower);
+   if (is_style_windows(llvm::sys::path::Style::native)) {
+     // Transform to lowercase for case insensitive file systems.
+     std::transform(ProgName.begin(), ProgName.end(), ProgName.begin(),
 -- 
-2.32.0.windows.2
+2.35.3.windows.1
 

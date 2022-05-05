@@ -1,11 +1,14 @@
-{% set version = "13.0.1" %}
+{% set version = "14.0.0" %}
 {% set major_version = version.split(".")[0] %}
 {% set build_number = 0 %}
 
 {% set minor_aware_ext = major_version %}
-{% set minor_int = version.split(".")[1] | int %}
-{% if minor_int > 0 %}
+{% if version.split(".")[1] | int > 0 %}
 {% set minor_aware_ext = major_version + "." + version.split(".")[1] %}
+{% endif %}
+
+{% if libclang_soversion is not defined %}
+{% set libclang_soversion = "13" %}
 {% endif %}
 
 package:
@@ -13,8 +16,8 @@ package:
   version: {{ version }}
 
 source:
-  - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/clang-{{ version.replace(".rc", "rc") }}.src.tar.xz
-    sha256: 787a9e2d99f5c8720aa1773e4be009461cd30d3bd40fdd24591e473467c917c9
+  - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/llvm-project-{{ version.replace(".rc", "rc") }}.src.tar.xz
+    sha256: 35ce9edbc8f774fe07c8f4acdf89ec8ac695c8016c165dd86b8d10e7cba07e23
     patches:
       - patches/0001-Find-conda-gcc-installation.patch
       - patches/0002-Fix-sysroot-detection-for-linux.patch
@@ -25,12 +28,13 @@ source:
       # Disable -Werror,-Wundef-prefix=TARGET_OS as they are not yet defined in the 10.9 SDK used for osx-64
       # Only enable it for TARGET_OS_OSX.
       - patches/0007-Only-error-on-undefined-TARGET_OS_OSX.patch  # [osx and x86_64]
-      #- patches/amd-roc-2.7.0.diff   # [variant != "hcc"]
-      #- patches/amd-roc-hcc-2.7.0.diff  # [variant == "hcc"]
-    folder: .
-  - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/clang-tools-extra-{{ version.replace(".rc", "rc") }}.src.tar.xz
-    sha256: cc2bc8598848513fa2257a270083e986fd61048347eccf1d801926ea709392d0
-    folder: tools/extra
+      - patches/0008-set-libclang-SOVERSION-unconditionally.patch
+      # - patches/amd-roc-2.7.0.diff   # [variant != "hcc"]
+      # - patches/amd-roc-hcc-2.7.0.diff  # [variant == "hcc"]
+    # name folder for easier deletion; we do the equivalent of downloading
+    # the subproject sources, so the work folder then has clang in it;
+    # for details see build scripts
+    folder: llvm-project
 
 build:
   number: {{ build_number }}
@@ -142,15 +146,14 @@ outputs:
         - test -f "$PREFIX/lib/libclang-cpp.{{ minor_aware_ext }}.dylib"      # [osx]
 
   - name: libclang-cpp
+    # note that this is just an empty wrapper on windows
     script: install_libclang_cpp.sh  # [unix]
     build:
       track_features:
         - hcc          # [variant=="hcc"]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
-      {% if not win %}
-      run_exports:   # [unix]
+      run_exports:                                                                # [unix]
         - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, max_pin="x.x") }}   # [unix]
-      {% endif %}
     requirements:
       build:
         - {{ compiler('cxx') }}
@@ -173,15 +176,17 @@ outputs:
         - test -f "$PREFIX/lib/libclang-cpp.dylib"                  # [osx]
         - if exist %LIBRARY_BIN%\\libclang-cpp.dll exit 1           # [win]
 
-  - name: libclang
-    script: install_libclang.sh  # [unix]
+  - name: libclang{{ libclang_soversion }}
+    script: install_libclang.sh   # [unix]
     script: install_libclang.bat  # [win]
     build:
       track_features:
         - hcc          # [variant=="hcc"]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:
-        - libclang {{ minor_aware_ext }}.*
+        # note that the name (e.g. libclang13) does not necessarily
+        # match the version lower bound (e.g. >=14.0.0)
+        - {{ pin_subpackage("libclang" + libclang_soversion, max_pin="x.x") }}
     requirements:
       build:
         - {{ compiler('cxx') }}
@@ -199,15 +204,57 @@ outputs:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
     test:
       commands:
-        - test -f "$PREFIX/lib/libclang.so"                           # [linux]
-        - test -f "$PREFIX/lib/libclang.so.{{ minor_aware_ext }}"     # [linux]
-        {% if minor_aware_ext != major_version %}
-        - test ! -f "$PREFIX/lib/libclang.so.{{ major_version }}"     # [linux]
-        - test ! -f "$PREFIX/lib/libclang.{{ major_version }}.dylib"  # [osx]
+        # presence of versioned libraries
+        - test -f "$PREFIX/lib/libclang.so.{{ libclang_soversion }}"                # [linux]
+        - test -f "$PREFIX/lib/libclang.{{ libclang_soversion }}.dylib"             # [osx]
+        - if not exist %LIBRARY_BIN%\\libclang-{{ libclang_soversion }}.dll exit 1  # [win]
+
+        # absence of unversioned libraries
+        - test ! -f "$PREFIX/lib/libclang.so"                              # [linux]
+        - test ! -f "$PREFIX/lib/libclang.dylib"                           # [osx]
+        - if exist %LIBRARY_BIN%\\libclang.dll exit 1                      # [win]
+        - if exist %LIBRARY_LIB%\\libclang.lib exit 1                      # [win]
+
+        # absence of major version if soversion is different
+        {% if libclang_soversion != major_version %}
+        - test ! -f "$PREFIX/lib/libclang.so.{{ major_version }}"          # [linux]
+        - test ! -f "$PREFIX/lib/libclang.{{ major_version }}.dylib"       # [osx]
+        - if exist %LIBRARY_BIN%\\libclang-{{ major_version }}.dll exit 1  # [win]
         {% endif %}
-        - test -f "$PREFIX/lib/libclang.dylib"                        # [osx]
-        - test -f "$PREFIX/lib/libclang.{{ minor_aware_ext }}.dylib"  # [osx]
-        - if not exist %LIBRARY_BIN%\\libclang.dll exit 1             # [win]
+
+  - name: libclang
+    script: install_libclang.sh   # [unix]
+    script: install_libclang.bat  # [win]
+    build:
+      track_features:
+        - hcc          # [variant=="hcc"]
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+      run_exports:
+        # note that the name (e.g. libclang13) does not necessarily
+        # match the version lower bound (e.g. >=14.0.0)
+        - {{ pin_subpackage("libclang" + libclang_soversion, max_pin=None) }}
+    requirements:
+      build:
+        - {{ compiler('cxx') }}
+        - cmake >=3.4.3
+        - ninja                      # [win]
+        - make                       # [unix]
+        - llvmdev =={{ version }}    # [build_platform != target_platform]
+      host:
+        - libcxx {{ cxx_compiler_version }}                           # [osx]
+        - llvmdev =={{ version }}
+        - llvm =={{ version }}
+        - zlib                                                        # [linux or win]
+        - {{ pin_subpackage("clang", exact=True) }}
+        - {{ pin_subpackage("libclang" + libclang_soversion, exact=True) }}
+      run:
+        - {{ pin_compatible("libcxx", max_pin=None) }}                # [osx]
+        - {{ pin_subpackage("libclang" + libclang_soversion, exact=True) }}
+    test:
+      commands:
+        - test -f "$PREFIX/lib/libclang.so"                # [linux]
+        - test -f "$PREFIX/lib/libclang.dylib"             # [osx]
+        - if not exist %LIBRARY_LIB%\\libclang.lib exit 1  # [win]
 
   - name: clang-{{ major_version }}
     script: install_clang.sh  # [unix]
@@ -395,10 +442,11 @@ outputs:
         - llvm =={{ version }}
         - zlib                               # [linux or win]
       run:
+        - ucrt                                          # [win]
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
         - {{ pin_subpackage("clang-format", exact=True) }}
         - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, max_pin="x.x") }}   # [unix]
-        - libclang {{ minor_aware_ext }}.*   # [unix]
+        - {{ pin_subpackage("libclang", max_pin="x.x") }}                         # [unix]
       run_constrained:
         - clangdev {{ version }}
     test:
@@ -411,34 +459,33 @@ outputs:
       noarch: python
       # Building this output using this recipe is only supported on unix
       # It can still be installed on Windows as it is marked as `noarch: python`
-      skip: true  # [win or variant=="hcc" or (build_platform != target_platform)]
-      track_features:
-        - hcc          # [variant=="hcc"]
+      skip: true  # [not linux64]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     script: build_python_bindings.sh
     requirements:
       host:
-        - python
+        - python >=3.7
       run:
-        - python
+        - python >=3.7
         - libclang =={{ version }}
     test:
       source_files:
-        - bindings/python/tests
-        - bindings/python/examples/cindex
+        - clang/bindings/python/tests
+        - clang/bindings/python/examples/cindex
       imports:
         - clang
         - clang.cindex
       commands:
-        - cd bindings/python
+        - cd clang/bindings/python
         - python -m unittest discover -v
 
 about:
   home: http://llvm.org/
   license: Apache-2.0 WITH LLVM-exception
-  license_file: LICENSE.TXT
+  license_file: clang/LICENSE.TXT
   license_family: Apache
   summary: Development headers and libraries for Clang
+  dev_url: https://github.com/llvm/llvm-project
 
 extra:
   recipe-maintainers:
