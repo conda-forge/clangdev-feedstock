@@ -1,4 +1,4 @@
-{% set version = "14.0.0" %}
+{% set version = "14.0.3" %}
 {% set major_version = version.split(".")[0] %}
 {% set build_number = 0 %}
 
@@ -17,7 +17,7 @@ package:
 
 source:
   - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/llvm-project-{{ version.replace(".rc", "rc") }}.src.tar.xz
-    sha256: 35ce9edbc8f774fe07c8f4acdf89ec8ac695c8016c165dd86b8d10e7cba07e23
+    sha256: 44d3e7a784d5cf805e72853bb03f218bd1058d448c03ca883dabbebc99204e0c
     patches:
       - patches/0001-Find-conda-gcc-installation.patch
       - patches/0002-Fix-sysroot-detection-for-linux.patch
@@ -152,7 +152,7 @@ outputs:
       track_features:
         - hcc          # [variant=="hcc"]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
-      run_exports:                                                                # [unix]
+      run_exports:   # [unix]
         - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, max_pin="x.x") }}   # [unix]
     requirements:
       build:
@@ -177,7 +177,7 @@ outputs:
         - if exist %LIBRARY_BIN%\\libclang-cpp.dll exit 1           # [win]
 
   - name: libclang{{ libclang_soversion }}
-    script: install_libclang.sh   # [unix]
+    script: install_libclang.sh  # [unix]
     script: install_libclang.bat  # [win]
     build:
       track_features:
@@ -223,7 +223,7 @@ outputs:
         {% endif %}
 
   - name: libclang
-    script: install_libclang.sh   # [unix]
+    script: install_libclang.sh  # [unix]
     script: install_libclang.bat  # [win]
     build:
       track_features:
