@@ -1,0 +1,21 @@
+diff --git a/interpreter/llvm/src/tools/clang/lib/Serialization/ASTReader.cpp b/interpreter/llvm/src/tools/clang/lib/Serialization/ASTReader.cpp
+index 8f9c69a011..5da4fbcbaa 100644
+--- a/interpreter/llvm/src/tools/clang/lib/Serialization/ASTReader.cpp
++++ b/interpreter/llvm/src/tools/clang/lib/Serialization/ASTReader.cpp
+@@ -3916,6 +3916,7 @@ ASTReader::ReadModuleMapFileBlock(RecordData &Record, ModuleFile &F,
+ 
+     // Check any additional module map files (e.g. module.private.modulemap)
+     // that are not in the pcm.
++    if (!PP.getPreprocessorOpts().DisablePCHValidation) {
+     if (auto *AdditionalModuleMaps = Map.getAdditionalModuleMapFiles(M)) {
+       for (const FileEntry *ModMap : *AdditionalModuleMaps) {
+         // Remove files that match
+@@ -3938,6 +3939,7 @@ ASTReader::ReadModuleMapFileBlock(RecordData &Record, ModuleFile &F,
+       return OutOfDate;
+     }
+   }
++  }
+ 
+   if (Listener)
+     Listener->ReadModuleMapFile(F.ModuleMapPath);
+
