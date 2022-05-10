@@ -1,6 +1,6 @@
 {% set version = "9.0.1" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 4 %}
+{% set build_number = 5 %}
 
 {% if not variant %}
 {% set variant = "default" %}
@@ -137,6 +137,7 @@ source:
       - patches/root/0105-Mark-the-overridden-transient-file.patch                    # [variant and variant.startswith("root_")]
       - patches/root/0106-Add-missing-include-to-fix-Dcxxmodules-On.patch             # [variant and variant.startswith("root_")]
       - patches/root/0107-Import-various-changes-to-the-global-module-index.patch     # [variant and variant.startswith("root_")]
+      - patches/root/0108-Disable-vaalidation-of-private-modulemaps.diff              # [variant and variant.startswith("root_")]
 
       # Taken from cloning http://root.cern/git/clang.git and running
       # git format-patch cling-v0.9..bed37d4b18ce6993fc2567e8de61f6b30fd0cb75
