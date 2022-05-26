@@ -1,5 +1,5 @@
-About clang_packages
-====================
+About clang
+===========
 
 Home: http://llvm.org/
 
@@ -96,10 +96,10 @@ Current release info
 | [![Conda Recipe](https://img.shields.io/badge/recipe-libclang13-green.svg)](https://anaconda.org/conda-forge/libclang13) | [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/libclang13.svg)](https://anaconda.org/conda-forge/libclang13) | [![Conda Version](https://img.shields.io/conda/vn/conda-forge/libclang13.svg)](https://anaconda.org/conda-forge/libclang13) | [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/libclang13.svg)](https://anaconda.org/conda-forge/libclang13) |
 | [![Conda Recipe](https://img.shields.io/badge/recipe-python--clang-green.svg)](https://anaconda.org/conda-forge/python-clang) | [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/python-clang.svg)](https://anaconda.org/conda-forge/python-clang) | [![Conda Version](https://img.shields.io/conda/vn/conda-forge/python-clang.svg)](https://anaconda.org/conda-forge/python-clang) | [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/python-clang.svg)](https://anaconda.org/conda-forge/python-clang) |
 
-Installing clang_packages
-=========================
+Installing clang
+================
 
-Installing `clang_packages` from the `conda-forge` channel can be achieved by adding `conda-forge` to your channels with:
+Installing `clang` from the `conda-forge` channel can be achieved by adding `conda-forge` to your channels with:
 
 ```
 conda config --add channels conda-forge
@@ -185,17 +185,17 @@ Terminology
                   produce the finished article (built conda distributions)
 
 
-Updating clang_packages-feedstock
-=================================
+Updating clang-feedstock
+========================
 
-If you would like to improve the clang_packages recipe or build a new
+If you would like to improve the clang recipe or build a new
 package version, please fork this repository and submit a PR. Upon submission,
 your changes will be run on the appropriate platforms to give the reviewer an
 opportunity to confirm that the changes result in a successful build. Once
 merged, the recipe will be re-built and uploaded automatically to the
 `conda-forge` channel, whereupon the built conda packages will be available for
 everybody to install and use from the `conda-forge` channel.
-Note that all branches in the conda-forge/clang_packages-feedstock are
+Note that all branches in the conda-forge/clang-feedstock are
 immediately built and any created packages are uploaded, so PRs should be based
 on branches in forks and branches in the main repository should only be used to
 build distinct package versions.
