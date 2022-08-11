@@ -1,14 +1,12 @@
 MACOSX_DEPLOYMENT_TARGET:
 - '10.9'
 channel_sources:
-- conda-forge
+- conda-forge/label/llvm_rc,conda-forge
 channel_targets:
-- conda-forge main
+- conda-forge llvm_rc
 cxx_compiler:
 - clang_bootstrap
 cxx_compiler_version:
-- '13'
-libclang_soversion:
 - '13'
 macos_machine:
 - x86_64-apple-darwin13.4.0
