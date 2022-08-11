@@ -1,11 +1,11 @@
-About clang_packages
-====================
+About clang
+===========
 
 Home: http://llvm.org/
 
 Package license: Apache-2.0 WITH LLVM-exception
 
-Feedstock license: [BSD-3-Clause](https://github.com/conda-forge/clangdev-feedstock/blob/master/LICENSE.txt)
+Feedstock license: [BSD-3-Clause](https://github.com/conda-forge/clangdev-feedstock/blob/main/LICENSE.txt)
 
 Summary: Development headers and libraries for Clang
 
@@ -22,8 +22,8 @@ Current build status
     <td>
       <details>
         <summary>
-          <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=master">
-            <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=master">
+          <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=main">
+            <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=main">
           </a>
         </summary>
         <table>
@@ -31,43 +31,43 @@ Current build status
           <tbody><tr>
               <td>linux_64_variantdefault</td>
               <td>
-                <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=master">
-                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=master&jobName=linux&configuration=linux_64_variantdefault" alt="variant">
+                <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=main">
+                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=main&jobName=linux&configuration=linux_64_variantdefault" alt="variant">
                 </a>
               </td>
             </tr><tr>
               <td>linux_aarch64_variantdefault</td>
               <td>
-                <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=master">
-                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=master&jobName=linux&configuration=linux_aarch64_variantdefault" alt="variant">
+                <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=main">
+                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=main&jobName=linux&configuration=linux_aarch64_variantdefault" alt="variant">
                 </a>
               </td>
             </tr><tr>
               <td>linux_ppc64le_variantdefault</td>
               <td>
-                <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=master">
-                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=master&jobName=linux&configuration=linux_ppc64le_variantdefault" alt="variant">
+                <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=main">
+                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=main&jobName=linux&configuration=linux_ppc64le_variantdefault" alt="variant">
                 </a>
               </td>
             </tr><tr>
               <td>osx_64</td>
               <td>
-                <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=master">
-                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=master&jobName=osx&configuration=osx_64_" alt="variant">
+                <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=main">
+                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=main&jobName=osx&configuration=osx_64_" alt="variant">
                 </a>
               </td>
             </tr><tr>
               <td>osx_arm64</td>
               <td>
-                <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=master">
-                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=master&jobName=osx&configuration=osx_arm64_" alt="variant">
+                <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=main">
+                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=main&jobName=osx&configuration=osx_arm64_" alt="variant">
                 </a>
               </td>
             </tr><tr>
               <td>win_64</td>
               <td>
-                <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=master">
-                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=master&jobName=win&configuration=win_64_" alt="variant">
+                <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=main">
+                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=main&jobName=win&configuration=win_64_" alt="variant">
                 </a>
               </td>
             </tr>
@@ -93,28 +93,54 @@ Current release info
 | [![Conda Recipe](https://img.shields.io/badge/recipe-libclang-green.svg)](https://anaconda.org/conda-forge/libclang) | [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/libclang.svg)](https://anaconda.org/conda-forge/libclang) | [![Conda Version](https://img.shields.io/conda/vn/conda-forge/libclang.svg)](https://anaconda.org/conda-forge/libclang) | [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/libclang.svg)](https://anaconda.org/conda-forge/libclang) |
 | [![Conda Recipe](https://img.shields.io/badge/recipe-libclang--cpp-green.svg)](https://anaconda.org/conda-forge/libclang-cpp) | [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/libclang-cpp.svg)](https://anaconda.org/conda-forge/libclang-cpp) | [![Conda Version](https://img.shields.io/conda/vn/conda-forge/libclang-cpp.svg)](https://anaconda.org/conda-forge/libclang-cpp) | [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/libclang-cpp.svg)](https://anaconda.org/conda-forge/libclang-cpp) |
 | [![Conda Recipe](https://img.shields.io/badge/recipe-libclang--cpp14-green.svg)](https://anaconda.org/conda-forge/libclang-cpp14) | [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/libclang-cpp14.svg)](https://anaconda.org/conda-forge/libclang-cpp14) | [![Conda Version](https://img.shields.io/conda/vn/conda-forge/libclang-cpp14.svg)](https://anaconda.org/conda-forge/libclang-cpp14) | [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/libclang-cpp14.svg)](https://anaconda.org/conda-forge/libclang-cpp14) |
+| [![Conda Recipe](https://img.shields.io/badge/recipe-libclang13-green.svg)](https://anaconda.org/conda-forge/libclang13) | [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/libclang13.svg)](https://anaconda.org/conda-forge/libclang13) | [![Conda Version](https://img.shields.io/conda/vn/conda-forge/libclang13.svg)](https://anaconda.org/conda-forge/libclang13) | [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/libclang13.svg)](https://anaconda.org/conda-forge/libclang13) |
 | [![Conda Recipe](https://img.shields.io/badge/recipe-python--clang-green.svg)](https://anaconda.org/conda-forge/python-clang) | [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/python-clang.svg)](https://anaconda.org/conda-forge/python-clang) | [![Conda Version](https://img.shields.io/conda/vn/conda-forge/python-clang.svg)](https://anaconda.org/conda-forge/python-clang) | [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/python-clang.svg)](https://anaconda.org/conda-forge/python-clang) |
 
-Installing clang_packages
-=========================
+Installing clang
+================
 
-Installing `clang_packages` from the `conda-forge` channel can be achieved by adding `conda-forge` to your channels with:
+Installing `clang` from the `conda-forge` channel can be achieved by adding `conda-forge` to your channels with:
 
 ```
 conda config --add channels conda-forge
 conda config --set channel_priority strict
 ```
 
-Once the `conda-forge` channel has been enabled, `clang, clang-14, clang-format, clang-format-14, clang-tools, clangdev, clangxx, libclang, libclang-cpp, libclang-cpp14, python-clang` can be installed with:
+Once the `conda-forge` channel has been enabled, `clang, clang-14, clang-format, clang-format-14, clang-tools, clangdev, clangxx, libclang, libclang-cpp, libclang-cpp14, libclang13, python-clang` can be installed with `conda`:
 
 ```
-conda install clang clang-14 clang-format clang-format-14 clang-tools clangdev clangxx libclang libclang-cpp libclang-cpp14 python-clang
+conda install clang clang-14 clang-format clang-format-14 clang-tools clangdev clangxx libclang libclang-cpp libclang-cpp14 libclang13 python-clang
 ```
 
-It is possible to list all of the versions of `clang` available on your platform with:
+or with `mamba`:
+
+```
+mamba install clang clang-14 clang-format clang-format-14 clang-tools clangdev clangxx libclang libclang-cpp libclang-cpp14 libclang13 python-clang
+```
+
+It is possible to list all of the versions of `clang` available on your platform with `conda`:
 
 ```
 conda search clang --channel conda-forge
+```
+
+or with `mamba`:
+
+```
+mamba search clang --channel conda-forge
+```
+
+Alternatively, `mamba repoquery` may provide more information:
+
+```
+# Search all versions available on your platform:
+mamba repoquery search clang --channel conda-forge
+
+# List packages depending on `clang`:
+mamba repoquery whoneeds clang --channel conda-forge
+
+# List dependencies of `clang`:
+mamba repoquery depends clang --channel conda-forge
 ```
 
 
@@ -132,10 +158,12 @@ for each of the installable packages. Such a repository is known as a *feedstock
 A feedstock is made up of a conda recipe (the instructions on what and how to build
 the package) and the necessary configurations for automatic building using freely
 available continuous integration services. Thanks to the awesome service provided by
-[CircleCI](https://circleci.com/), [AppVeyor](https://www.appveyor.com/)
-and [TravisCI](https://travis-ci.com/) it is possible to build and upload installable
-packages to the [conda-forge](https://anaconda.org/conda-forge)
-[Anaconda-Cloud](https://anaconda.org/) channel for Linux, Windows and OSX respectively.
+[Azure](https://azure.microsoft.com/en-us/services/devops/), [GitHub](https://github.com/),
+[CircleCI](https://circleci.com/), [AppVeyor](https://www.appveyor.com/),
+[Drone](https://cloud.drone.io/welcome), and [TravisCI](https://travis-ci.com/)
+it is possible to build and upload installable packages to the
+[conda-forge](https://anaconda.org/conda-forge) [Anaconda-Cloud](https://anaconda.org/)
+channel for Linux, Windows and OSX respectively.
 
 To manage the continuous integration and simplify feedstock maintenance
 [conda-smithy](https://github.com/conda-forge/conda-smithy) has been developed.
@@ -157,17 +185,17 @@ Terminology
                   produce the finished article (built conda distributions)
 
 
-Updating clang_packages-feedstock
-=================================
+Updating clang-feedstock
+========================
 
-If you would like to improve the clang_packages recipe or build a new
+If you would like to improve the clang recipe or build a new
 package version, please fork this repository and submit a PR. Upon submission,
 your changes will be run on the appropriate platforms to give the reviewer an
 opportunity to confirm that the changes result in a successful build. Once
 merged, the recipe will be re-built and uploaded automatically to the
 `conda-forge` channel, whereupon the built conda packages will be available for
 everybody to install and use from the `conda-forge` channel.
-Note that all branches in the conda-forge/clang_packages-feedstock are
+Note that all branches in the conda-forge/clang-feedstock are
 immediately built and any created packages are uploaded, so PRs should be based
 on branches in forks and branches in the main repository should only be used to
 build distinct package versions.

@@ -1,4 +1,18 @@
 #!/bin/bash
+set -ex
+
+# move clang-tools-extra to clang/tools/extra, see
+# https://github.com/llvm/llvm-project/blob/main/clang-tools-extra/README.txt
+mkdir -p llvm-project/clang/tools/extra
+mv llvm-project/clang-tools-extra/* llvm-project/clang/tools/extra/
+
+# using subproject sources has been effectively broken in LLVM 14,
+# so we use the entire project, but make sure we don't pick up
+# anything in-tree other than clang & the shared cmake folder
+mv llvm-project/clang ./clang
+mv llvm-project/cmake ./cmake
+rm -rf llvm-project
+cd clang
 
 IFS='.' read -r -a PKG_VER_ARRAY <<< "${PKG_VERSION}"
 
@@ -11,7 +25,7 @@ if [[ "$variant" == "hcc" ]]; then
 fi
 
 if [[ "$CONDA_BUILD_CROSS_COMPILATION" == "1" ]]; then
-  CMAKE_ARGS="${CMAKE_ARGS} -DLLVM_TABLEGEN_EXE=$BUILD_PREFIX/bin/llvm-tblgen -DNATIVE_LLVM_DIR=$BUILD_PREFIX/lib/cmake/llvm"
+  CMAKE_ARGS="${CMAKE_ARGS} -DLLVM_TOOLS_BINARY_DIR=$BUILD_PREFIX/bin -DNATIVE_LLVM_DIR=$BUILD_PREFIX/lib/cmake/llvm"
   CMAKE_ARGS="${CMAKE_ARGS} -DCROSS_TOOLCHAIN_FLAGS_NATIVE=-DCMAKE_C_COMPILER=$CC_FOR_BUILD;-DCMAKE_CXX_COMPILER=$CXX_FOR_BUILD;-DCMAKE_C_FLAGS=-O2;-DCMAKE_CXX_FLAGS=-O2;-DCMAKE_EXE_LINKER_FLAGS=;-DCMAKE_MODULE_LINKER_FLAGS=;-DCMAKE_SHARED_LINKER_FLAGS=;-DCMAKE_STATIC_LINKER_FLAGS=;-DZLIB_ROOT=$BUILD_PREFIX"
 else
   rm -rf $BUILD_PREFIX/bin/llvm-tblgen
