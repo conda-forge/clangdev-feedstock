@@ -11,7 +11,5 @@ target_platform:
 - win-64
 variant:
 - default
-vc:
-- '14'
 zlib:
 - '1.2'
