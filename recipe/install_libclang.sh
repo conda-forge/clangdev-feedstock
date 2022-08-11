@@ -8,10 +8,5 @@ cd $PREFIX
 rm -rf libexec share bin include
 mv lib lib2
 mkdir lib
-
-if [[ "$PKG_NAME" == "libclang" ]]; then
-    mv lib2/${PKG_NAME}${SHLIB_EXT} lib/
-else
-    mv lib2/libclang.*.* lib/
-fi
+mv lib2/${PKG_NAME}.* lib/
 rm -rf lib2
