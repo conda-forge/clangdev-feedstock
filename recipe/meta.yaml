@@ -7,6 +7,10 @@
 {% set minor_aware_ext = major_version + "." + version.split(".")[1] %}
 {% endif %}
 
+{% if libclang_soversion is not defined %}
+{% set libclang_soversion = "13" %}
+{% endif %}
+
 package:
   name: clang_packages
   version: {{ version }}
@@ -171,7 +175,7 @@ outputs:
         - test -f "$PREFIX/lib/libclang-cpp.dylib"                  # [osx]
         - if exist %LIBRARY_BIN%\\libclang-cpp.dll exit 1           # [win]
 
-  - name: libclang
+  - name: libclang{{ libclang_soversion }}
     script: install_libclang.sh  # [unix]
     script: install_libclang.bat  # [win]
     build:
@@ -179,7 +183,9 @@ outputs:
         - hcc          # [variant=="hcc"]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:
-        - libclang {{ minor_aware_ext }}.*
+        # note that the name (e.g. libclang13) does not necessarily
+        # match the version lower bound (e.g. >=14.0.0)
+        - {{ pin_subpackage("libclang" + libclang_soversion, max_pin="x.x") }}
     requirements:
       build:
         - {{ compiler('cxx') }}
@@ -197,15 +203,57 @@ outputs:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
     test:
       commands:
-        - test -f "$PREFIX/lib/libclang.so"                           # [linux]
-        - test -f "$PREFIX/lib/libclang.so.{{ minor_aware_ext }}"     # [linux]
-        {% if minor_aware_ext != major_version %}
-        - test ! -f "$PREFIX/lib/libclang.so.{{ major_version }}"     # [linux]
-        - test ! -f "$PREFIX/lib/libclang.{{ major_version }}.dylib"  # [osx]
+        # presence of versioned libraries
+        - test -f "$PREFIX/lib/libclang.so.{{ libclang_soversion }}"                # [linux]
+        - test -f "$PREFIX/lib/libclang.{{ libclang_soversion }}.dylib"             # [osx]
+        - if not exist %LIBRARY_BIN%\\libclang-{{ libclang_soversion }}.dll exit 1  # [win]
+
+        # absence of unversioned libraries
+        - test ! -f "$PREFIX/lib/libclang.so"                              # [linux]
+        - test ! -f "$PREFIX/lib/libclang.dylib"                           # [osx]
+        - if exist %LIBRARY_BIN%\\libclang.dll exit 1                      # [win]
+        - if exist %LIBRARY_LIB%\\libclang.lib exit 1                      # [win]
+
+        # absence of major version if soversion is different
+        {% if libclang_soversion != major_version %}
+        - test ! -f "$PREFIX/lib/libclang.so.{{ major_version }}"          # [linux]
+        - test ! -f "$PREFIX/lib/libclang.{{ major_version }}.dylib"       # [osx]
+        - if exist %LIBRARY_BIN%\\libclang-{{ major_version }}.dll exit 1  # [win]
         {% endif %}
-        - test -f "$PREFIX/lib/libclang.dylib"                        # [osx]
-        - test -f "$PREFIX/lib/libclang.{{ minor_aware_ext }}.dylib"  # [osx]
-        - if not exist %LIBRARY_BIN%\\libclang.dll exit 1             # [win]
+
+  - name: libclang
+    script: install_libclang.sh  # [unix]
+    script: install_libclang.bat  # [win]
+    build:
+      track_features:
+        - hcc          # [variant=="hcc"]
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+      run_exports:
+        # note that the name (e.g. libclang13) does not necessarily
+        # match the version lower bound (e.g. >=14.0.0)
+        - {{ pin_subpackage("libclang" + libclang_soversion, max_pin=None) }}
+    requirements:
+      build:
+        - {{ compiler('cxx') }}
+        - cmake >=3.4.3
+        - ninja                      # [win]
+        - make                       # [unix]
+        - llvmdev =={{ version }}    # [build_platform != target_platform]
+      host:
+        - libcxx {{ cxx_compiler_version }}                           # [osx]
+        - llvmdev =={{ version }}
+        - llvm =={{ version }}
+        - zlib                                                        # [linux or win]
+        - {{ pin_subpackage("clang", exact=True) }}
+        - {{ pin_subpackage("libclang" + libclang_soversion, exact=True) }}
+      run:
+        - {{ pin_compatible("libcxx", max_pin=None) }}                # [osx]
+        - {{ pin_subpackage("libclang" + libclang_soversion, exact=True) }}
+    test:
+      commands:
+        - test -f "$PREFIX/lib/libclang.so"                # [linux]
+        - test -f "$PREFIX/lib/libclang.dylib"             # [osx]
+        - if not exist %LIBRARY_LIB%\\libclang.lib exit 1  # [win]
 
   - name: clang-{{ major_version }}
     script: install_clang.sh  # [unix]
@@ -397,7 +445,7 @@ outputs:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
         - {{ pin_subpackage("clang-format", exact=True) }}
         - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, max_pin="x.x") }}   # [unix]
-        - libclang {{ minor_aware_ext }}.*                                        # [unix]
+        - {{ pin_subpackage("libclang", max_pin="x.x") }}                         # [unix]
       run_constrained:
         - clangdev {{ version }}
     test:
