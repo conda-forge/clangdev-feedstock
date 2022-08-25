@@ -93,6 +93,7 @@ Current release info
 | [![Conda Recipe](https://img.shields.io/badge/recipe-libclang-green.svg)](https://anaconda.org/conda-forge/libclang) | [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/libclang.svg)](https://anaconda.org/conda-forge/libclang) | [![Conda Version](https://img.shields.io/conda/vn/conda-forge/libclang.svg)](https://anaconda.org/conda-forge/libclang) | [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/libclang.svg)](https://anaconda.org/conda-forge/libclang) |
 | [![Conda Recipe](https://img.shields.io/badge/recipe-libclang--cpp-green.svg)](https://anaconda.org/conda-forge/libclang-cpp) | [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/libclang-cpp.svg)](https://anaconda.org/conda-forge/libclang-cpp) | [![Conda Version](https://img.shields.io/conda/vn/conda-forge/libclang-cpp.svg)](https://anaconda.org/conda-forge/libclang-cpp) | [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/libclang-cpp.svg)](https://anaconda.org/conda-forge/libclang-cpp) |
 | [![Conda Recipe](https://img.shields.io/badge/recipe-libclang--cpp15-green.svg)](https://anaconda.org/conda-forge/libclang-cpp15) | [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/libclang-cpp15.svg)](https://anaconda.org/conda-forge/libclang-cpp15) | [![Conda Version](https://img.shields.io/conda/vn/conda-forge/libclang-cpp15.svg)](https://anaconda.org/conda-forge/libclang-cpp15) | [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/libclang-cpp15.svg)](https://anaconda.org/conda-forge/libclang-cpp15) |
+| [![Conda Recipe](https://img.shields.io/badge/recipe-libclang13-green.svg)](https://anaconda.org/conda-forge/libclang13) | [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/libclang13.svg)](https://anaconda.org/conda-forge/libclang13) | [![Conda Version](https://img.shields.io/conda/vn/conda-forge/libclang13.svg)](https://anaconda.org/conda-forge/libclang13) | [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/libclang13.svg)](https://anaconda.org/conda-forge/libclang13) |
 | [![Conda Recipe](https://img.shields.io/badge/recipe-python--clang-green.svg)](https://anaconda.org/conda-forge/python-clang) | [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/python-clang.svg)](https://anaconda.org/conda-forge/python-clang) | [![Conda Version](https://img.shields.io/conda/vn/conda-forge/python-clang.svg)](https://anaconda.org/conda-forge/python-clang) | [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/python-clang.svg)](https://anaconda.org/conda-forge/python-clang) |
 
 Installing clangdev
@@ -105,16 +106,16 @@ conda config --add channels conda-forge
 conda config --set channel_priority strict
 ```
 
-Once the `conda-forge` channel has been enabled, `clang, clang-15, clang-format, clang-format-15, clang-tools, clangdev, clangxx, libclang, libclang-cpp, libclang-cpp15, python-clang` can be installed with `conda`:
+Once the `conda-forge` channel has been enabled, `clang, clang-15, clang-format, clang-format-15, clang-tools, clangdev, clangxx, libclang, libclang-cpp, libclang-cpp15, libclang13, python-clang` can be installed with `conda`:
 
 ```
-conda install clang clang-15 clang-format clang-format-15 clang-tools clangdev clangxx libclang libclang-cpp libclang-cpp15 python-clang
+conda install clang clang-15 clang-format clang-format-15 clang-tools clangdev clangxx libclang libclang-cpp libclang-cpp15 libclang13 python-clang
 ```
 
 or with `mamba`:
 
 ```
-mamba install clang clang-15 clang-format clang-format-15 clang-tools clangdev clangxx libclang libclang-cpp libclang-cpp15 python-clang
+mamba install clang clang-15 clang-format clang-format-15 clang-tools clangdev clangxx libclang libclang-cpp libclang-cpp15 libclang13 python-clang
 ```
 
 It is possible to list all of the versions of `clang` available on your platform with `conda`:
