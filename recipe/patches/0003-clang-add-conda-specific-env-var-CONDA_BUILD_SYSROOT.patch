@@ -1,7 +1,7 @@
-From a4b38aad5024911d64f8d4e44ab8ab6c7b426d81 Mon Sep 17 00:00:00 2001
+From e1712797c251d63724934dbb790fee7af541c72d Mon Sep 17 00:00:00 2001
 From: Nehal J Wani <nehaljw.kkd1@gmail.com>
 Date: Sat, 25 Aug 2018 09:20:04 -0500
-Subject: [PATCH 3/7] clang: add conda specific env var CONDA_BUILD_SYSROOT
+Subject: [PATCH 3/8] clang: add conda specific env var CONDA_BUILD_SYSROOT
 
 ---
  clang/lib/Driver/Driver.cpp        | 9 +++++++--

@@ -28,6 +28,7 @@ source:
       # Disable -Werror,-Wundef-prefix=TARGET_OS as they are not yet defined in the 10.9 SDK used for osx-64
       # Only enable it for TARGET_OS_OSX.
       - patches/0007-Only-error-on-undefined-TARGET_OS_OSX.patch  # [osx and x86_64]
+      - patches/0008-set-libclang-SOVERSION-unconditionally.patch
       # - patches/amd-roc-2.7.0.diff   # [variant != "hcc"]
       # - patches/amd-roc-hcc-2.7.0.diff  # [variant == "hcc"]
     # name folder for easier deletion; we do the equivalent of downloading
