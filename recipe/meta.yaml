@@ -54,7 +54,7 @@ requirements:
   host:
     - libcxx {{ cxx_compiler_version }}  # [osx]
     - llvmdev =={{ version }}
-    - zlib                               # [linux]
+    - zlib                               # [linux or win]
 
 test:
   requires:
@@ -98,7 +98,7 @@ outputs:
         - {{ pin_subpackage("libclang-cpp", exact=True) }}
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
-        - zlib                               # [linux]
+        - zlib                               # [linux or win]
       run:
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clangxx", exact=True) }}
