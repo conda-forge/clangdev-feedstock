@@ -1,11 +1,7 @@
-c_compiler:
+c_compiler:          # [osx]
   - clang_bootstrap  # [osx]
-  - gcc              # [linux]
-  - vs2019           # [win]
-cxx_compiler:
+cxx_compiler:        # [osx]
   - clang_bootstrap  # [osx]
-  - gxx              # [linux]
-  - vs2019           # [win]
 
 # Starting from LLVM 14, the ABI of libclang doesn't necessarily
 # match the major version anymore - cf. #170 and
@@ -16,3 +12,9 @@ libclang_soversion:
 variant:
   - default
   - hcc   # [linux]
+
+channel_targets:
+  - conda-forge llvm_rc
+
+channel_sources:
+  - conda-forge/label/llvm_rc,conda-forge
