@@ -1,26 +1,17 @@
-From 41440b8f0b300ba79ab02661941a7ddb82bc6940 Mon Sep 17 00:00:00 2001
+From b74e506cc8724c5a5a8f33ab3dcb135f850721e2 Mon Sep 17 00:00:00 2001
 From: Isuru Fernando <isuruf@gmail.com>
 Date: Mon, 8 Apr 2019 16:32:17 -0500
 Subject: [PATCH 2/8] Fix sysroot detection for linux
 
 ---
- clang/lib/Driver/ToolChains/Linux.cpp | 10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ clang/lib/Driver/ToolChains/Linux.cpp | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
 diff --git a/clang/lib/Driver/ToolChains/Linux.cpp b/clang/lib/Driver/ToolChains/Linux.cpp
-index f85c04df4f6c..0614a06956b0 100644
+index ceb1a982c3a4..d6f62ec0acd6 100644
 --- a/clang/lib/Driver/ToolChains/Linux.cpp
 +++ b/clang/lib/Driver/ToolChains/Linux.cpp
-@@ -361,7 +361,7 @@ std::string Linux::computeSysRoot() const {
-       return AndroidSysRootPath;
-   }
- 
--  if (!GCCInstallation.isValid() || !getTriple().isMIPS())
-+  if (!GCCInstallation.isValid())
-     return std::string();
- 
-   // Standalone MIPS toolchains use different names for sysroot folder
-@@ -379,6 +379,14 @@ std::string Linux::computeSysRoot() const {
+@@ -394,6 +394,14 @@ std::string Linux::computeSysRoot() const {
    if (getVFS().exists(Path))
      return Path;
  
@@ -36,5 +27,5 @@ index f85c04df4f6c..0614a06956b0 100644
  
    if (getVFS().exists(Path))
 -- 
-2.35.3.windows.1
+2.37.0.windows.1
 
