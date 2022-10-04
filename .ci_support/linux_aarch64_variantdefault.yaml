@@ -16,9 +16,6 @@ docker_image:
 - quay.io/condaforge/linux-anvil-cos7-x86_64
 libclang_soversion:
 - '13'
-pin_run_as_build:
-  zlib:
-    max_pin: x.x
 target_platform:
 - linux-aarch64
 variant:
