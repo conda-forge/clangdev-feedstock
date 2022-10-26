@@ -489,6 +489,7 @@ about:
 
 extra:
   recipe-maintainers:
+    - JohanMabille
     - inducer
     - isuruf
     - jakirkham
