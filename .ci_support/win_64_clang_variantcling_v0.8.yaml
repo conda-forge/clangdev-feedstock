@@ -1,11 +1,11 @@
 channel_sources:
-- conda-forge,defaults
+- conda-forge
 channel_targets:
 - conda-forge main
 clang_variant:
 - cling_v0.8
 cxx_compiler:
-- vs2017
+- vs2019
 target_platform:
 - win-64
 vc:
