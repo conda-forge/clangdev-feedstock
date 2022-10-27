@@ -20,18 +20,6 @@ jobs:
         CONFIG: linux_64_clang_variantroot_20201127
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-cos7-x86_64
-      linux_aarch64_clang_variantcling_v0.8:
-        CONFIG: linux_aarch64_clang_variantcling_v0.8
-        UPLOAD_PACKAGES: 'True'
-        DOCKER_IMAGE: quay.io/condaforge/linux-anvil-cos7-x86_64
-      linux_aarch64_clang_variantdefault:
-        CONFIG: linux_aarch64_clang_variantdefault
-        UPLOAD_PACKAGES: 'True'
-        DOCKER_IMAGE: quay.io/condaforge/linux-anvil-cos7-x86_64
-      linux_aarch64_clang_variantroot_20201127:
-        CONFIG: linux_aarch64_clang_variantroot_20201127
-        UPLOAD_PACKAGES: 'True'
-        DOCKER_IMAGE: quay.io/condaforge/linux-anvil-cos7-x86_64
   timeoutInMinutes: 360
 
   steps:

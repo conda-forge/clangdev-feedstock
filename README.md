@@ -48,27 +48,6 @@ Current build status
                 </a>
               </td>
             </tr><tr>
-              <td>linux_aarch64_clang_variantcling_v0.8</td>
-              <td>
-                <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=master">
-                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=master&jobName=linux&configuration=linux_aarch64_clang_variantcling_v0.8" alt="variant">
-                </a>
-              </td>
-            </tr><tr>
-              <td>linux_aarch64_clang_variantdefault</td>
-              <td>
-                <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=master">
-                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=master&jobName=linux&configuration=linux_aarch64_clang_variantdefault" alt="variant">
-                </a>
-              </td>
-            </tr><tr>
-              <td>linux_aarch64_clang_variantroot_20201127</td>
-              <td>
-                <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=master">
-                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/clangdev-feedstock?branchName=master&jobName=linux&configuration=linux_aarch64_clang_variantroot_20201127" alt="variant">
-                </a>
-              </td>
-            </tr><tr>
               <td>osx_64_clang_variantcling_v0.8</td>
               <td>
                 <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=153&branchName=master">
