@@ -3,6 +3,7 @@ IF "%clang_variant:~0,4%"=="root" (
     set "SRC_DIR= %SRC_DIR%/root-source/interpreter/llvm/src/tools/clang"
 )
 
+echo %LIBRARY_INC%
 move %LIBRARY_INC%\libxml2\libxml %LIBRARY_INC%
 rmdir %LIBRARY_INC%\libxml2
 
