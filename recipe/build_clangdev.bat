@@ -3,7 +3,8 @@ IF "%clang_variant:~0,4%"=="root" (
     set "SRC_DIR= %SRC_DIR%/root-source/interpreter/llvm/src/tools/clang"
 )
 
-copy %LIBRARY_INC%\iconv.h %LIBRARY_INC%\libxml2\libxml\
+move %LIBRARY_INC%\libxml2\libxml %LIBRARY_INC%
+rmdir %LIBRARY_INC%\libxml2
 
 mkdir build
 cd build
