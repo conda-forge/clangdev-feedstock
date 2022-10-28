@@ -3,6 +3,8 @@ IF "%clang_variant:~0,4%"=="root" (
     set "SRC_DIR= %SRC_DIR%/root-source/interpreter/llvm/src/tools/clang"
 )
 
+copy %LIBRARY_INC%\iconv.h %LIBRARY_INC%\libxml2\libxml\
+
 mkdir build
 cd build
 
@@ -19,7 +21,6 @@ cmake -G "NMake Makefiles" ^
     -DLLVM_INCLUDE_TESTS=OFF ^
     -DLLVM_INCLUDE_DOCS=OFF ^
     -DLLVM_TARGETS_TO_BUILD=X86 ^
-    -DLLVM_ENABLE_LIBXML2=OFF ^
     %SRC_DIR%
 
 if errorlevel 1 exit 1
