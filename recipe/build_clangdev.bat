@@ -19,6 +19,7 @@ cmake -G "NMake Makefiles" ^
     -DLLVM_INCLUDE_TESTS=OFF ^
     -DLLVM_INCLUDE_DOCS=OFF ^
     -DLLVM_TARGETS_TO_BUILD=X86 ^
+    -DLLVM_ENABLE_LIBXML2=OFF ^
     %SRC_DIR%
 
 if errorlevel 1 exit 1
