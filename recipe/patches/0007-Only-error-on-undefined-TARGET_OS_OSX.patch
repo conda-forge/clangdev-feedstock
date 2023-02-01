@@ -1,4 +1,4 @@
-From cf887b142e53c65a654b45a0157565a3ee697a46 Mon Sep 17 00:00:00 2001
+From b11a745c54966f9f48cff368a2d46cb0e265597d Mon Sep 17 00:00:00 2001
 From: "Uwe L. Korn" <uwe.korn@quantco.com>
 Date: Tue, 11 May 2021 15:09:51 +0200
 Subject: [PATCH 7/8] Only error on undefined TARGET_OS_OSX

@@ -1,4 +1,4 @@
-From ee98005764b04fbb91b301d7c4cd1914373e6dd4 Mon Sep 17 00:00:00 2001
+From d3f9de592fb29a1e7f6870e3738778cec01a61e7 Mon Sep 17 00:00:00 2001
 From: Isuru Fernando <isuruf@gmail.com>
 Date: Tue, 11 May 2021 15:08:13 +0200
 Subject: [PATCH 6/8] Fix crosscompiling LLVM tools

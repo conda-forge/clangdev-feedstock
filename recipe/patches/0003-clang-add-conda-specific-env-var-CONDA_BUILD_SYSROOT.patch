@@ -1,4 +1,4 @@
-From bb7ac04b3d48699b0aaa1989a60e578a2150547b Mon Sep 17 00:00:00 2001
+From c2c32b2cd1c88f88d150ff502d5f1e0fd4d99512 Mon Sep 17 00:00:00 2001
 From: Nehal J Wani <nehaljw.kkd1@gmail.com>
 Date: Sat, 25 Aug 2018 09:20:04 -0500
 Subject: [PATCH 3/8] clang: add conda specific env var CONDA_BUILD_SYSROOT
@@ -29,7 +29,7 @@ index 661d9977fb..f5a75515ed 100644
      DyldPrefix = A->getValue();
  
 diff --git a/clang/lib/Lex/InitHeaderSearch.cpp b/clang/lib/Lex/InitHeaderSearch.cpp
-index d446556571..e44467784c 100644
+index d446556571..8354362d1f 100644
 --- a/clang/lib/Lex/InitHeaderSearch.cpp
 +++ b/clang/lib/Lex/InitHeaderSearch.cpp
 @@ -25,6 +25,7 @@
@@ -47,7 +47,7 @@ index d446556571..e44467784c 100644
 -      AddPath("/usr/local/include", System, false);
 +      Optional<std::string> CondaBuildSysrootValue =
 +              llvm::sys::Process::GetEnv("CONDA_BUILD_SYSROOT");
-+      if (!CondaBuildSysrootValue.hasValue())
++      if (!CondaBuildSysrootValue.has_value())
 +        AddPath("/usr/local/include", System, false);
        break;
      }
