@@ -1,4 +1,4 @@
-{% set version = "15.0.0.rc3" %}
+{% set version = "15.0.7" %}
 {% set major_version = version.split(".")[0] %}
 {% set build_number = 0 %}
 
@@ -17,7 +17,7 @@ package:
 
 source:
   - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/llvm-project-{{ version.replace(".rc", "rc") }}.src.tar.xz
-    sha256: 36b3c3cb2baa598192f11a1e00634401a35447b83a2bc12289bb2dcc3cc73520
+    sha256: 8b5fcb24b4128cf04df1b0b9410ce8b1a729cb3c544e6da885d234280dedeac6
     patches:
       - patches/0001-Find-conda-gcc-installation.patch
       - patches/0002-Fix-sysroot-detection-for-linux.patch
@@ -152,7 +152,7 @@ outputs:
       track_features:
         - hcc          # [variant=="hcc"]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
-      run_exports:                                                                # [unix]
+      run_exports:   # [unix]
         - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, max_pin="x.x") }}   # [unix]
     requirements:
       build:
@@ -489,6 +489,7 @@ about:
 
 extra:
   recipe-maintainers:
+    - JohanMabille
     - inducer
     - isuruf
     - jakirkham
