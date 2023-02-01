@@ -1,4 +1,4 @@
-From d287e85165e4b45b4bdccf54a1b4bb18621095e8 Mon Sep 17 00:00:00 2001
+From ee98005764b04fbb91b301d7c4cd1914373e6dd4 Mon Sep 17 00:00:00 2001
 From: Isuru Fernando <isuruf@gmail.com>
 Date: Tue, 11 May 2021 15:08:13 +0200
 Subject: [PATCH 6/8] Fix crosscompiling LLVM tools
@@ -8,10 +8,10 @@ Subject: [PATCH 6/8] Fix crosscompiling LLVM tools
  1 file changed, 10 insertions(+)
 
 diff --git a/clang/CMakeLists.txt b/clang/CMakeLists.txt
-index 13d76e7fd935..dcb9b7de2944 100644
+index 090cfa3520..3f617c6024 100644
 --- a/clang/CMakeLists.txt
 +++ b/clang/CMakeLists.txt
-@@ -114,6 +114,16 @@ if(CLANG_BUILT_STANDALONE)
+@@ -67,6 +67,16 @@ if(CLANG_BUILT_STANDALONE)
    option(LLVM_ENABLE_LIBXML2 "Use libxml2 if available." ON)
  
    include(AddLLVM)
@@ -29,5 +29,5 @@ index 13d76e7fd935..dcb9b7de2944 100644
    include(HandleLLVMOptions)
    include(VersionFromVCS)
 -- 
-2.37.0.windows.1
+2.38.1.windows.1
 
