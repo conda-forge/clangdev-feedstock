@@ -1,4 +1,4 @@
-From 7545974a464512b08a0c220ca77da90120c357f7 Mon Sep 17 00:00:00 2001
+From 4bc14803d5047c88ab177138e0bc63592d459185 Mon Sep 17 00:00:00 2001
 From: "H. Vetinari" <h.vetinari@gmx.com>
 Date: Thu, 14 Apr 2022 11:57:00 +1100
 Subject: [PATCH 8/8] set libclang SOVERSION unconditionally
@@ -8,7 +8,7 @@ Subject: [PATCH 8/8] set libclang SOVERSION unconditionally
  1 file changed, 6 insertions(+)
 
 diff --git a/clang/tools/libclang/CMakeLists.txt b/clang/tools/libclang/CMakeLists.txt
-index da8a9740fa..080be997b8 100644
+index da8a9740fa..d311440695 100644
 --- a/clang/tools/libclang/CMakeLists.txt
 +++ b/clang/tools/libclang/CMakeLists.txt
 @@ -199,7 +199,13 @@ if(ENABLE_SHARED)
@@ -19,7 +19,7 @@ index da8a9740fa..080be997b8 100644
  
 +  if(WIN32)
 +    # point libclang.lib to libclang-<SO-version>.dll
-+    set_target_properties(libclang PROPERTIES RUNTIME_OUTPUT_NAME "libclang-${LIBCLANG_SOVERSION}")
++    set_target_properties(libclang PROPERTIES RUNTIME_OUTPUT_NAME "libclang-${LIBCLANG_SOVERSION_ARG}")
 +  else()
 +    # on unix, set so-version directly
      set_target_properties(libclang PROPERTIES
