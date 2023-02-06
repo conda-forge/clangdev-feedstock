@@ -1,17 +1,27 @@
-From 2293d456076cbc8af204423ccd92d46c254872ef Mon Sep 17 00:00:00 2001
+From 05b1d7d8e52a23a32a25ea8c1aa7a4676ddc0a8f Mon Sep 17 00:00:00 2001
 From: "H. Vetinari" <h.vetinari@gmx.com>
 Date: Thu, 14 Apr 2022 11:57:00 +1100
 Subject: [PATCH 8/8] set libclang SOVERSION unconditionally
 
 ---
- clang/tools/libclang/CMakeLists.txt | 6 ++++++
- 1 file changed, 6 insertions(+)
+ clang/tools/libclang/CMakeLists.txt | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
 diff --git a/clang/tools/libclang/CMakeLists.txt b/clang/tools/libclang/CMakeLists.txt
-index f234f15628e7..a170f8838924 100644
+index da8a9740fa..998e657b6a 100644
 --- a/clang/tools/libclang/CMakeLists.txt
 +++ b/clang/tools/libclang/CMakeLists.txt
-@@ -197,7 +197,13 @@ if(ENABLE_SHARED)
+@@ -11,7 +11,8 @@
+ # in LLVM 15.x we opted for a option.
+ set(LIBCLANG_SOVERSION_ARG)
+ if(NOT CLANG_FORCE_MATCHING_LIBCLANG_SOVERSION)
+-  set(LIBCLANG_SOVERSION_ARG SOVERSION 13)
++  set(LIBCLANG_SOVERSION 13)
++  set(LIBCLANG_SOVERSION_ARG SOVERSION ${LIBCLANG_SOVERSION})
+ endif()
+ 
+ # TODO: harmonize usage of LIBCLANG_SOVERSION / LIBCLANG_LIBARY_VERSION
+@@ -199,7 +200,13 @@ if(ENABLE_SHARED)
      # Ensure that libclang.so gets rebuilt when the linker script changes.
      set_property(SOURCE ARCMigrate.cpp APPEND PROPERTY
                   OBJECT_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/libclang.map)
@@ -24,7 +34,7 @@ index f234f15628e7..a170f8838924 100644
 +    # on unix, set so-version directly
      set_target_properties(libclang PROPERTIES
                            VERSION ${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}.${LLVM_VERSION_PATCH}${LLVM_VERSION_SUFFIX}
-                           SOVERSION ${LIBCLANG_SOVERSION})
+                           ${LIBCLANG_SOVERSION_ARG})
 -- 
-2.37.0.windows.1
+2.38.1.windows.1
 

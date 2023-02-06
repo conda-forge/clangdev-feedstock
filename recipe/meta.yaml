@@ -1,4 +1,4 @@
-{% set version = "15.0.0.rc3" %}
+{% set version = "16.0.0.rc1" %}
 {% set major_version = version.split(".")[0] %}
 {% set build_number = 0 %}
 
@@ -17,7 +17,7 @@ package:
 
 source:
   - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/llvm-project-{{ version.replace(".rc", "rc") }}.src.tar.xz
-    sha256: 36b3c3cb2baa598192f11a1e00634401a35447b83a2bc12289bb2dcc3cc73520
+    sha256: 8399db003b223ce33e3d7a5ee9df8dc3574cedffa5d9be4783660643f8402900
     patches:
       - patches/0001-Find-conda-gcc-installation.patch
       - patches/0002-Fix-sysroot-detection-for-linux.patch
@@ -29,6 +29,7 @@ source:
       # Only enable it for TARGET_OS_OSX.
       - patches/0007-Only-error-on-undefined-TARGET_OS_OSX.patch  # [osx and x86_64]
       - patches/0008-set-libclang-SOVERSION-unconditionally.patch
+      # check out git history before LLVM 16 for these patches
       # - patches/amd-roc-2.7.0.diff   # [variant != "hcc"]
       # - patches/amd-roc-hcc-2.7.0.diff  # [variant == "hcc"]
     # name folder for easier deletion; we do the equivalent of downloading
@@ -152,7 +153,7 @@ outputs:
       track_features:
         - hcc          # [variant=="hcc"]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
-      run_exports:                                                                # [unix]
+      run_exports:   # [unix]
         - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, max_pin="x.x") }}   # [unix]
     requirements:
       build:
@@ -298,8 +299,8 @@ outputs:
         - test -f "$PREFIX/lib/libclang-cpp.so.{{ minor_aware_ext }}"     # [linux]
         - test ! -f "$PREFIX/lib/libclang-cpp.dylib"                      # [osx]
         - test -f "$PREFIX/lib/libclang-cpp.{{ minor_aware_ext }}.dylib"  # [osx]
-        - test -f "$PREFIX/lib/clang/{{ '.'.join(version.split('.')[:3]) }}/include/stdatomic.h"                    # [unix]
-        - if not exist %LIBRARY_LIB%\\clang\\{{ '.'.join(version.split('.')[:3]) }}\\include\\stdatomic.h exit 1    # [win]
+        - test -f "$PREFIX/lib/clang/{{ version.split('.')[0] }}/include/stdatomic.h"                    # [unix]
+        - if not exist %LIBRARY_LIB%\\clang\\{{ version.split('.')[0] }}\\include\\stdatomic.h exit 1    # [win]
 
   - name: clang
     script: install_clang_symlinks.sh  # [unix]
@@ -489,6 +490,7 @@ about:
 
 extra:
   recipe-maintainers:
+    - JohanMabille
     - inducer
     - isuruf
     - jakirkham
