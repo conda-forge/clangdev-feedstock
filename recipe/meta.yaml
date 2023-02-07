@@ -215,11 +215,16 @@ outputs:
         - if exist %LIBRARY_BIN%\\libclang.dll exit 1                      # [win]
         - if exist %LIBRARY_LIB%\\libclang.lib exit 1                      # [win]
 
-        # absence of major version if soversion is different
         {% if libclang_soversion != major_version %}
+        # absence of major version if soversion is different
         - test ! -f "$PREFIX/lib/libclang.so.{{ major_version }}"          # [linux]
         - test ! -f "$PREFIX/lib/libclang.{{ major_version }}.dylib"       # [osx]
         - if exist %LIBRARY_BIN%\\libclang-{{ major_version }}.dll exit 1  # [win]
+
+        # same for full version (i.e. with major that doesn't match soversion)
+        - test ! -f "$PREFIX/lib/libclang.so.{{ version }}"                # [linux]
+        - test ! -f "$PREFIX/lib/libclang.{{ version }}.dylib"             # [osx]
+        - if exist %LIBRARY_BIN%\\libclang-{{ version }}.dll exit 1        # [win]
         {% endif %}
 
   - name: libclang
