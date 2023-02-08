@@ -1,14 +1,15 @@
-From 05b1d7d8e52a23a32a25ea8c1aa7a4676ddc0a8f Mon Sep 17 00:00:00 2001
+From c1e38c5504a7ecdd61b973d324a8aba83534bd30 Mon Sep 17 00:00:00 2001
 From: "H. Vetinari" <h.vetinari@gmx.com>
 Date: Thu, 14 Apr 2022 11:57:00 +1100
 Subject: [PATCH 8/8] set libclang SOVERSION unconditionally
 
+and avoid creating libclang with full version suffix
 ---
- clang/tools/libclang/CMakeLists.txt | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ clang/tools/libclang/CMakeLists.txt | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
 diff --git a/clang/tools/libclang/CMakeLists.txt b/clang/tools/libclang/CMakeLists.txt
-index da8a9740fa..998e657b6a 100644
+index da8a9740fa..2e1bff8a97 100644
 --- a/clang/tools/libclang/CMakeLists.txt
 +++ b/clang/tools/libclang/CMakeLists.txt
 @@ -11,7 +11,8 @@
@@ -21,7 +22,7 @@ index da8a9740fa..998e657b6a 100644
  endif()
  
  # TODO: harmonize usage of LIBCLANG_SOVERSION / LIBCLANG_LIBARY_VERSION
-@@ -199,7 +200,13 @@ if(ENABLE_SHARED)
+@@ -199,9 +200,16 @@ if(ENABLE_SHARED)
      # Ensure that libclang.so gets rebuilt when the linker script changes.
      set_property(SOURCE ARCMigrate.cpp APPEND PROPERTY
                   OBJECT_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/libclang.map)
@@ -31,10 +32,14 @@ index da8a9740fa..998e657b6a 100644
 +    # point libclang.lib to libclang-<SO-version>.dll
 +    set_target_properties(libclang PROPERTIES RUNTIME_OUTPUT_NAME "libclang-${LIBCLANG_SOVERSION}")
 +  else()
-+    # on unix, set so-version directly
++    # on unix, set soversion directly (also need to set version
++    # to avoid libclang.so.LLVM_VERSION_MAJOR being generated)
      set_target_properties(libclang PROPERTIES
-                           VERSION ${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}.${LLVM_VERSION_PATCH}${LLVM_VERSION_SUFFIX}
+-                          VERSION ${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}.${LLVM_VERSION_PATCH}${LLVM_VERSION_SUFFIX}
++                          VERSION ${LIBCLANG_SOVERSION}
                            ${LIBCLANG_SOVERSION_ARG})
+   endif()
+ endif()
 -- 
 2.38.1.windows.1
 
