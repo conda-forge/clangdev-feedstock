@@ -1,4 +1,4 @@
-From e1712797c251d63724934dbb790fee7af541c72d Mon Sep 17 00:00:00 2001
+From cf8994afb833fb385d2e9428e06a82db6b761c9e Mon Sep 17 00:00:00 2001
 From: Nehal J Wani <nehaljw.kkd1@gmail.com>
 Date: Sat, 25 Aug 2018 09:20:04 -0500
 Subject: [PATCH 3/8] clang: add conda specific env var CONDA_BUILD_SYSROOT
@@ -9,7 +9,7 @@ Subject: [PATCH 3/8] clang: add conda specific env var CONDA_BUILD_SYSROOT
  2 files changed, 12 insertions(+), 3 deletions(-)
 
 diff --git a/clang/lib/Driver/Driver.cpp b/clang/lib/Driver/Driver.cpp
-index 3f29afd35971..94b4c6459478 100644
+index 3f29afd359..94b4c64594 100644
 --- a/clang/lib/Driver/Driver.cpp
 +++ b/clang/lib/Driver/Driver.cpp
 @@ -1270,8 +1270,13 @@ Compilation *Driver::BuildCompilation(ArrayRef<const char *> ArgList) {
@@ -29,7 +29,7 @@ index 3f29afd35971..94b4c6459478 100644
      DyldPrefix = A->getValue();
  
 diff --git a/clang/lib/Lex/InitHeaderSearch.cpp b/clang/lib/Lex/InitHeaderSearch.cpp
-index 158b5667151f..a3ab5f8f18b2 100644
+index 158b566715..a3ab5f8f18 100644
 --- a/clang/lib/Lex/InitHeaderSearch.cpp
 +++ b/clang/lib/Lex/InitHeaderSearch.cpp
 @@ -25,6 +25,7 @@
@@ -53,5 +53,5 @@ index 158b5667151f..a3ab5f8f18b2 100644
      }
    }
 -- 
-2.37.0.windows.1
+2.38.1.windows.1
 
