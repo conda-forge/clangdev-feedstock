@@ -1,4 +1,4 @@
-{% set version = "16.0.0.rc1" %}
+{% set version = "16.0.0.rc2" %}
 {% set major_version = version.split(".")[0] %}
 {% set build_number = 0 %}
 
@@ -17,7 +17,7 @@ package:
 
 source:
   - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/llvm-project-{{ version.replace(".rc", "rc") }}.src.tar.xz
-    sha256: 8399db003b223ce33e3d7a5ee9df8dc3574cedffa5d9be4783660643f8402900
+    sha256: 2ae53e4d9cdc46e660359a5311f276bd4cb39c310345de951c580a09b4f34861
     patches:
       - patches/0001-Find-conda-gcc-installation.patch
       - patches/0002-Fix-sysroot-detection-for-linux.patch
@@ -216,11 +216,16 @@ outputs:
         - if exist %LIBRARY_BIN%\\libclang.dll exit 1                      # [win]
         - if exist %LIBRARY_LIB%\\libclang.lib exit 1                      # [win]
 
-        # absence of major version if soversion is different
         {% if libclang_soversion != major_version %}
+        # absence of major version if soversion is different
         - test ! -f "$PREFIX/lib/libclang.so.{{ major_version }}"          # [linux]
         - test ! -f "$PREFIX/lib/libclang.{{ major_version }}.dylib"       # [osx]
         - if exist %LIBRARY_BIN%\\libclang-{{ major_version }}.dll exit 1  # [win]
+
+        # same for full version (i.e. with major that doesn't match soversion)
+        - test ! -f "$PREFIX/lib/libclang.so.{{ version }}"                # [linux]
+        - test ! -f "$PREFIX/lib/libclang.{{ version }}.dylib"             # [osx]
+        - if exist %LIBRARY_BIN%\\libclang-{{ version }}.dll exit 1        # [win]
         {% endif %}
 
   - name: libclang
