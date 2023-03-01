@@ -1,18 +1,16 @@
-cdt_name:
-- cos7
+MACOSX_DEPLOYMENT_TARGET:
+- '11.0'
 channel_sources:
 - conda-forge
 channel_targets:
 - conda-forge main
 cxx_compiler:
-- gxx
+- clang_bootstrap
 cxx_compiler_version:
-- '8'
-docker_image:
-- quay.io/condaforge/linux-anvil-cos7-x86_64
+- '11'
+macos_machine:
+- arm64-apple-darwin20.0.0
 target_platform:
-- linux-ppc64le
+- osx-arm64
 variant:
-- default
-zlib:
-- '1.2'
+- root_62800
