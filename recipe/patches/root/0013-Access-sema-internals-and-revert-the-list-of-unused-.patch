@@ -1,0 +1,25 @@
+From 95fdfbdb849e4a12f5aa0694bdb26472a5da471a Mon Sep 17 00:00:00 2001
+From: Vassil Vassilev <vvasilev@cern.ch>
+Date: Fri, 28 Mar 2014 10:48:12 +0100
+Subject: [PATCH 13/83] Access sema internals and revert the list of unused
+ decls.
+
+---
+ include/clang/Sema/Sema.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/include/clang/Sema/Sema.h b/include/clang/Sema/Sema.h
+index d8b2546b81..947cf1fc69 100644
+--- a/include/clang/Sema/Sema.h
++++ b/include/clang/Sema/Sema.h
+@@ -12798,6 +12798,7 @@ protected:
+   friend class ASTReader;
+   friend class ASTDeclReader;
+   friend class ASTWriter;
++  friend class DeclUnloader;
+ 
+ public:
+   /// Retrieve the keyword associated
+-- 
+2.34.1
+

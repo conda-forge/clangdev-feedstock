@@ -19,3 +19,4 @@ cxx_compiler_version:   # [osx or (linux and ppc64le)]
 variant:
   - default
   - hcc   # [linux]
+  - root_62800  # [linux or osx]

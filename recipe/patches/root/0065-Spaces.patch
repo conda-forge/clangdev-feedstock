@@ -1,0 +1,25 @@
+From 4ecdbf14aaec3c13da65a71f8f79092dc89b24f7 Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Tue, 6 Sep 2016 15:30:23 +0200
+Subject: [PATCH 65/83] Spaces.
+
+---
+ lib/CodeGen/ModuleBuilder.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/CodeGen/ModuleBuilder.cpp b/lib/CodeGen/ModuleBuilder.cpp
+index db654ef97f..8694bda2df 100644
+--- a/lib/CodeGen/ModuleBuilder.cpp
++++ b/lib/CodeGen/ModuleBuilder.cpp
+@@ -301,7 +301,7 @@ namespace clang {
+     }
+ 
+     void forgetGlobal(llvm::GlobalValue* GV) {
+-      for(auto I = Builder->ConstantStringMap.begin(),
++      for (auto I = Builder->ConstantStringMap.begin(),
+             E = Builder->ConstantStringMap.end(); I != E; ++I) {
+         if (I->second == GV) {
+           Builder->ConstantStringMap.erase(I);
+-- 
+2.34.1
+

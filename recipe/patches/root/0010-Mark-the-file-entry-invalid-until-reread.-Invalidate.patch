@@ -1,0 +1,97 @@
+From 893ae75d0c4f10e22d6db858cea3e1b78c5fa3a6 Mon Sep 17 00:00:00 2001
+From: Vassil Vassilev <vvasilev@cern.ch>
+Date: Tue, 8 Apr 2014 16:48:23 +0200
+Subject: [PATCH 10/83] Mark the file entry invalid, until reread. Invalidate
+ SLocEntry cache, readd it on reread.
+
+Do not use translateFile, because it pulls in parts of the pch.
+---
+ include/clang/Basic/FileManager.h   |  3 +++
+ include/clang/Basic/SourceManager.h |  4 ++--
+ lib/Basic/FileManager.cpp           |  2 +-
+ lib/Basic/SourceManager.cpp         | 17 ++++++++++++++---
+ 4 files changed, 20 insertions(+), 6 deletions(-)
+
+diff --git a/include/clang/Basic/FileManager.h b/include/clang/Basic/FileManager.h
+index 2916cde0a4..f7c4cd13c0 100644
+--- a/include/clang/Basic/FileManager.h
++++ b/include/clang/Basic/FileManager.h
+@@ -299,6 +299,9 @@ public:
+   std::error_code getNoncachedStatValue(StringRef Path,
+                                         llvm::vfs::Status &Result);
+ 
++  /// Remove the real file \p Entry from the cache.
++  void invalidateCache(FileEntry *Entry);
++
+   /// If path is not absolute and FileSystemOptions set the working
+   /// directory, the path is modified to be relative to the given
+   /// working directory.
+diff --git a/include/clang/Basic/SourceManager.h b/include/clang/Basic/SourceManager.h
+index 85a8c7a3d0..fce35e608c 100644
+--- a/include/clang/Basic/SourceManager.h
++++ b/include/clang/Basic/SourceManager.h
+@@ -243,7 +243,7 @@ public:
+ 
+   /// Set the buffer.
+   void setBuffer(std::unique_ptr<llvm::MemoryBuffer> B) {
+-    IsBufferInvalid = false;
++    IsBufferInvalid = !B;
+     Buffer = std::move(B);
+   }
+ 
+@@ -797,7 +797,7 @@ public:
+ 
+   void clearIDTables();
+ 
+-  void invalidateCache(const FileEntry* Entry);
++  void invalidateCache(FileID FID);
+ 
+   /// Initialize this source manager suitably to replay the compilation
+   /// described by \p Old. Requires that \p Old outlive \p *this.
+diff --git a/lib/Basic/FileManager.cpp b/lib/Basic/FileManager.cpp
+index bf33ef0504..b41d805109 100644
+--- a/lib/Basic/FileManager.cpp
++++ b/lib/Basic/FileManager.cpp
+@@ -610,7 +610,7 @@ FileManager::getNoncachedStatValue(StringRef Path,
+   return std::error_code();
+ }
+ 
+-void FileManager::invalidateCache(const FileEntry *Entry) {
++void FileManager::invalidateCache(FileEntry *Entry) {
+   assert(Entry && "Cannot invalidate a NULL FileEntry");
+   FileEntriesToReread.insert(Entry->getLastRef());
+   Entry->IsValid = false;
+diff --git a/lib/Basic/SourceManager.cpp b/lib/Basic/SourceManager.cpp
+index 254b57a5dd..78128fee88 100644
+--- a/lib/Basic/SourceManager.cpp
++++ b/lib/Basic/SourceManager.cpp
+@@ -358,12 +358,23 @@ bool SourceManager::isMainFile(const FileEntry &SourceFile) {
+   return false;
+ }
+ 
+-void SourceManager::invalidateCache(const FileEntry* Entry) {
++void SourceManager::invalidateCache(FileID FID) {
++  const FileEntry* Entry = getFileEntryForID(FID);
++  if (!Entry)
++    return;
+   if (ContentCache *&E = FileInfos[Entry]) {
+-    E->replaceBuffer(0, /*free*/ true);
++    E->setBuffer(nullptr);
+     E = 0;
+   }
+-  getFileManager().invalidateCache(Entry);
++  if (!FID.isInvalid()) {
++    const SrcMgr::SLocEntry& SLocE = getSLocEntry(FID);
++    if (SLocE.isFile()) {
++      SrcMgr::ContentCache& CC =
++        const_cast<SrcMgr::ContentCache&>(SLocE.getFile().getContentCache());
++      CC.setBuffer(nullptr);
++    }
++  }
++  getFileManager().invalidateCache(const_cast<FileEntry*>(Entry));
+ }
+ 
+ void SourceManager::initializeForReplay(const SourceManager &Old) {
+-- 
+2.34.1
+

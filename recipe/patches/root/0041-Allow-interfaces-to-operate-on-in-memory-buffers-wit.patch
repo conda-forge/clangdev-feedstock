@@ -1,0 +1,57 @@
+From fa6233e08e2cc7dcd525d5d992ec52359f6cf836 Mon Sep 17 00:00:00 2001
+From: Vassil Vassilev <v.g.vassilev@gmail.com>
+Date: Tue, 25 Aug 2020 19:36:56 +0000
+Subject: [PATCH 41/83] Allow interfaces to operate on in-memory buffers with
+ no source location info.
+
+This patch avoid an assert PresumedLoc::getFilename if it is invalid.
+---
+ include/clang/Basic/SourceManager.h | 17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
+
+diff --git a/include/clang/Basic/SourceManager.h b/include/clang/Basic/SourceManager.h
+index fce35e608c..8bebe0af2e 100644
+--- a/include/clang/Basic/SourceManager.h
++++ b/include/clang/Basic/SourceManager.h
+@@ -1470,24 +1470,35 @@ public:
+ 
+   /// Returns whether \p Loc is located in a <built-in> file.
+   bool isWrittenInBuiltinFile(SourceLocation Loc) const {
+-    StringRef Filename(getPresumedLoc(Loc).getFilename());
++    PresumedLoc Presumed = getPresumedLoc(Loc);
++    if (Presumed.isInvalid())
++      return false;
++    StringRef Filename(Presumed.getFilename());
+     return Filename.equals("<built-in>");
+   }
+ 
+   /// Returns whether \p Loc is located in a <command line> file.
+   bool isWrittenInCommandLineFile(SourceLocation Loc) const {
+-    StringRef Filename(getPresumedLoc(Loc).getFilename());
++    PresumedLoc Presumed = getPresumedLoc(Loc);
++    if (Presumed.isInvalid())
++      return false;
++    StringRef Filename(Presumed.getFilename());
+     return Filename.equals("<command line>");
+   }
+ 
+   /// Returns whether \p Loc is located in a <scratch space> file.
+   bool isWrittenInScratchSpace(SourceLocation Loc) const {
+-    StringRef Filename(getPresumedLoc(Loc).getFilename());
++    PresumedLoc Presumed = getPresumedLoc(Loc);
++    if (Presumed.isInvalid())
++      return false;
++    StringRef Filename(Presumed.getFilename());
+     return Filename.equals("<scratch space>");
+   }
+ 
+   /// Returns if a SourceLocation is in a system header.
+   bool isInSystemHeader(SourceLocation Loc) const {
++    if (Loc.isInvalid())
++      return false;
+     return isSystem(getFileCharacteristic(Loc));
+   }
+ 
+-- 
+2.34.1
+
