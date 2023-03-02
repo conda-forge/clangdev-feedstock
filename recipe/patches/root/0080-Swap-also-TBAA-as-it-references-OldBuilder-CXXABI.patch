@@ -1,0 +1,25 @@
+From 79c42f70d575d3500a6187076bc0faeb389e29e0 Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Wed, 24 Feb 2021 16:06:11 +0100
+Subject: [PATCH 80/83] Swap also TBAA as it references OldBuilder->CXXABI:
+
+Fixes CodeGen for opt levels > 0.
+---
+ lib/CodeGen/ModuleBuilder.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/lib/CodeGen/ModuleBuilder.cpp b/lib/CodeGen/ModuleBuilder.cpp
+index 8d5db56a1b..80f3f29d41 100644
+--- a/lib/CodeGen/ModuleBuilder.cpp
++++ b/lib/CodeGen/ModuleBuilder.cpp
+@@ -175,6 +175,7 @@ namespace clang {
+       Builder->WeakRefReferences.swap(OldBuilder->WeakRefReferences);
+ 
+       ((CXXABICtxSwapper&)*Builder->ABI).SwapCtx(*OldBuilder->ABI);
++      Builder->TBAA.swap(OldBuilder->TBAA);
+ 
+       return M.get();
+     }
+-- 
+2.34.1
+

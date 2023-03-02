@@ -1,0 +1,35 @@
+From ac437c0818d385a6b6449beccf3db47d725485b3 Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Thu, 8 Jan 2015 18:29:58 +0100
+Subject: [PATCH 23/83] Also store Parser paren numbers; likely fixes
+ ROOT-6976:
+
+The parser (or rather the BalancedDelimiterTracker) was doing a Parser::cutOffParsing() because
+of an overflow of open ( - because we never reset the count.
+---
+ include/clang/Parse/Parser.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/include/clang/Parse/Parser.h b/include/clang/Parse/Parser.h
+index 9e405d15f7..2a6943572e 100644
+--- a/include/clang/Parse/Parser.h
++++ b/include/clang/Parse/Parser.h
+@@ -39,6 +39,7 @@ namespace clang {
+   class DiagnosticBuilder;
+   struct LoopHint;
+   class Parser;
++  class ParserStateRAII;
+   class ParsingDeclRAIIObject;
+   class ParsingDeclSpec;
+   class ParsingDeclarator;
+@@ -67,6 +68,7 @@ class Parser : public CodeCompletionHandler {
+   friend class ParenBraceBracketBalancer;
+   friend class BalancedDelimiterTracker;
+   friend class DestroyTemplateIdAnnotationsRAIIObj;
++  friend class ParserStateRAII;
+ 
+   Preprocessor &PP;
+ 
+-- 
+2.34.1
+

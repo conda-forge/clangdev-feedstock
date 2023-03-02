@@ -1,0 +1,146 @@
+From df6e10798e3a484147fbdcb52523afc38919ac9c Mon Sep 17 00:00:00 2001
+From: Vassil Vassilev <vvasilev@cern.ch>
+Date: Tue, 17 Sep 2013 16:25:52 +0200
+Subject: [PATCH 08/83] Implement FileManager uncaching.
+
+If the file is marked for rereading and deleted in the meanwhile it will get different file stat and inode number. Teach the file manager to handle these situations.
+---
+ include/clang/Basic/FileManager.h   |  6 +++++
+ include/clang/Basic/SourceManager.h |  2 ++
+ lib/Basic/FileManager.cpp           | 42 ++++++++++++++++++++++++++---
+ lib/Basic/SourceManager.cpp         |  8 ++++++
+ 4 files changed, 55 insertions(+), 3 deletions(-)
+
+diff --git a/include/clang/Basic/FileManager.h b/include/clang/Basic/FileManager.h
+index 974771a8f8..2916cde0a4 100644
+--- a/include/clang/Basic/FileManager.h
++++ b/include/clang/Basic/FileManager.h
+@@ -32,6 +32,7 @@
+ #include <map>
+ #include <memory>
+ #include <string>
++#include <set>
+ 
+ namespace llvm {
+ 
+@@ -105,6 +106,11 @@ class FileManager : public RefCountedBase<FileManager> {
+   /// The canonical names of files and directories .
+   llvm::DenseMap<const void *, llvm::StringRef> CanonicalNames;
+ 
++  std::set<const FileEntry*> FileEntriesToReread;
++
++  /// The canonical names of directories.
++  llvm::DenseMap<const DirectoryEntry *, llvm::StringRef> CanonicalDirNames;
++
+   /// Storage for canonical names that we have computed.
+   llvm::BumpPtrAllocator CanonicalNameStorage;
+ 
+diff --git a/include/clang/Basic/SourceManager.h b/include/clang/Basic/SourceManager.h
+index cc29c24f5a..85a8c7a3d0 100644
+--- a/include/clang/Basic/SourceManager.h
++++ b/include/clang/Basic/SourceManager.h
+@@ -797,6 +797,8 @@ public:
+ 
+   void clearIDTables();
+ 
++  void invalidateCache(const FileEntry* Entry);
++
+   /// Initialize this source manager suitably to replay the compilation
+   /// described by \p Old. Requires that \p Old outlive \p *this.
+   void initializeForReplay(const SourceManager &Old);
+diff --git a/lib/Basic/FileManager.cpp b/lib/Basic/FileManager.cpp
+index 74cd2f295b..bf33ef0504 100644
+--- a/lib/Basic/FileManager.cpp
++++ b/lib/Basic/FileManager.cpp
+@@ -207,7 +207,25 @@ FileManager::getFileRef(StringRef Filename, bool openFile, bool CacheFailure) {
+   // See if there is already an entry in the map.
+   auto SeenFileInsertResult =
+       SeenFileEntries.insert({Filename, std::errc::no_such_file_or_directory});
+-  if (!SeenFileInsertResult.second) {
++
++  auto *NamedFileEnt = &*SeenFileInsertResult.first;
++
++  const FileEntry *StaleFileEntry = 0;
++  bool needsRereading = false;
++  if (NamedFileEnt && NamedFileEnt->getValue()) {
++    FileEntryRef::MapValue Value = *NamedFileEnt->getValue();
++    if (Value.V.is<FileEntry *>()) {
++      auto found = FileEntriesToReread.find(Value.V.get<FileEntry*>());
++      if (found != FileEntriesToReread.end()) {
++        needsRereading = true;
++        StaleFileEntry = *found;
++        FileEntriesToReread.erase(found);
++      }
++    }
++  }
++
++  // See if there is already an entry in the map.
++  if (!SeenFileInsertResult.second && !needsRereading) {
+     if (!SeenFileInsertResult.first->second)
+       return llvm::errorCodeToError(
+           SeenFileInsertResult.first->second.getError());
+@@ -222,8 +240,6 @@ FileManager::getFileRef(StringRef Filename, bool openFile, bool CacheFailure) {
+ 
+   // We've not seen this before. Fill it in.
+   ++NumFileCacheMisses;
+-  auto *NamedFileEnt = &*SeenFileInsertResult.first;
+-  assert(!NamedFileEnt->second && "should be newly-created");
+ 
+   // Get the null-terminated file name as stored as the key of the
+   // SeenFileEntries map.
+@@ -335,6 +351,20 @@ FileManager::getFileRef(StringRef Filename, bool openFile, bool CacheFailure) {
+     // We should still fill the path even if we aren't opening the file.
+     fillRealPathName(&UFE, InterndFileName);
+   }
++
++  if (StaleFileEntry) {
++    // Find occurrences of old FileEntry; update with new one:
++    for (auto& fe: SeenFileEntries) {
++      if (fe.getValue()) {
++        FileEntryRef::MapValue Value = *fe.getValue();
++        if (Value.V.is<FileEntry *>()
++            && Value.V.get<FileEntry*>() == StaleFileEntry) {
++          fe.setValue(FileEntryRef::MapValue(UFE, DirInfo));
++        }
++      }
++    }
++  }
++
+   return ReturnedRef;
+ }
+ 
+@@ -580,6 +610,12 @@ FileManager::getNoncachedStatValue(StringRef Path,
+   return std::error_code();
+ }
+ 
++void FileManager::invalidateCache(const FileEntry *Entry) {
++  assert(Entry && "Cannot invalidate a NULL FileEntry");
++  FileEntriesToReread.insert(Entry->getLastRef());
++  Entry->IsValid = false;
++}
++
+ void FileManager::GetUniqueIDMapping(
+                    SmallVectorImpl<const FileEntry *> &UIDToFiles) const {
+   UIDToFiles.clear();
+diff --git a/lib/Basic/SourceManager.cpp b/lib/Basic/SourceManager.cpp
+index 8cba379aa0..254b57a5dd 100644
+--- a/lib/Basic/SourceManager.cpp
++++ b/lib/Basic/SourceManager.cpp
+@@ -358,6 +358,14 @@ bool SourceManager::isMainFile(const FileEntry &SourceFile) {
+   return false;
+ }
+ 
++void SourceManager::invalidateCache(const FileEntry* Entry) {
++  if (ContentCache *&E = FileInfos[Entry]) {
++    E->replaceBuffer(0, /*free*/ true);
++    E = 0;
++  }
++  getFileManager().invalidateCache(Entry);
++}
++
+ void SourceManager::initializeForReplay(const SourceManager &Old) {
+   assert(MainFileID.isInvalid() && "expected uninitialized SourceManager");
+ 
+-- 
+2.34.1
+
