@@ -119,14 +119,13 @@ build:
 requirements:
   build:
     - {{ compiler('cxx') }}
-    - cmake >=3.4.3
+    - cmake
+    - ninja  # [win]
+    - make   # [unix]
     # Needed to unpack the source tarball
     - m2w64-xz  # [win]
     # "compiling .pyc files" fails without this
     - python >3
-    # Building with ninja on windows for parallel builds
-    - ninja  # [win]
-    - make   # [unix]
     - llvmdev =={{ version }}    # [build_platform != target_platform]
     - zlib                       # [build_platform != target_platform and (linux or win)]
   host:
@@ -137,7 +136,7 @@ requirements:
 test:
   requires:
     - {{ compiler('cxx') }}
-    - cmake >=3.4.3
+    - cmake
   files:
     - mytest.c
   commands:
@@ -165,7 +164,7 @@ outputs:
     requirements:
       build:
         - {{ compiler('cxx') }}
-        - cmake >=3.4.3
+        - cmake
         - ninja  # [win]
         - make   # [unix]
         - llvmdev =={{ version }}    # [build_platform != target_platform]
@@ -207,7 +206,7 @@ outputs:
     requirements:
       build:
         - {{ compiler('cxx') }}
-        - cmake >=3.4.3
+        - cmake
         - ninja  # [win]
         - make   # [unix]
         - llvmdev =={{ version }}    # [build_platform != target_platform]
@@ -240,7 +239,7 @@ outputs:
     requirements:
       build:
         - {{ compiler('cxx') }}
-        - cmake >=3.4.3
+        - cmake
         - ninja  # [win]
         - make   # [unix]
         - llvmdev =={{ version }}    # [build_platform != target_platform]
@@ -273,7 +272,7 @@ outputs:
     requirements:
       build:
         - {{ compiler('cxx') }}
-        - cmake >=3.4.3
+        - cmake
         - ninja                      # [win]
         - make                       # [unix]
         - llvmdev =={{ version }}    # [build_platform != target_platform]
@@ -309,10 +308,10 @@ outputs:
     requirements:
       build:
         - {{ compiler('cxx') }}
-        - libcxx                             # [osx]
-        - cmake >=3.4.3
+        - cmake
         - ninja                              # [win]
         - make                               # [unix]
+        - libcxx                             # [osx]
         - llvmdev =={{ version }}            # [build_platform != target_platform]
         - zlib                               # [build_platform != target_platform and (linux or win)]
       host:
@@ -405,8 +404,7 @@ outputs:
         # "compiling .pyc files" fails without this
         - python >3
         - {{ compiler('cxx') }}
-        - cmake >=3.4.3
-        - ninja  # [win]
+        - cmake
         - make   # [unix]
         - llvmdev =={{ version }}    # [build_platform != target_platform]
         - zlib                       # [build_platform != target_platform and (linux or win)]
@@ -444,7 +442,7 @@ outputs:
         # "compiling .pyc files" fails without this
         - python >3
         - {{ compiler('cxx') }}
-        - cmake >=3.4.3
+        - cmake
         - ninja  # [win]
         - make   # [unix]
         - llvmdev =={{ version }}    # [build_platform != target_platform]
@@ -482,7 +480,7 @@ outputs:
         # "compiling .pyc files" fails without this
         - python >3
         - {{ compiler('cxx') }}
-        - cmake >=3.4.3
+        - cmake
         - ninja  # [win]
         - make   # [unix]
         - llvmdev =={{ version }}    # [build_platform != target_platform]
