@@ -50,10 +50,15 @@ requirements:
     # "compiling .pyc files" fails without this
     - python >3
     - llvmdev =={{ version }}    # [build_platform != target_platform]
+    - libxml2                    # [build_platform != target_platform]
+    - zlib                       # [build_platform != target_platform]
+    - zstd                       # [build_platform != target_platform]
   host:
     - libcxx {{ cxx_compiler_version }}  # [osx]
     - llvmdev =={{ version }}
-    - zlib                               # [linux or win]
+    - libxml2
+    - zlib
+    - zstd
 
 test:
   requires:
@@ -82,6 +87,11 @@ outputs:
       track_features:
         - hcc          # [variant=="hcc"]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+      ignore_run_exports_from:
+        # the build fails if it doesn't find the following, but it's not used
+        - zlib     # [unix]
+        - libxml2  # [unix]
+        - zstd     # [unix]
     requirements:
       build:
         - {{ compiler('cxx') }}
@@ -95,9 +105,12 @@ outputs:
         - {{ pin_subpackage("clang-tools", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
         - {{ pin_subpackage("libclang-cpp", exact=True) }}
+        # Use the same requirements as the top-level requirements
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
-        - zlib                               # [linux or win]
+        - libxml2
+        - zlib
+        - zstd
       run:
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clangxx", exact=True) }}
@@ -121,6 +134,11 @@ outputs:
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:
         - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, max_pin="x.x") }}   # [unix]
+      ignore_run_exports_from:
+        # the build fails if it doesn't find the following, but it's not used
+        - zlib     # [unix]
+        - libxml2  # [unix]
+        - zstd     # [unix]
       skip: true  # [win]
     requirements:
       build:
@@ -130,10 +148,13 @@ outputs:
         - make   # [unix]
         - llvmdev =={{ version }}    # [build_platform != target_platform]
       host:
+        - llvm =={{ version }}
+        # Use the same requirements as the top-level requirements
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
-        - llvm =={{ version }}
-        - zlib   # [linux]
+        - libxml2
+        - zlib
+        - zstd
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
     test:
@@ -152,6 +173,11 @@ outputs:
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:   # [unix]
         - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, max_pin="x.x") }}   # [unix]
+      ignore_run_exports_from:
+        # the build fails if it doesn't find the following, but it's not used
+        - zlib     # [unix]
+        - libxml2  # [unix]
+        - zstd     # [unix]
     requirements:
       build:
         - {{ compiler('cxx') }}
@@ -160,11 +186,14 @@ outputs:
         - make   # [unix]
         - llvmdev =={{ version }}    # [build_platform != target_platform]
       host:
+        - llvm =={{ version }}
+        - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, exact=True) }}  # [unix]
+        # Use the same requirements as the top-level requirements
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
-        - llvm =={{ version }}
-        - zlib                                                                # [linux]
-        - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, exact=True) }}  # [unix]
+        - libxml2
+        - zlib
+        - zstd
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}                        # [osx]
         - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, exact=True) }}  # [unix]
@@ -185,6 +214,11 @@ outputs:
         # note that the name (e.g. libclang13) does not necessarily
         # match the version lower bound (e.g. >=14.0.0)
         - {{ pin_subpackage("libclang" + libclang_soversion, max_pin=None) }}
+      ignore_run_exports_from:
+        # the build fails if it doesn't find the following, but it's not used
+        - libxml2
+        - zlib     # [unix]
+        - zstd     # [unix]
     requirements:
       build:
         - {{ compiler('cxx') }}
@@ -193,11 +227,14 @@ outputs:
         - make                       # [unix]
         - llvmdev =={{ version }}    # [build_platform != target_platform]
       host:
-        - libcxx {{ cxx_compiler_version }}             # [osx]
-        - llvmdev =={{ version }}
         - llvm =={{ version }}
-        - zlib                                          # [linux or win]
         - {{ pin_subpackage("clang", exact=True) }}
+        # Use the same requirements as the top-level requirements
+        - libcxx {{ cxx_compiler_version }}  # [osx]
+        - llvmdev =={{ version }}
+        - libxml2
+        - zlib
+        - zstd
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
     test:
@@ -236,6 +273,11 @@ outputs:
         # note that the name (e.g. libclang13) does not necessarily
         # match the version lower bound (e.g. >=14.0.0)
         - {{ pin_subpackage("libclang" + libclang_soversion, max_pin=None) }}
+      ignore_run_exports_from:
+        # the build fails if it doesn't find the following, but it's not used
+        - zlib     # [unix]
+        - libxml2  # [unix]
+        - zstd     # [unix]
     requirements:
       build:
         - {{ compiler('cxx') }}
@@ -244,12 +286,15 @@ outputs:
         - make                       # [unix]
         - llvmdev =={{ version }}    # [build_platform != target_platform]
       host:
-        - libcxx {{ cxx_compiler_version }}                           # [osx]
-        - llvmdev =={{ version }}
         - llvm =={{ version }}
-        - zlib                                                        # [linux or win]
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("libclang" + libclang_soversion, exact=True) }}
+        # Use the same requirements as the top-level requirements
+        - libcxx {{ cxx_compiler_version }}  # [osx]
+        - llvmdev =={{ version }}
+        - libxml2
+        - zlib
+        - zstd
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}                # [osx]
         - {{ pin_subpackage("libclang" + libclang_soversion, exact=True) }}
@@ -266,6 +311,11 @@ outputs:
       track_features:
         - hcc          # [variant=="hcc"]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+      ignore_run_exports_from:
+        # the build fails if it doesn't find the following, but it's not used
+        - libxml2
+        - zlib     # [unix]
+        - zstd     # [unix]
     requirements:
       build:
         - {{ compiler('cxx') }}
@@ -275,11 +325,14 @@ outputs:
         - libcxx                             # [osx]
         - llvmdev =={{ version }}            # [build_platform != target_platform]
       host:
+        - llvm =={{ version }}
+        - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, exact=True) }}  # [unix]
+        # Use the same requirements as the top-level requirements
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
-        - llvm =={{ version }}
-        - zlib                               # [linux or win]
-        - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, exact=True) }}  # [unix]
+        - libxml2
+        - zlib
+        - zstd
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}                        # [osx]
         - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, exact=True) }}  # [unix]
@@ -307,11 +360,22 @@ outputs:
   - name: clang
     script: install_clang_symlinks.sh  # [unix]
     script: install_clang_symlinks.bat  # [win]
+    build:
+      ignore_run_exports_from:
+        # the build fails if it doesn't find the following, but it's not used
+        - libxml2
+        - zlib     # [unix]
+        - zstd     # [unix]
     requirements:
       host:
-        - zlib                            # [win]
         - gcc_impl_{{ target_platform }}  # [linux]
         - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+        # Use the same requirements as the top-level requirements
+        - libcxx {{ cxx_compiler_version }}  # [osx]
+        - llvmdev =={{ version }}
+        - libxml2
+        - zlib
+        - zstd
       run:
         - gcc_impl_{{ target_platform }}  # [linux]
         - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
@@ -328,10 +392,20 @@ outputs:
       track_features:
         - hcc          # [variant=="hcc"]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+      ignore_run_exports_from:
+        # the build fails if it doesn't find the following, but it's not used
+        - libxml2
+        - zlib     # [unix]
+        - zstd     # [unix]
     requirements:
       host:
-        - zlib  # [win]
         - {{ pin_subpackage("clang", exact=True) }}
+        # Use the same requirements as the top-level requirements
+        - libcxx {{ cxx_compiler_version }}  # [osx]
+        - llvmdev =={{ version }}
+        - libxml2
+        - zlib
+        - zstd
       run:
         - {{ pin_subpackage("clang", exact=True) }}
     test:
@@ -354,6 +428,11 @@ outputs:
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       # for windows, use the clang-format package.
       skip: true  # [win]
+      ignore_run_exports_from:
+        # the build fails if it doesn't find the following, but it's not used
+        - zlib     # [unix]
+        - libxml2  # [unix]
+        - zstd     # [unix]
     requirements:
       build:
         # "compiling .pyc files" fails without this
@@ -367,9 +446,13 @@ outputs:
         - {{ pin_subpackage("clangxx", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
         - {{ pin_subpackage("libclang-cpp", exact=True) }}
+        - llvm =={{ version }}
+        # Use the same requirements as the top-level requirements
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
-        - llvm =={{ version }}
+        - libxml2
+        - zlib
+        - zstd
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}                            # [osx]
         - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, max_pin="x.x") }}   # [unix]
@@ -386,6 +469,11 @@ outputs:
       track_features:
         - hcc          # [variant=="hcc"]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+      ignore_run_exports_from:
+        # the build fails if it doesn't find the following, but it's not used
+        - libxml2
+        - zlib
+        - zstd
     requirements:
       build:
         # "compiling .pyc files" fails without this
@@ -401,10 +489,13 @@ outputs:
         - {{ pin_subpackage("libclang", exact=True) }}
         - {{ pin_subpackage("libclang-cpp", exact=True) }}
         - {{ pin_subpackage("clang-format-" + major_version, exact=True) }}      # [unix]
+        - llvm =={{ version }}
+        # Use the same requirements as the top-level requirements
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
-        - llvm =={{ version }}
-        - zlib                               # [linux or win]
+        - libxml2
+        - zlib
+        - zstd
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}                           # [osx]
         - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, max_pin="x.x") }}  # [unix]
@@ -422,6 +513,11 @@ outputs:
       track_features:
         - hcc          # [variant=="hcc"]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+      ignore_run_exports_from:
+        # the build fails if it doesn't find the following, but it's not used
+        - zlib     # [unix]
+        - libxml2  # [unix]
+        - zstd     # [unix]
     requirements:
       build:
         # "compiling .pyc files" fails without this
@@ -437,10 +533,13 @@ outputs:
         - {{ pin_subpackage("libclang", exact=True) }}
         - {{ pin_subpackage("libclang-cpp", exact=True) }}
         - {{ pin_subpackage("clang-format", exact=True) }}
+        - llvm =={{ version }}
+        # Use the same requirements as the top-level requirements
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
-        - llvm =={{ version }}
-        - zlib                               # [linux or win]
+        - libxml2
+        - zlib
+        - zstd
       run:
         - ucrt                                          # [win]
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
