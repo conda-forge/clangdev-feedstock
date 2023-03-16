@@ -452,8 +452,8 @@ outputs:
         - ucrt                                          # [win]
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
         - {{ pin_subpackage("clang-format", exact=True) }}
+        - {{ pin_subpackage("libclang" + libclang_soversion, max_pin=None) }}
         - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, max_pin="x.x") }}   # [unix]
-        - {{ pin_subpackage("libclang", max_pin="x.x") }}                         # [unix]
       run_constrained:
         - clangdev {{ version }}
     test:
