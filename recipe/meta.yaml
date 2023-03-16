@@ -133,7 +133,7 @@ requirements:
     # "compiling .pyc files" fails without this
     - python >3
     - llvmdev =={{ version }}    # [build_platform != target_platform]
-    - zlib                       # [build_platform != target_platform and (linux or win)]
+    - zlib                       # [build_platform != target_platform]
   host:
     - libcxx {{ cxx_compiler_version }}  # [osx]
     - llvmdev =={{ version }}
