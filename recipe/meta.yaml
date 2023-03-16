@@ -185,7 +185,7 @@ outputs:
       run_exports:
         # note that the name (e.g. libclang13) does not necessarily
         # match the version lower bound (e.g. >=14.0.0)
-        - {{ pin_subpackage("libclang" + libclang_soversion, max_pin="x.x") }}
+        - {{ pin_subpackage("libclang" + libclang_soversion, max_pin=None) }}
     requirements:
       build:
         - {{ compiler('cxx') }}
