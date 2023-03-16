@@ -348,7 +348,6 @@ outputs:
 
   - name: clang-format-{{ major_version }}
     script: install_clang_format.sh  # [unix]
-    script: install_clang_format.bat  # [win]
     build:
       track_features:
         - hcc          # [variant=="hcc"]
@@ -361,7 +360,6 @@ outputs:
         - python >3
         - {{ compiler('cxx') }}
         - cmake >=3.4.3
-        - ninja  # [win]
         - make   # [unix]
         - llvmdev =={{ version }}    # [build_platform != target_platform]
       host:
@@ -372,8 +370,6 @@ outputs:
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
-        - zlib                            # [linux or win]
-        - libxml2                         # [win]
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}                            # [osx]
         - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, max_pin="x.x") }}   # [unix]
@@ -381,9 +377,7 @@ outputs:
       commands:
         - clang-format-{{ major_version }} --version
         - test ! -f ${PREFIX}/bin/clang-format                   # [unix]
-        - if exist %LIBRARY_BIN%\\clang-format.exe exit 1        # [win]
         - test ! -f ${PREFIX}/bin/c-index-test                   # [unix]
-        - if exist %LIBRARY_BIN%\\c-index-test.exe exit 1        # [win]
 
   - name: clang-format
     script: install_clang_format.sh  # [unix]
