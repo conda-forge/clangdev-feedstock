@@ -52,11 +52,15 @@ requirements:
     # "compiling .pyc files" fails without this
     - python >3
     - llvmdev =={{ version }}    # [build_platform != target_platform]
+    - libxml2                    # [build_platform != target_platform]
     - zlib                       # [build_platform != target_platform]
+    - zstd                       # [build_platform != target_platform]
   host:
     - libcxx {{ cxx_compiler_version }}  # [osx]
     - llvmdev =={{ version }}
-    - zlib                               # [linux or win]
+    - libxml2
+    - zlib
+    - zstd
 
 test:
   requires:
@@ -100,7 +104,13 @@ outputs:
         - {{ pin_subpackage("libclang-cpp", exact=True) }}
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
-        - zlib                               # [linux or win]
+        # note: these libs may show up as unused in the link check,
+        # but not all the artefacts can be inspected by conda (e.g.
+        # static libs), and they are indeed necessary, given that
+        # we set LLVM_ENABLE_{LIBXML2,ZLIB,ZSTD}=FORCE_ON.
+        - libxml2
+        - zlib
+        - zstd
       run:
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clangxx", exact=True) }}
@@ -136,7 +146,9 @@ outputs:
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
-        - zlib   # [linux]
+        - libxml2
+        - zlib
+        - zstd
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
     test:
@@ -166,8 +178,10 @@ outputs:
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
-        - zlib                                                                # [linux]
         - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, exact=True) }}  # [unix]
+        - libxml2
+        - zlib
+        - zstd
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}                        # [osx]
         - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, exact=True) }}  # [unix]
@@ -199,7 +213,9 @@ outputs:
         - libcxx {{ cxx_compiler_version }}             # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
-        - zlib                                          # [linux or win]
+        - libxml2
+        - zlib
+        - zstd
         - {{ pin_subpackage("clang", exact=True) }}
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
@@ -250,7 +266,9 @@ outputs:
         - libcxx {{ cxx_compiler_version }}                           # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
-        - zlib                                                        # [linux or win]
+        - libxml2
+        - zlib
+        - zstd
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("libclang" + libclang_soversion, exact=True) }}
       run:
@@ -281,7 +299,9 @@ outputs:
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
-        - zlib                               # [linux or win]
+        - libxml2
+        - zlib
+        - zstd
         - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, exact=True) }}  # [unix]
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}                        # [osx]
@@ -312,7 +332,9 @@ outputs:
     script: install_clang_symlinks.bat  # [win]
     requirements:
       host:
-        - zlib                            # [win]
+        - libxml2
+        - zlib
+        - zstd
         - gcc_impl_{{ target_platform }}  # [linux]
         - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
       run:
@@ -333,7 +355,9 @@ outputs:
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       host:
-        - zlib  # [win]
+        - libxml2
+        - zlib
+        - zstd
         - {{ pin_subpackage("clang", exact=True) }}
       run:
         - {{ pin_subpackage("clang", exact=True) }}
@@ -370,6 +394,9 @@ outputs:
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
+        - libxml2
+        - zlib
+        - zstd
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}                            # [osx]
         - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, max_pin="x.x") }}   # [unix]
@@ -404,7 +431,9 @@ outputs:
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
-        - zlib                               # [linux or win]
+        - libxml2
+        - zlib
+        - zstd
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}                           # [osx]
         - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, max_pin="x.x") }}  # [unix]
@@ -440,7 +469,9 @@ outputs:
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
-        - zlib                               # [linux or win]
+        - libxml2
+        - zlib
+        - zstd
       run:
         - ucrt                                          # [win]
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
