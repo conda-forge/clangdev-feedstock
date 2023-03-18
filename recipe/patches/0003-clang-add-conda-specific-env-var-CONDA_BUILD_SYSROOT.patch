@@ -1,4 +1,4 @@
-From cf8994afb833fb385d2e9428e06a82db6b761c9e Mon Sep 17 00:00:00 2001
+From c2c32b2cd1c88f88d150ff502d5f1e0fd4d99512 Mon Sep 17 00:00:00 2001
 From: Nehal J Wani <nehaljw.kkd1@gmail.com>
 Date: Sat, 25 Aug 2018 09:20:04 -0500
 Subject: [PATCH 3/8] clang: add conda specific env var CONDA_BUILD_SYSROOT
@@ -9,10 +9,10 @@ Subject: [PATCH 3/8] clang: add conda specific env var CONDA_BUILD_SYSROOT
  2 files changed, 12 insertions(+), 3 deletions(-)
 
 diff --git a/clang/lib/Driver/Driver.cpp b/clang/lib/Driver/Driver.cpp
-index 3f29afd359..94b4c64594 100644
+index 661d9977fb..f5a75515ed 100644
 --- a/clang/lib/Driver/Driver.cpp
 +++ b/clang/lib/Driver/Driver.cpp
-@@ -1270,8 +1270,13 @@ Compilation *Driver::BuildCompilation(ArrayRef<const char *> ArgList) {
+@@ -1327,8 +1327,13 @@ Compilation *Driver::BuildCompilation(ArrayRef<const char *> ArgList) {
        CompilerPath = Split.second;
      }
    }
@@ -29,7 +29,7 @@ index 3f29afd359..94b4c64594 100644
      DyldPrefix = A->getValue();
  
 diff --git a/clang/lib/Lex/InitHeaderSearch.cpp b/clang/lib/Lex/InitHeaderSearch.cpp
-index 158b566715..a3ab5f8f18 100644
+index d446556571..8354362d1f 100644
 --- a/clang/lib/Lex/InitHeaderSearch.cpp
 +++ b/clang/lib/Lex/InitHeaderSearch.cpp
 @@ -25,6 +25,7 @@
@@ -38,16 +38,16 @@ index 158b566715..a3ab5f8f18 100644
  #include "llvm/Support/Path.h"
 +#include "llvm/Support/Process.h"
  #include "llvm/Support/raw_ostream.h"
+ #include <optional>
  
- using namespace clang;
-@@ -249,7 +250,10 @@ void InitHeaderSearch::AddDefaultCIncludePaths(const llvm::Triple &triple,
-       LLVM_FALLTHROUGH;
+@@ -243,7 +244,10 @@ void InitHeaderSearch::AddDefaultCIncludePaths(const llvm::Triple &triple,
+       [[fallthrough]];
      default:
        // FIXME: temporary hack: hard-coded paths.
 -      AddPath("/usr/local/include", System, false);
 +      Optional<std::string> CondaBuildSysrootValue =
 +              llvm::sys::Process::GetEnv("CONDA_BUILD_SYSROOT");
-+      if (!CondaBuildSysrootValue.hasValue())
++      if (!CondaBuildSysrootValue.has_value())
 +        AddPath("/usr/local/include", System, false);
        break;
      }
