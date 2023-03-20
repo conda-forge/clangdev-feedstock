@@ -136,6 +136,9 @@ outputs:
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:
         - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, max_pin="x.x") }}   # [unix]
+      ignore_run_exports_from:
+        # only contains shared lib, so we can trust the link check
+        - zlib
       skip: true  # [win]
     requirements:
       build:
@@ -148,9 +151,8 @@ outputs:
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
-        - libxml2
+        # the build fails if it doesn't find zlib, but it's not used
         - zlib
-        - zstd
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
     test:
@@ -169,6 +171,9 @@ outputs:
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:   # [unix]
         - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, max_pin="x.x") }}   # [unix]
+      ignore_run_exports_from:
+        # only contains shared lib, so we can trust the link check
+        - zlib
     requirements:
       build:
         - {{ compiler('cxx') }}
@@ -181,9 +186,8 @@ outputs:
         - llvmdev =={{ version }}
         - llvm =={{ version }}
         - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, exact=True) }}  # [unix]
-        - libxml2
+        # the build fails if it doesn't find zlib, but it's not used
         - zlib
-        - zstd
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}                        # [osx]
         - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, exact=True) }}  # [unix]
@@ -204,6 +208,9 @@ outputs:
         # note that the name (e.g. libclang13) does not necessarily
         # match the version lower bound (e.g. >=14.0.0)
         - {{ pin_subpackage("libclang" + libclang_soversion, max_pin=None) }}
+      ignore_run_exports_from:
+        # only contains shared lib, so we can trust the link check
+        - zlib  # [unix]
     requirements:
       build:
         - {{ compiler('cxx') }}
@@ -215,10 +222,9 @@ outputs:
         - libcxx {{ cxx_compiler_version }}             # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
-        - libxml2
-        - zlib
-        - zstd
         - {{ pin_subpackage("clang", exact=True) }}
+        # the build fails if it doesn't find zlib, but it's not used on unix
+        - zlib
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
     test:
@@ -257,6 +263,9 @@ outputs:
         # note that the name (e.g. libclang13) does not necessarily
         # match the version lower bound (e.g. >=14.0.0)
         - {{ pin_subpackage("libclang" + libclang_soversion, max_pin=None) }}
+      ignore_run_exports_from:
+        # only contains shared lib, so we can trust the link check
+        - zlib
     requirements:
       build:
         - {{ compiler('cxx') }}
@@ -268,9 +277,8 @@ outputs:
         - libcxx {{ cxx_compiler_version }}                           # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
-        - libxml2
+        # the build fails if it doesn't find zlib, but it's not used
         - zlib
-        - zstd
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("libclang" + libclang_soversion, exact=True) }}
       run:
@@ -289,6 +297,9 @@ outputs:
       track_features:
         - hcc          # [variant=="hcc"]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+      ignore_run_exports_from:
+        # only contains binaries, so we can trust the link check
+        - zlib  # [unix]
     requirements:
       build:
         - {{ compiler('cxx') }}
@@ -301,9 +312,9 @@ outputs:
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
-        - libxml2
+        # the build fails if it doesn't find zlib, but it's not used on unix
         - zlib
-        - zstd
+        - zstd  # [win]
         - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, exact=True) }}  # [unix]
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}                        # [osx]
@@ -332,11 +343,15 @@ outputs:
   - name: clang
     script: install_clang_symlinks.sh  # [unix]
     script: install_clang_symlinks.bat  # [win]
+    build:
+      ignore_run_exports_from:
+        # only contains binaries (win) resp. symlinks (unix), so we can trust the link check
+        - zlib  # [unix]
     requirements:
       host:
-        - libxml2
+        # the build fails if it doesn't find zlib, but it's not used on unix
         - zlib
-        - zstd
+        - zstd  # [win]
         - gcc_impl_{{ target_platform }}  # [linux]
         - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
       run:
@@ -355,11 +370,14 @@ outputs:
       track_features:
         - hcc          # [variant=="hcc"]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+      ignore_run_exports_from:
+        # only contains binaries (win) resp. symlinks (unix), so we can trust the link check
+        - zlib  # [unix]
     requirements:
       host:
-        - libxml2
+        # the build fails if it doesn't find zlib, but it's not used on unix
         - zlib
-        - zstd
+        - zstd  # [win]
         - {{ pin_subpackage("clang", exact=True) }}
       run:
         - {{ pin_subpackage("clang", exact=True) }}
@@ -380,6 +398,9 @@ outputs:
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       # for windows, use the clang-format package.
       skip: true  # [win]
+      ignore_run_exports_from:
+        # only contains binaries, so we can trust the link check
+        - zlib
     requirements:
       build:
         # "compiling .pyc files" fails without this
@@ -396,9 +417,8 @@ outputs:
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
-        - libxml2
+        # the build fails if it doesn't find zlib, but it's not used
         - zlib
-        - zstd
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}                            # [osx]
         - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, max_pin="x.x") }}   # [unix]
@@ -415,6 +435,9 @@ outputs:
       track_features:
         - hcc          # [variant=="hcc"]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+      ignore_run_exports_from:
+        # only contains binaries (win) resp. symlinks (unix), so we can trust the link check
+        - zlib  # [unix]
     requirements:
       build:
         # "compiling .pyc files" fails without this
@@ -433,9 +456,8 @@ outputs:
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
-        - libxml2
+        # the build fails if it doesn't find zlib, but it's not used
         - zlib
-        - zstd
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}                           # [osx]
         - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, max_pin="x.x") }}  # [unix]
@@ -453,6 +475,9 @@ outputs:
       track_features:
         - hcc          # [variant=="hcc"]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+      ignore_run_exports_from:
+        # only contains binaries, so we can trust the link check
+        - zlib  # [unix]
     requirements:
       build:
         # "compiling .pyc files" fails without this
@@ -472,8 +497,9 @@ outputs:
         - llvmdev =={{ version }}
         - llvm =={{ version }}
         - libxml2
+        # the build fails if it doesn't find zlib, but it's not used on unix
         - zlib
-        - zstd
+        - zstd     # [win]
       run:
         - ucrt                                          # [win]
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
