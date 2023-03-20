@@ -187,10 +187,12 @@ outputs:
         - {{ pin_subpackage("libclang-cpp", exact=True) }}
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
-        # note: these libs may show up as unused in the link check,
-        # but not all the artefacts can be inspected by conda (e.g.
-        # static libs), and they are indeed necessary, given that
-        # we set LLVM_ENABLE_{LIBXML2,ZLIB,ZSTD}=FORCE_ON.
+        # note: these libs may show up as unused in the link check, but not
+        # all the artefacts can be inspected by conda (e.g. static libs);
+        # libxml2/zlib/zstd could still be present in the link interface of
+        # those static libs though, so we're adding them here defensively for
+        # metadata hygiene. In any case, they'll be in the final environment
+        # because we run-depend on llvmdev, which brings them along.
         - libxml2
         - zlib
         - zstd
