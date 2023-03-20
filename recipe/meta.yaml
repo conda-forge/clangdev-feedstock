@@ -437,7 +437,7 @@ outputs:
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       ignore_run_exports_from:
         # only contains binaries (win) resp. symlinks (unix), so we can trust the link check
-        - zlib  # [unix]
+        - zlib
     requirements:
       build:
         # "compiling .pyc files" fails without this
