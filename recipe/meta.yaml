@@ -128,6 +128,9 @@ outputs:
 
   - name: libclang-cpp{{ minor_aware_ext }}
     script: install_libclang_cpp.sh  # [unix]
+    files:
+      - lib/libclang-cpp.so.{{ minor_aware_ext }}     # [linux]
+      - lib/libclang-cpp.{{ minor_aware_ext }}.dylib  # [osx]
     build:
       track_features:
         - hcc          # [variant=="hcc"]
@@ -167,6 +170,9 @@ outputs:
   - name: libclang-cpp
     # note that this is just an empty wrapper on windows
     script: install_libclang_cpp.sh  # [unix]
+    files:                      # [unix]
+      - lib/libclang-cpp.so     # [linux]
+      - lib/libclang-cpp.dylib  # [osx]
     build:
       track_features:
         - hcc          # [variant=="hcc"]
@@ -206,6 +212,10 @@ outputs:
   - name: libclang{{ libclang_soversion }}
     script: install_libclang.sh  # [unix]
     script: install_libclang.bat  # [win]
+    files:
+      - Library/bin/libclang-{{ libclang_soversion }}.dll  # [win]
+      - lib/libclang.so.{{ libclang_soversion }}           # [linux]
+      - lib/libclang.{{ libclang_soversion }}.dylib        # [osx]
     build:
       track_features:
         - hcc          # [variant=="hcc"]
@@ -265,6 +275,10 @@ outputs:
   - name: libclang
     script: install_libclang.sh  # [unix]
     script: install_libclang.bat  # [win]
+    files:
+      - Library/lib/libclang.lib  # [win]
+      - lib/libclang.so           # [linux]
+      - lib/libclang.dylib        # [osx]
     build:
       track_features:
         - hcc          # [variant=="hcc"]
@@ -307,6 +321,11 @@ outputs:
   - name: clang-{{ major_version }}
     script: install_clang.sh  # [unix]
     script: install_clang.bat  # [win]
+    files:
+      - lib/clang                                  # [unix]
+      - bin/clang-{{ major_version }}              # [unix]
+      - Library/lib/clang                          # [win]
+      - Library/bin/clang-{{ major_version }}.exe  # [win]
     build:
       track_features:
         - hcc          # [variant=="hcc"]
@@ -422,6 +441,8 @@ outputs:
 
   - name: clang-format-{{ major_version }}
     script: install_clang_format.sh  # [unix]
+    files:
+      - bin/clang-format-{{ major_version }}                # [unix]
     build:
       track_features:
         - hcc          # [variant=="hcc"]
@@ -465,6 +486,9 @@ outputs:
   - name: clang-format
     script: install_clang_format.sh  # [unix]
     script: install_clang_format.bat  # [win]
+    files:
+      - bin/clang-format               # [unix]
+      - Library/bin/clang-format.exe   # [win]
     build:
       track_features:
         - hcc          # [variant=="hcc"]
