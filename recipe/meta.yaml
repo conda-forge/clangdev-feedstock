@@ -486,8 +486,8 @@ outputs:
     script: install_clang_format.sh  # [unix]
     script: install_clang_format.bat  # [win]
     files:
-      - bin/clang-format-{{ major_version }}  # [unix]
-      - Library/bin/clang-format.exe          # [win]
+      - bin/clang-format               # [unix]
+      - Library/bin/clang-format.exe   # [win]
     build:
       track_features:
         - hcc          # [variant=="hcc"]
