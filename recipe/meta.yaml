@@ -581,13 +581,6 @@ outputs:
   - name: clang-tools
     script: install_clang_tools.sh  # [unix]
     script: install_clang_tools.bat  # [win]
-    files:
-      - share            # [unix]
-      - libexec          # [unix]
-      - bin              # [unix]
-      - Library/share    # [win]
-      - Library/libexec  # [win]
-      - Library/bin      # [win]
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
