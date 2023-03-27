@@ -10,9 +10,15 @@ cxx_compiler_version:
 - '14'
 libclang_soversion:
 - '13'
+libxml2:
+- '2.10'
 macos_machine:
 - arm64-apple-darwin20.0.0
 target_platform:
 - osx-arm64
 variant:
 - default
+zlib:
+- '1.2'
+zstd:
+- '1.5'

@@ -4,7 +4,13 @@ set -ex
 cd ${SRC_DIR}/clang/build
 make install
 cd $PREFIX
-rm -rf lib/cmake include lib/lib*.a
+
+# Remove stuff that should be in clangdev
+rm -rf include/clang
+rm -rf include/clang-c
+rm -rf include/clang-tidy
+rm -rf lib/cmake/clang/
+rm -rf lib/lib*.a
 
 MAJOR_VERSION=$(echo ${PKG_VERSION} | cut -f1 -d".")
 for f in ${PREFIX}/bin/clang-*; do
