@@ -317,9 +317,9 @@ outputs:
         - libclang {{ minor_aware_ext }}.*
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
-        - libxml2  # [unix]
-        - zlib
-        - zstd
+        - libxml2
+        - zlib     # [win]
+        - zstd     # [win]
     requirements:
       build:
         - {{ stdlib('c') }}
@@ -366,7 +366,7 @@ outputs:
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
-        - libxml2  # [unix]
+        - libxml2
         - zlib     # [unix]
         - zstd     # [unix]
     requirements:
@@ -421,7 +421,7 @@ outputs:
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
-        - libxml2  # [unix]
+        - libxml2
         - zlib     # [unix]
         - zstd     # [unix]
     requirements:
@@ -453,7 +453,7 @@ outputs:
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
-        - libxml2  # [unix]
+        - libxml2
         - zlib     # [unix]
         - zstd     # [unix]
     requirements:
