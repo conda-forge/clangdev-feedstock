@@ -229,8 +229,8 @@ outputs:
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
         - libxml2
-        - zlib     # [win]
-        - zstd     # [win]
+        - zlib     # [unix]
+        - zstd     # [unix]
     requirements:
       build:
         - {{ compiler('cxx') }}
