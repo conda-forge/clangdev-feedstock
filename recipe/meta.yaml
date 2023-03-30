@@ -367,8 +367,8 @@ outputs:
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
         - libxml2  # [unix]
-        - zlib
-        - zstd
+        - zlib     # [unix]
+        - zstd     # [unix]
     requirements:
       build:
         - {{ stdlib('c') }}
@@ -422,8 +422,8 @@ outputs:
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
         - libxml2  # [unix]
-        - zlib
-        - zstd
+        - zlib     # [unix]
+        - zstd     # [unix]
     requirements:
       host:
         - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
@@ -454,8 +454,8 @@ outputs:
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
         - libxml2  # [unix]
-        - zlib
-        - zstd
+        - zlib     # [unix]
+        - zstd     # [unix]
     requirements:
       host:
         - {{ pin_subpackage("clang", exact=True) }}
