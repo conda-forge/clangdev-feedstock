@@ -228,9 +228,9 @@ outputs:
         - {{ pin_subpackage("libclang" ~ libclang_soversion, max_pin=None) }}
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
-        - libxml2  # [unix]
-        - zlib
-        - zstd
+        - libxml2
+        - zlib     # [win]
+        - zstd     # [win]
     requirements:
       build:
         - {{ compiler('cxx') }}
@@ -334,7 +334,7 @@ outputs:
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
-        - libxml2  # [unix]
+        - libxml2
         - zlib     # [unix]
         - zstd     # [unix]
     requirements:
@@ -384,7 +384,7 @@ outputs:
     build:
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
-        - libxml2  # [unix]
+        - libxml2
         - zlib     # [unix]
         - zstd     # [unix]
     requirements:
@@ -415,7 +415,7 @@ outputs:
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
-        - libxml2  # [unix]
+        - libxml2
         - zlib     # [unix]
         - zstd     # [unix]
     requirements:
