@@ -7,7 +7,7 @@ channel_targets:
 cxx_compiler:
 - clang_bootstrap
 cxx_compiler_version:
-- '14'
+- '15'
 libclang_soversion:
 - '13'
 libxml2:
