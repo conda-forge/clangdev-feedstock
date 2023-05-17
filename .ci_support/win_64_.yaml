@@ -7,7 +7,7 @@ cxx_compiler:
 libclang_soversion:
 - '13'
 libxml2:
-- '2.10'
+- '2.11'
 target_platform:
 - win-64
 variant:

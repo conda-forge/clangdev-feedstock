@@ -17,7 +17,7 @@ docker_image:
 libclang_soversion:
 - '13'
 libxml2:
-- '2.10'
+- '2.11'
 target_platform:
 - linux-aarch64
 variant:
