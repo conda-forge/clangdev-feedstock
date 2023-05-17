@@ -1,3 +1,7 @@
+bot:
+  abi_migration_branches:
+  - 15.x
+  - 14.x
 provider:
   win: azure
 conda_forge_output_validation: true
