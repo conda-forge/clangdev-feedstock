@@ -1,4 +1,4 @@
-From 8117f6dcbabbfe3c97048105caa43c31347f2200 Mon Sep 17 00:00:00 2001
+From 0b8808fb884e49e6d87a70817295ee0bff7a525a Mon Sep 17 00:00:00 2001
 From: Isuru Fernando <isuruf@gmail.com>
 Date: Tue, 11 May 2021 15:08:13 +0200
 Subject: [PATCH 6/8] Fix crosscompiling LLVM tools
@@ -28,6 +28,3 @@ index e3bc4b468f..078a45a1ce 100644
    include(TableGen)
    include(HandleLLVMOptions)
    include(VersionFromVCS)
--- 
-2.38.1.windows.1
-

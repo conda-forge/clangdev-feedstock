@@ -26,6 +26,3 @@ index ceb1a982c3..d6f62ec0ac 100644
    Path = (InstallDir + "/../../../../sysroot" + Multilib.osSuffix()).str();
  
    if (getVFS().exists(Path))
--- 
-2.38.1.windows.1
-
