@@ -39,6 +39,3 @@ index 665cdc3132..f401a2a435 100644
  
    static const char *const RISCV32LibDirs[] = {"/lib32", "/lib"};
    static const char *const RISCV32Triples[] = {"riscv32-unknown-linux-gnu",
--- 
-2.38.1.windows.1
-

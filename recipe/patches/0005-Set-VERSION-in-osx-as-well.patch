@@ -1,4 +1,4 @@
-From 46e79dbf6a67497c9798b090603ebee231aa7b7b Mon Sep 17 00:00:00 2001
+From 6d02908f6f740479de256500a30a28d0a207cb04 Mon Sep 17 00:00:00 2001
 From: Isuru Fernando <isuruf@gmail.com>
 Date: Sat, 27 Jul 2019 11:55:23 -0500
 Subject: [PATCH 5/8] Set VERSION in osx as well
@@ -23,6 +23,3 @@ index c6b3b44a76..f234f15628 100644
    else()
      set_target_properties(libclang
        PROPERTIES
--- 
-2.38.1.windows.1
-

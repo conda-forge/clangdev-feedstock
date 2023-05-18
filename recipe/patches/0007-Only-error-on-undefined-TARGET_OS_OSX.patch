@@ -1,4 +1,4 @@
-From 5ceec06db7473c3703d9d540e7d6b884ef8d0b09 Mon Sep 17 00:00:00 2001
+From 6a27c42f1217b92de424dd7d2a0f64ef6136e266 Mon Sep 17 00:00:00 2001
 From: "Uwe L. Korn" <uwe.korn@quantco.com>
 Date: Tue, 11 May 2021 15:09:51 +0200
 Subject: [PATCH 7/8] Only error on undefined TARGET_OS_OSX
@@ -20,6 +20,3 @@ index bada811daa..c4dc8054b1 100644
    CC1Args.push_back("-Werror=undef-prefix");
  
    // For modern targets, promote certain warnings to errors.
--- 
-2.38.1.windows.1
-
