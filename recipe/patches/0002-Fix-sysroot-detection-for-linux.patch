@@ -1,4 +1,4 @@
-From 41440b8f0b300ba79ab02661941a7ddb82bc6940 Mon Sep 17 00:00:00 2001
+From 1ea114bff00937f75b07be640908c467eb46eb7d Mon Sep 17 00:00:00 2001
 From: Isuru Fernando <isuruf@gmail.com>
 Date: Mon, 8 Apr 2019 16:32:17 -0500
 Subject: [PATCH 2/8] Fix sysroot detection for linux
@@ -8,10 +8,10 @@ Subject: [PATCH 2/8] Fix sysroot detection for linux
  1 file changed, 9 insertions(+), 1 deletion(-)
 
 diff --git a/clang/lib/Driver/ToolChains/Linux.cpp b/clang/lib/Driver/ToolChains/Linux.cpp
-index f85c04df4f6c..0614a06956b0 100644
+index 83cb41159d..56f48775d6 100644
 --- a/clang/lib/Driver/ToolChains/Linux.cpp
 +++ b/clang/lib/Driver/ToolChains/Linux.cpp
-@@ -361,7 +361,7 @@ std::string Linux::computeSysRoot() const {
+@@ -355,7 +355,7 @@ std::string Linux::computeSysRoot() const {
        return AndroidSysRootPath;
    }
  
@@ -20,7 +20,7 @@ index f85c04df4f6c..0614a06956b0 100644
      return std::string();
  
    // Standalone MIPS toolchains use different names for sysroot folder
-@@ -379,6 +379,14 @@ std::string Linux::computeSysRoot() const {
+@@ -373,6 +373,14 @@ std::string Linux::computeSysRoot() const {
    if (getVFS().exists(Path))
      return Path;
  
@@ -35,6 +35,3 @@ index f85c04df4f6c..0614a06956b0 100644
    Path = (InstallDir + "/../../../../sysroot" + Multilib.osSuffix()).str();
  
    if (getVFS().exists(Path))
--- 
-2.35.3.windows.1
-
