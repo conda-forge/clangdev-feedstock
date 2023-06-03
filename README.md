@@ -217,6 +217,7 @@ Feedstock Maintainers
 * [@inducer](https://github.com/inducer/)
 * [@isuruf](https://github.com/isuruf/)
 * [@jakirkham](https://github.com/jakirkham/)
+* [@katietz](https://github.com/katietz/)
 * [@timsnyder](https://github.com/timsnyder/)
 * [@xhochy](https://github.com/xhochy/)
 
