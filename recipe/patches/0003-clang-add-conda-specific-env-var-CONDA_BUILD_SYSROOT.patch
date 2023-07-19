@@ -1,4 +1,4 @@
-From c2c32b2cd1c88f88d150ff502d5f1e0fd4d99512 Mon Sep 17 00:00:00 2001
+From 71e378ea8d60be6768548552bb759e167169e132 Mon Sep 17 00:00:00 2001
 From: Nehal J Wani <nehaljw.kkd1@gmail.com>
 Date: Sat, 25 Aug 2018 09:20:04 -0500
 Subject: [PATCH 3/8] clang: add conda specific env var CONDA_BUILD_SYSROOT
@@ -9,49 +9,46 @@ Subject: [PATCH 3/8] clang: add conda specific env var CONDA_BUILD_SYSROOT
  2 files changed, 12 insertions(+), 3 deletions(-)
 
 diff --git a/clang/lib/Driver/Driver.cpp b/clang/lib/Driver/Driver.cpp
-index 661d9977fb..f5a75515ed 100644
+index be8632b0954..04fa0916a7a 100644
 --- a/clang/lib/Driver/Driver.cpp
 +++ b/clang/lib/Driver/Driver.cpp
-@@ -1327,8 +1327,13 @@ Compilation *Driver::BuildCompilation(ArrayRef<const char *> ArgList) {
+@@ -1341,8 +1341,13 @@ Compilation *Driver::BuildCompilation(ArrayRef<const char *> ArgList) {
        CompilerPath = Split.second;
      }
    }
 -  if (const Arg *A = Args.getLastArg(options::OPT__sysroot_EQ))
 -    SysRoot = A->getValue();
-+  if (Optional<std::string> CondaBuildSysrootValue =
++  if (std::optional<std::string> CondaBuildSysrootValue =
 +          llvm::sys::Process::GetEnv("CONDA_BUILD_SYSROOT")) {
 +    SysRoot = *CondaBuildSysrootValue;
++  } else {
++    if (const Arg *A = Args.getLastArg(options::OPT__sysroot_EQ))
++      SysRoot = A->getValue();
 +  }
-+  // Override CONDA_BUILD_SYSROOT and consume sysroot option
-+  if (const Arg *A = Args.getLastArg(options::OPT__sysroot_EQ))
-+    SysRoot = A->getValue();
    if (const Arg *A = Args.getLastArg(options::OPT__dyld_prefix_EQ))
      DyldPrefix = A->getValue();
  
 diff --git a/clang/lib/Lex/InitHeaderSearch.cpp b/clang/lib/Lex/InitHeaderSearch.cpp
-index d446556571..8354362d1f 100644
+index 41382d7cb3f..3f2fab2b5bb 100644
 --- a/clang/lib/Lex/InitHeaderSearch.cpp
 +++ b/clang/lib/Lex/InitHeaderSearch.cpp
-@@ -25,6 +25,7 @@
+@@ -24,6 +24,7 @@
  #include "llvm/ADT/Twine.h"
  #include "llvm/Support/ErrorHandling.h"
  #include "llvm/Support/Path.h"
 +#include "llvm/Support/Process.h"
  #include "llvm/Support/raw_ostream.h"
+ #include "llvm/TargetParser/Triple.h"
  #include <optional>
- 
-@@ -243,7 +244,10 @@ void InitHeaderSearch::AddDefaultCIncludePaths(const llvm::Triple &triple,
+@@ -241,7 +242,10 @@ void InitHeaderSearch::AddDefaultCIncludePaths(const llvm::Triple &triple,
        [[fallthrough]];
      default:
        // FIXME: temporary hack: hard-coded paths.
 -      AddPath("/usr/local/include", System, false);
-+      Optional<std::string> CondaBuildSysrootValue =
++      std::optional<std::string> CondaBuildSysrootValue =
 +              llvm::sys::Process::GetEnv("CONDA_BUILD_SYSROOT");
 +      if (!CondaBuildSysrootValue.has_value())
 +        AddPath("/usr/local/include", System, false);
        break;
      }
    }
--- 
-2.38.1.windows.1
-
