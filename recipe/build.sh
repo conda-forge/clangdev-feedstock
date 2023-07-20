@@ -15,8 +15,12 @@ rm -rf llvm-project
 cd clang
 
 IFS='.' read -r -a PKG_VER_ARRAY <<< "${PKG_VERSION}"
+VER_MAJOR=${PKG_VER_ARRAY[0]}
+if [[ "${PKG_VERSION}" == *dev0 ]]; then
+    SOVER_EXT="${VER_MAJOR}git"
+fi
 
-sed -i.bak "s/libLTO.dylib/libLTO.${PKG_VER_ARRAY[0]}.dylib/g" lib/Driver/ToolChains/Darwin.cpp
+sed -i.bak "s/libLTO.dylib/libLTO.${SOVER_EXT}.dylib/g" lib/Driver/ToolChains/Darwin.cpp
 
 if [[ "$variant" == "hcc" ]]; then
   CMAKE_ARGS="$CMAKE_ARGS -DKALMAR_BACKEND=HCC_BACKEND_AMDGPU -DHCC_VERSION_STRING=2.7-19365-24e69cd8-24e69cd8-24e69cd8"

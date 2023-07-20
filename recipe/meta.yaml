@@ -5,6 +5,8 @@
 {% set minor_aware_ext = major_version %}
 {% if version.split(".")[1] | int > 0 %}
 {% set minor_aware_ext = major_version ~ "." ~ version.split(".")[1] %}
+{% elif version.split(".")[-1] == "dev0" %}
+{% set minor_aware_ext = major_version ~ "git" %}
 {% endif %}
 
 {% if libclang_soversion is not defined %}
