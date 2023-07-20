@@ -136,6 +136,7 @@ outputs:
       - lib/libclang-cpp.so.{{ minor_aware_ext }}     # [linux]
       - lib/libclang-cpp.{{ minor_aware_ext }}.dylib  # [osx]
     build:
+      skip: true  # [win]
       track_features:
         - hcc          # [variant=="hcc"]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
@@ -146,7 +147,6 @@ outputs:
         - zlib     # [unix]
         - libxml2  # [unix]
         - zstd     # [unix]
-      skip: true  # [win]
     requirements:
       build:
         - {{ compiler('cxx') }}
