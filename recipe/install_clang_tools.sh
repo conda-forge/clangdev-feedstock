@@ -15,6 +15,10 @@ rm -rf lib/lib*.a
 MAJOR_VERSION=$(echo ${PKG_VERSION} | cut -f1 -d".")
 for f in ${PREFIX}/bin/clang-*; do
     if [[ "$(basename $f)" == clang-format-* ]]; then
+        # already got versioned in install_clang_format.sh
+        continue
+    elif [[ "$(basename $f)" == "clang-${MAJOR_VERSION}" ]]; then
+        # installation also creates a versioned clang, no need to re-version it
         continue
     fi
     rm -f ${PREFIX}/bin/$(basename $f)-${MAJOR_VERSION}
@@ -22,6 +26,7 @@ for f in ${PREFIX}/bin/clang-*; do
     ln -s ${PREFIX}/bin/$(basename $f)-${MAJOR_VERSION} $f;
 done
 
-rm ${PREFIX}/bin/clang-${MAJOR_VERSION}-${MAJOR_VERSION}
+# part of output "clang", not "clang-tools"
+rm ${PREFIX}/bin/clang-${MAJOR_VERSION}
 rm ${PREFIX}/bin/clang-cpp-${MAJOR_VERSION}
 rm ${PREFIX}/bin/clang-cl-${MAJOR_VERSION}
