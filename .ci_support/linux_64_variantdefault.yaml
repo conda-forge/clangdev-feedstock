@@ -7,14 +7,18 @@ channel_targets:
 cxx_compiler:
 - gxx
 cxx_compiler_version:
-- '11'
+- '12'
 docker_image:
 - quay.io/condaforge/linux-anvil-cos7-x86_64
 libclang_soversion:
 - '13'
+libxml2:
+- '2.11'
 target_platform:
 - linux-64
 variant:
 - default
 zlib:
 - '1.2'
+zstd:
+- '1.5'
