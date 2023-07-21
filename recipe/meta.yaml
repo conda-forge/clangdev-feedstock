@@ -1,6 +1,6 @@
 {% set version = "15.0.7" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 2 %}
+{% set build_number = 3 %}
 
 {% set minor_aware_ext = major_version %}
 {% if version.split(".")[1] | int > 0 %}
@@ -19,16 +19,15 @@ source:
   - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/llvm-project-{{ version.replace(".rc", "rc") }}.src.tar.xz
     sha256: 8b5fcb24b4128cf04df1b0b9410ce8b1a729cb3c544e6da885d234280dedeac6
     patches:
-      - patches/0001-Find-conda-gcc-installation.patch
-      - patches/0002-Fix-sysroot-detection-for-linux.patch
-      - patches/0003-clang-add-conda-specific-env-var-CONDA_BUILD_SYSROOT.patch
-      - patches/0004-Fix-normalizeProgramName-s-handling-of-dots-outside-.patch
-      - patches/0005-Set-VERSION-in-osx-as-well.patch
-      - patches/0006-Fix-crosscompiling-LLVM-tools.patch
+      - patches/0001-Fix-sysroot-detection-for-linux.patch
+      - patches/0002-clang-add-conda-specific-env-var-CONDA_BUILD_SYSROOT.patch
+      - patches/0003-Fix-normalizeProgramName-s-handling-of-dots-outside-.patch
+      - patches/0004-Set-VERSION-in-osx-as-well.patch
+      - patches/0005-Fix-crosscompiling-LLVM-tools.patch
       # Disable -Werror,-Wundef-prefix=TARGET_OS as they are not yet defined in the 10.9 SDK used for osx-64
       # Only enable it for TARGET_OS_OSX.
-      - patches/0007-Only-error-on-undefined-TARGET_OS_OSX.patch  # [osx and x86_64]
-      - patches/0008-set-libclang-SOVERSION-unconditionally.patch
+      - patches/0006-Only-error-on-undefined-TARGET_OS_OSX.patch  # [osx and x86_64]
+      - patches/0007-set-libclang-SOVERSION-unconditionally.patch
       # - patches/amd-roc-2.7.0.diff   # [variant != "hcc"]
       # - patches/amd-roc-hcc-2.7.0.diff  # [variant == "hcc"]
     # name folder for easier deletion; we do the equivalent of downloading
