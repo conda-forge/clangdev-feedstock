@@ -1,6 +1,6 @@
 {% set version = "16.0.6" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 0 %}
+{% set build_number = 1 %}
 
 {% set minor_aware_ext = major_version %}
 {% if version.split(".")[1] | int > 0 %}
@@ -19,7 +19,6 @@ source:
   - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/llvm-project-{{ version.replace(".rc", "rc") }}.src.tar.xz
     sha256: ce5e71081d17ce9e86d7cbcfa28c4b04b9300f8fb7e78422b1feb6bc52c3028e
     patches:
-      - patches/0001-Find-conda-gcc-installation.patch
       - patches/0002-Fix-sysroot-detection-for-linux.patch
       - patches/0003-clang-add-conda-specific-env-var-CONDA_BUILD_SYSROOT.patch
       - patches/0004-Fix-normalizeProgramName-s-handling-of-dots-outside-.patch
@@ -436,6 +435,9 @@ outputs:
         - mytest.cxx
       commands:
         - clang++ --version
+        - clang++ -v -c mytest.cxx
+        - unset CONDA_BUILD_SYSROOT   # [unix]
+        - set "CONDA_BUILD_SYSROOT="  # [win]
         - clang++ -v -c mytest.cxx
 
   - name: clang-format-{{ major_version }}
