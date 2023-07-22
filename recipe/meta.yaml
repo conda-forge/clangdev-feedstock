@@ -388,6 +388,9 @@ outputs:
       commands:
         - clang++ --version
         - clang++ -v -c mytest.cxx
+        - unset CONDA_BUILD_SYSROOT   # [unix]
+        - set "CONDA_BUILD_SYSROOT="  # [win]
+        - clang++ -v -c mytest.cxx
 
   - name: clang-format-{{ major_version }}
     script: install_clang_format.sh  # [unix]
