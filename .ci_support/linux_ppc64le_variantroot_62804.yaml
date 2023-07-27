@@ -13,6 +13,6 @@ docker_image:
 target_platform:
 - linux-ppc64le
 variant:
-- root_62800
+- root_62804
 zlib:
 - '1.2'
