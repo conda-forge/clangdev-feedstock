@@ -1,6 +1,6 @@
 {% set version = "13.0.1" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 1 %}
+{% set build_number = 2 %}
 
 {% set minor_aware_ext = major_version %}
 {% set minor_int = version.split(".")[1] | int %}
@@ -116,6 +116,12 @@ source:
       - patches/root/0081-Do-not-install-Clang-Cling-Config.cmake-in-the-proje.patch  # [variant and variant.startswith("root_")]
       - patches/root/0082-AST-Print-honor-AlwaysIncludeTypeForTemplateArgument.patch  # [variant and variant.startswith("root_")]
       - patches/root/0083-Relax-assertion-on-generating-destructor-call.patch  # [variant and variant.startswith("root_")]
+      - patches/root/0001-Deserialize-LValuePathSerializationHelper-s-type-pro.patch  # [variant and variant.startswith("root_")]
+      - patches/root/0002-Do-not-evaluate-value-dependent-immediate-invocation.patch  # [variant and variant.startswith("root_")]
+      - patches/root/0003-Backport-clang-Allocate-2-bits-to-store-the-constexp.patch  # [variant and variant.startswith("root_")]
+      - patches/root/0004-Implement-a-module-attribute-optional-to-allow-missi.patch  # [variant and variant.startswith("root_")]
+      - patches/root/0005-Add-cplusplus20-as-module-requirement.patch  # [variant and variant.startswith("root_")]
+      - patches/root/0006-survive-Inon-accessible-directory.patch  # [variant and variant.startswith("root_")]
     folder: .
   - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/clang-tools-extra-{{ version.replace(".rc", "rc") }}.src.tar.xz
     sha256: cc2bc8598848513fa2257a270083e986fd61048347eccf1d801926ea709392d0
