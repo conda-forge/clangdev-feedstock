@@ -1,0 +1,50 @@
+From c17bbdb9087baecccf7e06e55ac380ae71ee280c Mon Sep 17 00:00:00 2001
+From: Nehal J Wani <nehaljw.kkd1@gmail.com>
+Date: Sat, 25 Aug 2018 09:20:04 -0500
+Subject: [PATCH 2/7] clang: add conda specific env var CONDA_BUILD_SYSROOT
+
+---
+ clang/lib/Driver/Driver.cpp        | 5 +++++
+ clang/lib/Lex/InitHeaderSearch.cpp | 6 +++++-
+ 2 files changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/clang/lib/Driver/Driver.cpp b/clang/lib/Driver/Driver.cpp
+index a268f2fa8fc..baf84d4d1ad 100644
+--- a/clang/lib/Driver/Driver.cpp
++++ b/clang/lib/Driver/Driver.cpp
+@@ -1327,6 +1327,11 @@ Compilation *Driver::BuildCompilation(ArrayRef<const char *> ArgList) {
+       CompilerPath = Split.second;
+     }
+   }
++  if (Optional<std::string> CondaBuildSysrootValue =
++          llvm::sys::Process::GetEnv("CONDA_BUILD_SYSROOT")) {
++    SysRoot = *CondaBuildSysrootValue;
++  }
++  // Override CONDA_BUILD_SYSROOT and consume sysroot option
+   if (const Arg *A = Args.getLastArg(options::OPT__sysroot_EQ))
+     SysRoot = A->getValue();
+   if (const Arg *A = Args.getLastArg(options::OPT__dyld_prefix_EQ))
+diff --git a/clang/lib/Lex/InitHeaderSearch.cpp b/clang/lib/Lex/InitHeaderSearch.cpp
+index d4465565718..8354362d1ff 100644
+--- a/clang/lib/Lex/InitHeaderSearch.cpp
++++ b/clang/lib/Lex/InitHeaderSearch.cpp
+@@ -25,6 +25,7 @@
+ #include "llvm/ADT/Twine.h"
+ #include "llvm/Support/ErrorHandling.h"
+ #include "llvm/Support/Path.h"
++#include "llvm/Support/Process.h"
+ #include "llvm/Support/raw_ostream.h"
+ #include <optional>
+ 
+@@ -243,7 +244,10 @@ void InitHeaderSearch::AddDefaultCIncludePaths(const llvm::Triple &triple,
+       [[fallthrough]];
+     default:
+       // FIXME: temporary hack: hard-coded paths.
+-      AddPath("/usr/local/include", System, false);
++      Optional<std::string> CondaBuildSysrootValue =
++              llvm::sys::Process::GetEnv("CONDA_BUILD_SYSROOT");
++      if (!CondaBuildSysrootValue.has_value())
++        AddPath("/usr/local/include", System, false);
+       break;
+     }
+   }
