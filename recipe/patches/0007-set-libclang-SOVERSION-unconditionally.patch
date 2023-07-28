@@ -1,0 +1,32 @@
+From b2eb7cd3027b4ca6faa37448f112211d39bfdf5a Mon Sep 17 00:00:00 2001
+From: "H. Vetinari" <h.vetinari@gmx.com>
+Date: Thu, 14 Apr 2022 11:57:00 +1100
+Subject: [PATCH 7/7] set libclang SOVERSION unconditionally
+
+and avoid creating libclang with full version suffix
+---
+ clang/tools/libclang/CMakeLists.txt | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/clang/tools/libclang/CMakeLists.txt b/clang/tools/libclang/CMakeLists.txt
+index f234f15628e..4aa1e77eacc 100644
+--- a/clang/tools/libclang/CMakeLists.txt
++++ b/clang/tools/libclang/CMakeLists.txt
+@@ -197,9 +197,16 @@ if(ENABLE_SHARED)
+     # Ensure that libclang.so gets rebuilt when the linker script changes.
+     set_property(SOURCE ARCMigrate.cpp APPEND PROPERTY
+                  OBJECT_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/libclang.map)
++  endif()
+ 
++  if(WIN32)
++    # point libclang.lib to libclang-<SO-version>.dll
++    set_target_properties(libclang PROPERTIES RUNTIME_OUTPUT_NAME "libclang-${LIBCLANG_SOVERSION}")
++  else()
++    # on unix, set soversion directly (also need to set version
++    # to avoid libclang.so.LLVM_VERSION_MAJOR being generated)
+     set_target_properties(libclang PROPERTIES
+-                          VERSION ${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}.${LLVM_VERSION_PATCH}${LLVM_VERSION_SUFFIX}
++                          VERSION ${LIBCLANG_SOVERSION}
+                           SOVERSION ${LIBCLANG_SOVERSION})
+   endif()
+ endif()
