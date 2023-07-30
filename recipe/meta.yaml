@@ -543,7 +543,6 @@ outputs:
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
         - zlib     # [unix]
-        - libxml2  # [unix]
         - zstd     # [unix]
     requirements:
       build:
