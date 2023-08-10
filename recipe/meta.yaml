@@ -121,6 +121,7 @@ outputs:
         - {{ pin_subpackage("libclang", exact=True) }}
         - {{ pin_subpackage("libclang-cpp", exact=True) }}
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
+        - __osx >={{ MACOSX_DEPLOYMENT_TARGET }}        # [osx and x86_64]
         - llvmdev =={{ version }}
     test:
       commands:
@@ -162,6 +163,7 @@ outputs:
         - zlib
         - zstd
       run:
+        - __osx >={{ MACOSX_DEPLOYMENT_TARGET }}        # [osx and x86_64]
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
     test:
       commands:
@@ -204,6 +206,7 @@ outputs:
         - zlib
         - zstd
       run:
+        - __osx >={{ MACOSX_DEPLOYMENT_TARGET }}                              # [osx and x86_64]
         - {{ pin_compatible("libcxx", max_pin=None) }}                        # [osx]
         - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, exact=True) }}  # [unix]
     test:
@@ -249,6 +252,7 @@ outputs:
         - zlib
         - zstd
       run:
+        - __osx >={{ MACOSX_DEPLOYMENT_TARGET }}        # [osx and x86_64]
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
     test:
       commands:
@@ -313,6 +317,7 @@ outputs:
         - zlib
         - zstd
       run:
+        - __osx >={{ MACOSX_DEPLOYMENT_TARGET }}                      # [osx and x86_64]
         - {{ pin_compatible("libcxx", max_pin=None) }}                # [osx]
         - {{ pin_subpackage("libclang" ~ libclang_soversion, exact=True) }}
     test:
@@ -356,6 +361,7 @@ outputs:
         - zlib
         - zstd
       run:
+        - __osx >={{ MACOSX_DEPLOYMENT_TARGET }}                              # [osx and x86_64]
         - {{ pin_compatible("libcxx", max_pin=None) }}                        # [osx]
         - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, exact=True) }}  # [unix]
       run_constrained:
@@ -399,7 +405,8 @@ outputs:
         - zlib
         - zstd
       run:
-        - gcc_impl_{{ target_platform }}  # [linux]
+        - gcc_impl_{{ target_platform }}            # [linux]
+        - __osx >={{ MACOSX_DEPLOYMENT_TARGET }}    # [osx and x86_64]
         - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
     test:
       commands:
@@ -429,6 +436,7 @@ outputs:
         - zlib
         - zstd
       run:
+        - __osx >={{ MACOSX_DEPLOYMENT_TARGET }}        # [osx and x86_64]
         - {{ pin_subpackage("clang", exact=True) }}
     test:
       requires:
@@ -478,6 +486,7 @@ outputs:
         - zlib
         - zstd
       run:
+        - __osx >={{ MACOSX_DEPLOYMENT_TARGET }}                                  # [osx and x86_64]
         - {{ pin_compatible("libcxx", max_pin=None) }}                            # [osx]
         - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, max_pin="x.x") }}   # [unix]
     test:
@@ -524,6 +533,7 @@ outputs:
         - zlib
         - zstd
       run:
+        - __osx >={{ MACOSX_DEPLOYMENT_TARGET }}                                 # [osx and x86_64]
         - {{ pin_compatible("libcxx", max_pin=None) }}                           # [osx]
         - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, max_pin="x.x") }}  # [unix]
         - {{ pin_subpackage("clang-format-" ~ major_version, exact=True) }}      # [unix]
@@ -568,6 +578,7 @@ outputs:
         - zstd
       run:
         - ucrt                                          # [win]
+        - __osx >={{ MACOSX_DEPLOYMENT_TARGET }}        # [osx and x86_64]
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
         - {{ pin_subpackage("clang-format", exact=True) }}
         - {{ pin_subpackage("libclang" ~ libclang_soversion, max_pin=None) }}
