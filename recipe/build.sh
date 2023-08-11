@@ -15,9 +15,11 @@ rm -rf llvm-project
 cd clang
 
 IFS='.' read -r -a PKG_VER_ARRAY <<< "${PKG_VERSION}"
-VER_MAJOR=${PKG_VER_ARRAY[0]}
+# default SOVER for tagged releases is just the major version
+SOVER_EXT=${VER_ARR[0]}
 if [[ "${PKG_VERSION}" == *dev0 ]]; then
-    SOVER_EXT="${VER_MAJOR}git"
+    # otherwise with git suffix
+    SOVER_EXT="${SOVER_EXT}git"
 fi
 
 sed -i.bak "s/libLTO.dylib/libLTO.${SOVER_EXT}.dylib/g" lib/Driver/ToolChains/Darwin.cpp
@@ -40,6 +42,7 @@ fi
 
 if [[ "$target_platform" == osx* ]]; then
   export CXXFLAGS="$CXXFLAGS -DTARGET_OS_OSX=1"
+  CMAKE_ARGS="$CMAKE_ARGS -DLLVM_ENABLE_LIBCXX=ON"
 fi
 
 # disable -fno-plt due to some GCC bug causing linker errors, see
