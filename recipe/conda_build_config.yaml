@@ -3,15 +3,6 @@ c_compiler:          # [osx]
 cxx_compiler:        # [osx]
   - clang_bootstrap  # [osx]
 
-# clang 17 should remain compatible with libcxx 17 (which will be pulled in
-# as a test dependency despite requiring `__osx>=10.13`). Since libcxx has
-# removed workarounds for MacOS<10.13, clang will fail while including
-# the C++ headers, because those rely on things not present in older SDKs.
-MACOSX_SDK_VERSION:         # [osx and x86_64]
-  - "10.13"                 # [osx and x86_64]
-MACOSX_DEPLOYMENT_TARGET:   # [osx and x86_64]
-  - "10.13"                 # [osx and x86_64]
-
 # Starting from LLVM 14, the ABI of libclang doesn't necessarily
 # match the major version anymore - cf. #170 and
 # https://github.com/llvm/llvm-project/issues/54004
