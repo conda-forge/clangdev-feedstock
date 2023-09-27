@@ -1,4 +1,4 @@
-From 3e7e229e2da4008946ba9b5cf15f3a9606a835ee Mon Sep 17 00:00:00 2001
+From 703241c36d0d97cdbf8caaf9020a1ba68ca7dba8 Mon Sep 17 00:00:00 2001
 From: Ray Donnelly <mingw.android@gmail.com>
 Date: Wed, 30 Aug 2017 20:01:49 +0100
 Subject: [PATCH 3/7] Fix normalizeProgramName()'s handling of dots outside of
@@ -18,10 +18,10 @@ x86_64-apple-darwin13.4
  1 file changed, 22 insertions(+), 1 deletion(-)
 
 diff --git a/clang/lib/Driver/ToolChain.cpp b/clang/lib/Driver/ToolChain.cpp
-index bc70205a6c0..3a7948509a6 100644
+index d60fdbc1796..9bcd82e15d9 100644
 --- a/clang/lib/Driver/ToolChain.cpp
 +++ b/clang/lib/Driver/ToolChain.cpp
-@@ -51,6 +51,7 @@ using namespace driver;
+@@ -55,6 +55,7 @@ using namespace driver;
  using namespace tools;
  using namespace llvm;
  using namespace llvm::opt;
@@ -29,7 +29,7 @@ index bc70205a6c0..3a7948509a6 100644
  
  static llvm::opt::Arg *GetRTTIArgument(const ArgList &Args) {
    return Args.getLastArg(options::OPT_mkernel, options::OPT_fapple_kext,
-@@ -223,10 +224,30 @@ static const DriverSuffix *FindDriverSuffix(StringRef ProgName, size_t &Pos) {
+@@ -323,10 +324,30 @@ static const DriverSuffix *FindDriverSuffix(StringRef ProgName, size_t &Pos) {
    return nullptr;
  }
  

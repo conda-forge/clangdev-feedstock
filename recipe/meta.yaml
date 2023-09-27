@@ -1,10 +1,14 @@
-{% set version = "16.0.6" %}
+{% set version = "17.0.1" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 1 %}
+{% set build_number = 0 %}
 
 {% set minor_aware_ext = major_version %}
 {% if version.split(".")[1] | int > 0 %}
-{% set minor_aware_ext = major_version + "." + version.split(".")[1] %}
+{% set minor_aware_ext = major_version ~ "." ~ version.split(".")[1] %}
+{% elif version.split(".")[-1].startswith("rc") %}
+{% set minor_aware_ext = major_version ~ "rc" %}
+{% elif version.split(".")[-1] == "dev0" %}
+{% set minor_aware_ext = major_version ~ "git" %}
 {% endif %}
 
 {% if libclang_soversion is not defined %}
@@ -17,7 +21,7 @@ package:
 
 source:
   - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/llvm-project-{{ version.replace(".rc", "rc") }}.src.tar.xz
-    sha256: ce5e71081d17ce9e86d7cbcfa28c4b04b9300f8fb7e78422b1feb6bc52c3028e
+    sha256: b0e42aafc01ece2ca2b42e3526f54bebc4b1f1dc8de6e34f46a0446a13e882b9
     patches:
       - patches/0001-Fix-sysroot-detection-for-linux.patch
       - patches/0002-clang-add-conda-specific-env-var-CONDA_BUILD_SYSROOT.patch
@@ -130,9 +134,10 @@ outputs:
   - name: libclang-cpp{{ minor_aware_ext }}
     script: install_libclang_cpp.sh  # [unix]
     files:
-      - lib/libclang-cpp.so.16     # [linux]
-      - lib/libclang-cpp.16.dylib  # [osx]
+      - lib/libclang-cpp.so.{{ minor_aware_ext }}     # [linux]
+      - lib/libclang-cpp.{{ minor_aware_ext }}.dylib  # [osx]
     build:
+      skip: true  # [win]
       track_features:
         - hcc          # [variant=="hcc"]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
@@ -143,7 +148,6 @@ outputs:
         - zlib     # [unix]
         - libxml2  # [unix]
         - zstd     # [unix]
-      skip: true  # [win]
     requirements:
       build:
         - {{ compiler('cxx') }}
@@ -541,7 +545,6 @@ outputs:
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
         - zlib     # [unix]
-        - libxml2  # [unix]
         - zstd     # [unix]
     requirements:
       build:

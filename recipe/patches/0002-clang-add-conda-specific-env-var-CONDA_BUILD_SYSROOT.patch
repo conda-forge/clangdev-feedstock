@@ -1,4 +1,4 @@
-From c17bbdb9087baecccf7e06e55ac380ae71ee280c Mon Sep 17 00:00:00 2001
+From 3d234ba553a1ec9078e107803da4f97b483f8e94 Mon Sep 17 00:00:00 2001
 From: Nehal J Wani <nehaljw.kkd1@gmail.com>
 Date: Sat, 25 Aug 2018 09:20:04 -0500
 Subject: [PATCH 2/7] clang: add conda specific env var CONDA_BUILD_SYSROOT
@@ -9,14 +9,14 @@ Subject: [PATCH 2/7] clang: add conda specific env var CONDA_BUILD_SYSROOT
  2 files changed, 10 insertions(+), 1 deletion(-)
 
 diff --git a/clang/lib/Driver/Driver.cpp b/clang/lib/Driver/Driver.cpp
-index a268f2fa8fc..baf84d4d1ad 100644
+index 488350169ef..168e5977d8f 100644
 --- a/clang/lib/Driver/Driver.cpp
 +++ b/clang/lib/Driver/Driver.cpp
-@@ -1327,6 +1327,11 @@ Compilation *Driver::BuildCompilation(ArrayRef<const char *> ArgList) {
+@@ -1348,6 +1348,11 @@ Compilation *Driver::BuildCompilation(ArrayRef<const char *> ArgList) {
        CompilerPath = Split.second;
      }
    }
-+  if (Optional<std::string> CondaBuildSysrootValue =
++  if (std::optional<std::string> CondaBuildSysrootValue =
 +          llvm::sys::Process::GetEnv("CONDA_BUILD_SYSROOT")) {
 +    SysRoot = *CondaBuildSysrootValue;
 +  }
@@ -25,23 +25,23 @@ index a268f2fa8fc..baf84d4d1ad 100644
      SysRoot = A->getValue();
    if (const Arg *A = Args.getLastArg(options::OPT__dyld_prefix_EQ))
 diff --git a/clang/lib/Lex/InitHeaderSearch.cpp b/clang/lib/Lex/InitHeaderSearch.cpp
-index d4465565718..8354362d1ff 100644
+index 41382d7cb3f..3f2fab2b5bb 100644
 --- a/clang/lib/Lex/InitHeaderSearch.cpp
 +++ b/clang/lib/Lex/InitHeaderSearch.cpp
-@@ -25,6 +25,7 @@
+@@ -24,6 +24,7 @@
  #include "llvm/ADT/Twine.h"
  #include "llvm/Support/ErrorHandling.h"
  #include "llvm/Support/Path.h"
 +#include "llvm/Support/Process.h"
  #include "llvm/Support/raw_ostream.h"
+ #include "llvm/TargetParser/Triple.h"
  #include <optional>
- 
-@@ -243,7 +244,10 @@ void InitHeaderSearch::AddDefaultCIncludePaths(const llvm::Triple &triple,
+@@ -241,7 +242,10 @@ void InitHeaderSearch::AddDefaultCIncludePaths(const llvm::Triple &triple,
        [[fallthrough]];
      default:
        // FIXME: temporary hack: hard-coded paths.
 -      AddPath("/usr/local/include", System, false);
-+      Optional<std::string> CondaBuildSysrootValue =
++      std::optional<std::string> CondaBuildSysrootValue =
 +              llvm::sys::Process::GetEnv("CONDA_BUILD_SYSROOT");
 +      if (!CondaBuildSysrootValue.has_value())
 +        AddPath("/usr/local/include", System, false);
