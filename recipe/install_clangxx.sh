@@ -1,7 +1,6 @@
 #!/bin/bash
 
 ln -s $PREFIX/bin/clang  $PREFIX/bin/clang++
-ln -s $PREFIX/bin/clang  $PREFIX/bin/$HOST-clang++
 
 if [[ "$target_platform" == "linux-"* ]]; then
   source ${RECIPE_DIR}/get_cpu_triplet.sh
