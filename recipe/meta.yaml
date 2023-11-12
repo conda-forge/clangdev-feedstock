@@ -355,11 +355,11 @@ outputs:
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       host:
-        - zlib                            # [win]
-        - gcc_impl_{{ target_platform }}  # [linux]
         - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
       run:
-        - gcc_impl_{{ target_platform }}  # [linux]
+        - binutils_impl_{{ target_platform }}  # [linux]
+        - sysroot_{{ target_platform }}        # [linux]
+        - libgcc-devel_{{ target_platform }}   # [linux]
         - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
     test:
       commands:
@@ -380,6 +380,7 @@ outputs:
         - zlib  # [win]
         - {{ pin_subpackage("clang", exact=True) }}
       run:
+        - libstdcxx-devel_{{ target_platform }}  # [linux]
         - {{ pin_subpackage("clang", exact=True) }}
     test:
       requires:
