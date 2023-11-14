@@ -1,6 +1,6 @@
-{% set version = "17.0.4" %}
+{% set version = "17.0.5" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 1 %}
+{% set build_number = 0 %}
 
 {% set minor_aware_ext = major_version %}
 {% if version.split(".")[1] | int > 0 %}
@@ -21,7 +21,7 @@ package:
 
 source:
   - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/llvm-project-{{ version.replace(".rc", "rc") }}.src.tar.xz
-    sha256: a225eb96f52e7d8c6c275b351fcc66d7a21d925eecff53730900404f244ff16a
+    sha256: 95d7eff82945cf05c16a1851d7b391fc2da726b87c1138125e3b6e4d300ab834
     patches:
       - patches/0001-Fix-sysroot-detection-for-linux.patch
       - patches/0002-clang-add-conda-specific-env-var-CONDA_BUILD_SYSROOT.patch
