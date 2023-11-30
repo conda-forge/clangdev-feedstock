@@ -7,7 +7,7 @@ channel_targets:
 cxx_compiler:
 - clang_bootstrap
 cxx_compiler_version:
-- '15'
+- '16'
 libclang_soversion:
 - '13'
 macos_machine:
