@@ -1,6 +1,6 @@
 {% set version = "13.0.1" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 3 %}
+{% set build_number = 4 %}
 
 {% set minor_aware_ext = major_version %}
 {% set minor_int = version.split(".")[1] | int %}
@@ -122,6 +122,15 @@ source:
       - patches/root/0004-Implement-a-module-attribute-optional-to-allow-missi.patch  # [variant and variant.startswith("root_")]
       - patches/root/0005-Add-cplusplus20-as-module-requirement.patch  # [variant and variant.startswith("root_")]
       - patches/root/0006-survive-Inon-accessible-directory.patch  # [variant and variant.startswith("root_")]
+      - patches/root/6-28-10-0001-Partial-backport-of-D144626-to-fix-Decl-merging-with.patch  # [variant and variant.startswith("root_")]
+      - patches/root/6-28-10-0002-clang-Fix-ODR-hashing-of-template-template-parameter.patch  # [variant and variant.startswith("root_")]
+      - patches/root/6-28-10-0003-clang-Add-API-to-iterate-already-loaded-specializati.patch  # [variant and variant.startswith("root_")]
+      - patches/root/6-28-10-0004-clang-Relax-assertion-on-lazily-loading-template-spe.patch  # [variant and variant.startswith("root_")]
+      - patches/root/6-28-10-0005-clang-Fix-up-application-of-D41416.patch  # [variant and variant.startswith("root_")]
+      - patches/root/6-28-10-0006-LLVM-Do-not-evaluate-dependent-immediate-invocations.patch  # [variant and variant.startswith("root_")]
+      - patches/root/6-28-10-0007-cling-Emit-const-variables-only-once.patch  # [variant and variant.startswith("root_")]
+      - patches/root/6-28-10-0008-clang-Fix-crash-with-constexpr-destructor.patch  # [variant and variant.startswith("root_")]
+
     folder: .
   - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/clang-tools-extra-{{ version.replace(".rc", "rc") }}.src.tar.xz
     sha256: cc2bc8598848513fa2257a270083e986fd61048347eccf1d801926ea709392d0
