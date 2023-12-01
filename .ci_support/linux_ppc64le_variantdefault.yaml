@@ -12,9 +12,13 @@ docker_image:
 - quay.io/condaforge/linux-anvil-cos7-x86_64
 libclang_soversion:
 - '13'
+libxml2:
+- '2.12'
 target_platform:
 - linux-ppc64le
 variant:
 - default
 zlib:
 - '1.2'
+zstd:
+- '1.5'
