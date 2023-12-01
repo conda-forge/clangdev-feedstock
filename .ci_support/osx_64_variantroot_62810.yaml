@@ -1,5 +1,5 @@
 MACOSX_DEPLOYMENT_TARGET:
-- '11.0'
+- '10.9'
 channel_sources:
 - conda-forge
 channel_targets:
@@ -7,10 +7,10 @@ channel_targets:
 cxx_compiler:
 - clang_bootstrap
 cxx_compiler_version:
-- '11'
+- '*'
 macos_machine:
-- arm64-apple-darwin20.0.0
+- x86_64-apple-darwin13.4.0
 target_platform:
-- osx-arm64
+- osx-64
 variant:
-- root_62804
+- root_62810

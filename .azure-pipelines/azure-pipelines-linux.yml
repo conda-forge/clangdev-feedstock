@@ -12,24 +12,24 @@ jobs:
         CONFIG: linux_64_variantdefault
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-cos7-x86_64
-      linux_64_variantroot_62804:
-        CONFIG: linux_64_variantroot_62804
+      linux_64_variantroot_62810:
+        CONFIG: linux_64_variantroot_62810
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-cos7-x86_64
       linux_aarch64_variantdefault:
         CONFIG: linux_aarch64_variantdefault
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-cos7-x86_64
-      linux_aarch64_variantroot_62804:
-        CONFIG: linux_aarch64_variantroot_62804
+      linux_aarch64_variantroot_62810:
+        CONFIG: linux_aarch64_variantroot_62810
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-cos7-x86_64
       linux_ppc64le_variantdefault:
         CONFIG: linux_ppc64le_variantdefault
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-cos7-x86_64
-      linux_ppc64le_variantroot_62804:
-        CONFIG: linux_ppc64le_variantroot_62804
+      linux_ppc64le_variantroot_62810:
+        CONFIG: linux_ppc64le_variantroot_62810
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-cos7-x86_64
   timeoutInMinutes: 360
@@ -45,6 +45,9 @@ jobs:
 
   - script: |
         export CI=azure
+        export flow_run_id=azure_$(Build.BuildNumber).$(System.JobAttempt)
+        export remote_url=$(Build.Repository.Uri)
+        export sha=$(Build.SourceVersion)
         export GIT_BRANCH=$BUILD_SOURCEBRANCHNAME
         export FEEDSTOCK_NAME=$(basename ${BUILD_REPOSITORY_NAME})
         if [[ "${BUILD_REASON:-}" == "PullRequest" ]]; then
