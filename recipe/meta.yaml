@@ -152,6 +152,7 @@ requirements:
     - ninja  # [win]
     - make   # [unix]
     - llvmdev =={{ version }}    # [build_platform != target_platform]
+    - zlib                       # [build_platform != target_platform and (linux or win)]
   host:
     - libcxx {{ cxx_compiler_version }}  # [osx]
     - llvmdev =={{ version }}
@@ -191,6 +192,7 @@ outputs:
         - ninja  # [win]
         - make   # [unix]
         - llvmdev =={{ version }}    # [build_platform != target_platform]
+        - zlib                       # [build_platform != target_platform and (linux or win)]
       host:
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clangxx", exact=True) }}
@@ -231,6 +233,7 @@ outputs:
         - ninja  # [win]
         - make   # [unix]
         - llvmdev =={{ version }}    # [build_platform != target_platform]
+        - zlib                       # [build_platform != target_platform and linux]
       host:
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
@@ -262,6 +265,7 @@ outputs:
         - ninja  # [win]
         - make   # [unix]
         - llvmdev =={{ version }}    # [build_platform != target_platform]
+        - zlib                       # [build_platform != target_platform and linux]
       host:
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
@@ -293,6 +297,7 @@ outputs:
         - ninja                      # [win]
         - make                       # [unix]
         - llvmdev =={{ version }}    # [build_platform != target_platform]
+        - zlib                       # [build_platform != target_platform and (linux or win)]
       host:
         - libcxx {{ cxx_compiler_version }}             # [osx]
         - llvmdev =={{ version }}
@@ -328,6 +333,7 @@ outputs:
         - ninja                              # [win]
         - make                               # [unix]
         - llvmdev =={{ version }}            # [build_platform != target_platform]
+        - zlib                               # [build_platform != target_platform and (linux or win)]
       host:
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
@@ -419,6 +425,7 @@ outputs:
         - ninja  # [win]
         - make   # [unix]
         - llvmdev =={{ version }}    # [build_platform != target_platform]
+        - zlib                       # [build_platform != target_platform and (linux or win)]
       host:
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clangxx", exact=True) }}
@@ -456,6 +463,7 @@ outputs:
         - ninja  # [win]
         - make   # [unix]
         - llvmdev =={{ version }}    # [build_platform != target_platform]
+        - zlib                       # [build_platform != target_platform and (linux or win)]
       host:
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clangxx", exact=True) }}
@@ -492,6 +500,7 @@ outputs:
         - ninja  # [win]
         - make   # [unix]
         - llvmdev =={{ version }}    # [build_platform != target_platform]
+        - zlib                       # [build_platform != target_platform and (linux or win)]
       host:
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clangxx", exact=True) }}
