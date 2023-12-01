@@ -1,3 +1,7 @@
+BUILD:
+- aarch64-conda_cos7-linux-gnu
+cdt_arch:
+- aarch64
 cdt_name:
 - cos7
 channel_sources:
@@ -7,12 +11,12 @@ channel_targets:
 cxx_compiler:
 - gxx
 cxx_compiler_version:
-- '8'
+- '12'
 docker_image:
 - quay.io/condaforge/linux-anvil-cos7-x86_64
 target_platform:
-- linux-ppc64le
+- linux-aarch64
 variant:
-- root_62804
+- root_62810
 zlib:
 - '1.2'

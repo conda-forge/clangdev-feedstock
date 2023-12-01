@@ -1,0 +1,47 @@
+From 9ad672e25b038ba422365e0ac23f06abec675f5a Mon Sep 17 00:00:00 2001
+From: Jonas Hahnfeld <jonas.hahnfeld@cern.ch>
+Date: Wed, 14 Jun 2023 20:33:08 +0200
+Subject: [PATCH 2/8] [clang] Fix ODR hashing of template template parameters
+
+For hashing, we should not differentiate between templates and qualified
+templates and only look at the underlying name.
+
+See also https://reviews.llvm.org/D153003
+
+(cherry picked from commit 56dcdbb57cd70d5647632e3886b815379fa2b479)
+---
+ .../llvm/src/tools/clang/lib/AST/ODRHash.cpp   | 18 ++----------------
+ 1 file changed, 2 insertions(+), 16 deletions(-)
+
+diff --git a/interpreter/llvm/src/tools/clang/lib/AST/ODRHash.cpp b/interpreter/llvm/src/tools/clang/lib/AST/ODRHash.cpp
+index 174ba52a90..f3aea8ec1e 100644
+--- a/interpreter/llvm/src/tools/clang/lib/AST/ODRHash.cpp
++++ b/interpreter/llvm/src/tools/clang/lib/AST/ODRHash.cpp
+@@ -136,22 +136,8 @@ void ODRHash::AddNestedNameSpecifier(const NestedNameSpecifier *NNS) {
+ }
+ 
+ void ODRHash::AddTemplateName(TemplateName Name) {
+-  auto Kind = Name.getKind();
+-  ID.AddInteger(Kind);
+-
+-  switch (Kind) {
+-  case TemplateName::Template:
+-    AddDecl(Name.getAsTemplateDecl());
+-    break;
+-  // TODO: Support these cases.
+-  case TemplateName::OverloadedTemplate:
+-  case TemplateName::AssumedTemplate:
+-  case TemplateName::QualifiedTemplate:
+-  case TemplateName::DependentTemplate:
+-  case TemplateName::SubstTemplateTemplateParm:
+-  case TemplateName::SubstTemplateTemplateParmPack:
+-    break;
+-  }
++  if (auto *TD = Name.getAsTemplateDecl())
++    AddDecl(TD);
+ }
+ 
+ void ODRHash::AddTemplateArgument(TemplateArgument TA) {
+-- 
+2.42.0
+

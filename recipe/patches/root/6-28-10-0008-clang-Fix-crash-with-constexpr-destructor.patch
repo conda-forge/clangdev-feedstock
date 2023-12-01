@@ -1,0 +1,38 @@
+From 08b1d43c7db272afaf1525274d5f1f36a097eb0f Mon Sep 17 00:00:00 2001
+From: Jonas Hahnfeld <jonas.hahnfeld@cern.ch>
+Date: Fri, 13 Oct 2023 16:36:42 +0200
+Subject: [PATCH 8/8] [clang] Fix crash with constexpr destructor
+
+Fixes https://github.com/root-project/root/issues/13851
+See also https://github.com/llvm/llvm-project/issues/68702
+
+(cherry picked from commit 0919a5359eefda0fc9e56a3198da21596114d62f)
+---
+ .../llvm/src/tools/clang/lib/AST/ExprConstant.cpp     | 11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
+
+diff --git a/interpreter/llvm/src/tools/clang/lib/AST/ExprConstant.cpp b/interpreter/llvm/src/tools/clang/lib/AST/ExprConstant.cpp
+index 8fe0061a90..ae50420f8a 100644
+--- a/interpreter/llvm/src/tools/clang/lib/AST/ExprConstant.cpp
++++ b/interpreter/llvm/src/tools/clang/lib/AST/ExprConstant.cpp
+@@ -14932,10 +14932,13 @@ bool Expr::EvaluateAsInitializer(APValue &Value, const ASTContext &Ctx,
+     LValue LVal;
+     LVal.set(VD);
+ 
+-    if (!EvaluateInPlace(Value, Info, LVal, this,
+-                         /*AllowNonLiteralTypes=*/true) ||
+-        EStatus.HasSideEffects)
+-      return false;
++    {
++      FullExpressionRAII Scope(Info);
++      if (!EvaluateInPlace(Value, Info, LVal, this,
++                           /*AllowNonLiteralTypes=*/true) ||
++          EStatus.HasSideEffects)
++        return false;
++    }
+ 
+     // At this point, any lifetime-extended temporaries are completely
+     // initialized.
+-- 
+2.42.0
+
