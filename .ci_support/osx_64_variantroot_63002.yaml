@@ -1,0 +1,16 @@
+MACOSX_DEPLOYMENT_TARGET:
+- '10.9'
+channel_sources:
+- conda-forge
+channel_targets:
+- conda-forge main
+cxx_compiler:
+- clang_bootstrap
+cxx_compiler_version:
+- '*'
+macos_machine:
+- x86_64-apple-darwin13.4.0
+target_platform:
+- osx-64
+variant:
+- root_63002

@@ -1,19 +1,19 @@
-From d928084da04e87e67cde2d2b7a3d13388dfcd358 Mon Sep 17 00:00:00 2001
+From b8e18000be17dd043c18594f8b8d5a65fc92a1ea Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Mon, 26 Aug 2013 14:29:24 +0200
-Subject: [PATCH 01/83] Temporary parsers should not manipulate global parser
+Subject: [PATCH 01/73] Temporary parsers should not manipulate global parser
  state.
 
 ---
- include/clang/Parse/Parser.h | 37 ++++++++++++++++++++++++++++++++++--
- lib/Parse/ParsePragma.cpp    |  8 ++++++++
- lib/Parse/Parser.cpp         | 17 ++++++++++++-----
+ clang/include/clang/Parse/Parser.h | 37 ++++++++++++++++++++++++++++--
+ clang/lib/Parse/ParsePragma.cpp    |  8 +++++++
+ clang/lib/Parse/Parser.cpp         | 17 ++++++++++----
  3 files changed, 55 insertions(+), 7 deletions(-)
 
-diff --git a/include/clang/Parse/Parser.h b/include/clang/Parse/Parser.h
-index 8eb3f9029d..9e405d15f7 100644
---- a/include/clang/Parse/Parser.h
-+++ b/include/clang/Parse/Parser.h
+diff --git a/clang/include/clang/Parse/Parser.h b/clang/include/clang/Parse/Parser.h
+index 8eb3f9029d9d..9e405d15f76b 100644
+--- a/clang/include/clang/Parse/Parser.h
++++ b/clang/include/clang/Parse/Parser.h
 @@ -52,6 +52,7 @@ namespace clang {
    struct OMPTraitSelector;
    struct OMPTraitSet;
@@ -87,10 +87,10 @@ index 8eb3f9029d..9e405d15f7 100644
    void SuggestParentheses(SourceLocation Loc, unsigned DK,
                            SourceRange ParenRange);
    void CheckNestedObjCContexts(SourceLocation AtLoc);
-diff --git a/lib/Parse/ParsePragma.cpp b/lib/Parse/ParsePragma.cpp
-index 42072fe63f..3fc3068cbb 100644
---- a/lib/Parse/ParsePragma.cpp
-+++ b/lib/Parse/ParsePragma.cpp
+diff --git a/clang/lib/Parse/ParsePragma.cpp b/clang/lib/Parse/ParsePragma.cpp
+index 42072fe63fc8..3fc3068cbbf4 100644
+--- a/clang/lib/Parse/ParsePragma.cpp
++++ b/clang/lib/Parse/ParsePragma.cpp
 @@ -301,6 +301,10 @@ void markAsReinjectedForRelexing(llvm::MutableArrayRef<clang::Token> Toks) {
  }  // end namespace
  
@@ -113,10 +113,10 @@ index 42072fe63f..3fc3068cbb 100644
    // Remove the pragma handlers we installed.
    PP.RemovePragmaHandler(AlignHandler.get());
    AlignHandler.reset();
-diff --git a/lib/Parse/Parser.cpp b/lib/Parse/Parser.cpp
-index c81dd03ffa..6481992ffe 100644
---- a/lib/Parse/Parser.cpp
-+++ b/lib/Parse/Parser.cpp
+diff --git a/clang/lib/Parse/Parser.cpp b/clang/lib/Parse/Parser.cpp
+index c81dd03ffaaa..6481992ffe56 100644
+--- a/clang/lib/Parse/Parser.cpp
++++ b/clang/lib/Parse/Parser.cpp
 @@ -48,15 +48,18 @@ IdentifierInfo *Parser::getSEHExceptKeyword() {
    return Ident__except;
  }
@@ -165,5 +165,5 @@ index c81dd03ffa..6481992ffe 100644
    // Free the scope cache.
    for (unsigned i = 0, e = NumCachedScopes; i != e; ++i)
 -- 
-2.34.1
+2.42.0
 
