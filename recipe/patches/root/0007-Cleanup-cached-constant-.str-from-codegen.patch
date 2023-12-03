@@ -1,17 +1,17 @@
-From a7cdd25bf49525aa4c986e5e20835dd12f8dc785 Mon Sep 17 00:00:00 2001
+From d27ff10e4dd2228a5b9c6ccfdbaad1513dd45b20 Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Wed, 6 Apr 2016 14:31:51 +0200
-Subject: [PATCH 07/83] Cleanup cached constant (.str) from codegen.
+Subject: [PATCH 07/73] Cleanup cached constant (.str) from codegen.
 
 ---
- include/clang/CodeGen/ModuleBuilder.h |  3 +++
- lib/CodeGen/ModuleBuilder.cpp         | 14 ++++++++++++++
+ clang/include/clang/CodeGen/ModuleBuilder.h |  3 +++
+ clang/lib/CodeGen/ModuleBuilder.cpp         | 14 ++++++++++++++
  2 files changed, 17 insertions(+)
 
-diff --git a/include/clang/CodeGen/ModuleBuilder.h b/include/clang/CodeGen/ModuleBuilder.h
-index 1e68ef7832..beba5421a7 100644
---- a/include/clang/CodeGen/ModuleBuilder.h
-+++ b/include/clang/CodeGen/ModuleBuilder.h
+diff --git a/clang/include/clang/CodeGen/ModuleBuilder.h b/clang/include/clang/CodeGen/ModuleBuilder.h
+index 1e68ef783281..beba5421a758 100644
+--- a/clang/include/clang/CodeGen/ModuleBuilder.h
++++ b/clang/include/clang/CodeGen/ModuleBuilder.h
 @@ -17,6 +17,7 @@
  
  namespace llvm {
@@ -29,16 +29,16 @@ index 1e68ef7832..beba5421a7 100644
  };
  
  /// CreateLLVMCodeGen - Create a CodeGenerator instance.
-diff --git a/lib/CodeGen/ModuleBuilder.cpp b/lib/CodeGen/ModuleBuilder.cpp
-index b84cafaa95..a677c3c58f 100644
---- a/lib/CodeGen/ModuleBuilder.cpp
-+++ b/lib/CodeGen/ModuleBuilder.cpp
-@@ -248,6 +248,16 @@ namespace {
+diff --git a/clang/lib/CodeGen/ModuleBuilder.cpp b/clang/lib/CodeGen/ModuleBuilder.cpp
+index 74c046643f28..a7cde625adc3 100644
+--- a/clang/lib/CodeGen/ModuleBuilder.cpp
++++ b/clang/lib/CodeGen/ModuleBuilder.cpp
+@@ -247,6 +247,16 @@ namespace clang {
        return M.get();
      }
  
 +    void forgetGlobal(llvm::GlobalValue* GV) {
-+      for(auto I = Builder->ConstantStringMap.begin(),
++      for (auto I = Builder->ConstantStringMap.begin(),
 +            E = Builder->ConstantStringMap.end(); I != E; ++I) {
 +        if (I->second == GV) {
 +          Builder->ConstantStringMap.erase(I);
@@ -50,7 +50,7 @@ index b84cafaa95..a677c3c58f 100644
      void Initialize(ASTContext &Context) override {
        Ctx = &Context;
  
-@@ -454,6 +464,10 @@ llvm::Module *CodeGenerator::StartModule(llvm::StringRef ModuleName,
+@@ -453,6 +463,10 @@ llvm::Module *CodeGenerator::StartModule(llvm::StringRef ModuleName,
    return static_cast<CodeGeneratorImpl*>(this)->StartModule(ModuleName, C);
  }
  
@@ -62,5 +62,5 @@ index b84cafaa95..a677c3c58f 100644
      DiagnosticsEngine &Diags, llvm::StringRef ModuleName,
      const HeaderSearchOptions &HeaderSearchOpts,
 -- 
-2.34.1
+2.42.0
 

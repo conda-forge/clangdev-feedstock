@@ -1,0 +1,37 @@
+From 72dd7982fa67a26190b5bdf8afa65d5087196f41 Mon Sep 17 00:00:00 2001
+From: Jonas Hahnfeld <jonas.hahnfeld@cern.ch>
+Date: Fri, 8 Apr 2022 11:31:30 +0200
+Subject: [PATCH 35/73] Remove argument from module ctor/dtor signatures
+
+This works around a bug + missing support in ORC for constructors with
+non-void signatures (https://github.com/llvm/llvm-project/issues/54797).
+Also submitted upstream, see https://reviews.llvm.org/D123370
+---
+ clang/lib/CodeGen/CGCUDANV.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/clang/lib/CodeGen/CGCUDANV.cpp b/clang/lib/CodeGen/CGCUDANV.cpp
+index 88030fee501b..5905d57e47a4 100644
+--- a/clang/lib/CodeGen/CGCUDANV.cpp
++++ b/clang/lib/CodeGen/CGCUDANV.cpp
+@@ -711,7 +711,7 @@ llvm::Function *CGNVCUDARuntime::makeModuleCtorFunction() {
+   }
+ 
+   llvm::Function *ModuleCtorFunc = llvm::Function::Create(
+-      llvm::FunctionType::get(VoidTy, VoidPtrTy, false),
++      llvm::FunctionType::get(VoidTy, false),
+       llvm::GlobalValue::InternalLinkage,
+       addUnderscoredPrefixToName("_module_ctor"), &TheModule);
+   llvm::BasicBlock *CtorEntryBB =
+@@ -947,7 +947,7 @@ llvm::Function *CGNVCUDARuntime::makeModuleDtorFunction() {
+       addUnderscoredPrefixToName("UnregisterFatBinary"));
+ 
+   llvm::Function *ModuleDtorFunc = llvm::Function::Create(
+-      llvm::FunctionType::get(VoidTy, VoidPtrTy, false),
++      llvm::FunctionType::get(VoidTy, false),
+       llvm::GlobalValue::InternalLinkage,
+       addUnderscoredPrefixToName("_module_dtor"), &TheModule);
+ 
+-- 
+2.42.0
+

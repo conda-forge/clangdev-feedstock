@@ -1,20 +1,20 @@
-From dbccb12af6b0c1685ac5bde217b3b594dc2f3a3a Mon Sep 17 00:00:00 2001
+From efc35d004db41a7bc1259ea352f6b3e99d9af24d Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Tue, 15 Apr 2014 12:11:18 +0200
-Subject: [PATCH 14/83] Propagate cache flags from LookupFile() to
+Subject: [PATCH 14/73] Propagate cache flags from LookupFile() to
  FileManager::getFile().
 
 ---
- include/clang/Lex/HeaderSearch.h |  6 ++++--
- include/clang/Lex/Preprocessor.h |  3 ++-
- lib/Lex/HeaderSearch.cpp         | 13 ++++++++-----
- lib/Lex/PPDirectives.cpp         |  5 +++--
+ clang/include/clang/Lex/HeaderSearch.h |  6 ++++--
+ clang/include/clang/Lex/Preprocessor.h |  3 ++-
+ clang/lib/Lex/HeaderSearch.cpp         | 13 ++++++++-----
+ clang/lib/Lex/PPDirectives.cpp         |  5 +++--
  4 files changed, 17 insertions(+), 10 deletions(-)
 
-diff --git a/include/clang/Lex/HeaderSearch.h b/include/clang/Lex/HeaderSearch.h
-index a35a394f71..858d72547b 100644
---- a/include/clang/Lex/HeaderSearch.h
-+++ b/include/clang/Lex/HeaderSearch.h
+diff --git a/clang/include/clang/Lex/HeaderSearch.h b/clang/include/clang/Lex/HeaderSearch.h
+index a35a394f719b..858d72547b01 100644
+--- a/clang/include/clang/Lex/HeaderSearch.h
++++ b/clang/include/clang/Lex/HeaderSearch.h
 @@ -416,7 +416,8 @@ public:
        SmallVectorImpl<char> *SearchPath, SmallVectorImpl<char> *RelativePath,
        Module *RequestingModule, ModuleMap::KnownHeader *SuggestedModule,
@@ -35,10 +35,10 @@ index a35a394f71..858d72547b 100644
  
  public:
    /// Retrieve the module map.
-diff --git a/include/clang/Lex/Preprocessor.h b/include/clang/Lex/Preprocessor.h
-index a3183a6c0f..b8a2d3f361 100644
---- a/include/clang/Lex/Preprocessor.h
-+++ b/include/clang/Lex/Preprocessor.h
+diff --git a/clang/include/clang/Lex/Preprocessor.h b/clang/include/clang/Lex/Preprocessor.h
+index a3183a6c0f79..b8a2d3f361da 100644
+--- a/clang/include/clang/Lex/Preprocessor.h
++++ b/clang/include/clang/Lex/Preprocessor.h
 @@ -2028,7 +2028,8 @@ public:
               const DirectoryLookup *&CurDir, SmallVectorImpl<char> *SearchPath,
               SmallVectorImpl<char> *RelativePath,
@@ -49,10 +49,10 @@ index a3183a6c0f..b8a2d3f361 100644
  
    /// Get the DirectoryLookup structure used to find the current
    /// FileEntry, if CurLexer is non-null and if applicable.
-diff --git a/lib/Lex/HeaderSearch.cpp b/lib/Lex/HeaderSearch.cpp
-index d5adbcf62c..9dda763eb2 100644
---- a/lib/Lex/HeaderSearch.cpp
-+++ b/lib/Lex/HeaderSearch.cpp
+diff --git a/clang/lib/Lex/HeaderSearch.cpp b/clang/lib/Lex/HeaderSearch.cpp
+index d5adbcf62cbc..92bc78265b2f 100644
+--- a/clang/lib/Lex/HeaderSearch.cpp
++++ b/clang/lib/Lex/HeaderSearch.cpp
 @@ -345,10 +345,11 @@ StringRef DirectoryLookup::getName() const {
  Optional<FileEntryRef> HeaderSearch::getFileAndSuggestModule(
      StringRef FileName, SourceLocation IncludeLoc, const DirectoryEntry *Dir,
@@ -63,7 +63,7 @@ index d5adbcf62c..9dda763eb2 100644
    // If we have a module map that might map this header, load it and
    // check whether we'll have a suggestion for a module.
 -  auto File = getFileMgr().getFileRef(FileName, /*OpenFile=*/true);
-+  auto File = getFileMgr().getFile(FileName, OpenFile, CacheFailures);
++  auto File = getFileMgr().getFileRef(FileName, OpenFile, CacheFailures);
    if (!File) {
      // For rare, surprising errors (e.g. "out of file handles"), diag the EC
      // message.
@@ -96,10 +96,10 @@ index d5adbcf62c..9dda763eb2 100644
          if (!Includer) {
            assert(First && "only first includer can have no file");
            return FE;
-diff --git a/lib/Lex/PPDirectives.cpp b/lib/Lex/PPDirectives.cpp
-index 114796b2eb..72f2aa09f9 100644
---- a/lib/Lex/PPDirectives.cpp
-+++ b/lib/Lex/PPDirectives.cpp
+diff --git a/clang/lib/Lex/PPDirectives.cpp b/clang/lib/Lex/PPDirectives.cpp
+index 114796b2eba1..72f2aa09f958 100644
+--- a/clang/lib/Lex/PPDirectives.cpp
++++ b/clang/lib/Lex/PPDirectives.cpp
 @@ -811,7 +811,8 @@ Optional<FileEntryRef> Preprocessor::LookupFile(
      const DirectoryLookup *&CurDir, SmallVectorImpl<char> *SearchPath,
      SmallVectorImpl<char> *RelativePath,
@@ -120,5 +120,5 @@ index 114796b2eb..72f2aa09f9 100644
      if (SuggestedModule && !LangOpts.AsmPreprocessor)
        HeaderInfo.getModuleMap().diagnoseHeaderInclusion(
 -- 
-2.34.1
+2.42.0
 

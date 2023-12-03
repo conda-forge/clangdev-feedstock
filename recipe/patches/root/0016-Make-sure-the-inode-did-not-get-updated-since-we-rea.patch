@@ -1,0 +1,27 @@
+From f6af1cf524b9318830720027263bccaaed45eeb6 Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Tue, 7 Jan 2014 12:05:19 +0100
+Subject: [PATCH 16/73] Make sure the inode did not get updated since we read
+ it.
+
+---
+ clang/lib/Basic/FileManager.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/clang/lib/Basic/FileManager.cpp b/clang/lib/Basic/FileManager.cpp
+index b41d805109bb..ef36e51dcdc1 100644
+--- a/clang/lib/Basic/FileManager.cpp
++++ b/clang/lib/Basic/FileManager.cpp
+@@ -320,6 +320,9 @@ FileManager::getFileRef(StringRef Filename, bool openFile, bool CacheFailure) {
+     // multiple names.
+     if (&DirInfo.getDirEntry() != UFE.Dir && Status.IsVFSMapped)
+       UFE.Dir = &DirInfo.getDirEntry();
++  }
++  if (UFE.isValid() &&
++      llvm::sys::toTimeT(Status.getLastModificationTime()) == UFE.ModTime) {
+ 
+     // Always update LastRef to the last name by which a file was accessed.
+     // FIXME: Neither this nor always using the first reference is correct; we
+-- 
+2.42.0
+

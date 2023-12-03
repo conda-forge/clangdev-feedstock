@@ -1,17 +1,17 @@
-From 76c39232d40cf4459e024987d9e1e652945fb4eb Mon Sep 17 00:00:00 2001
+From 9aa80bbb9b061a8ac3b94c13e1997d21f909eb0d Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Thu, 15 May 2014 14:50:06 +0200
-Subject: [PATCH 15/83] Pass the OpenFile flag also to DirectoryLookup.
+Subject: [PATCH 15/73] Pass the OpenFile flag also to DirectoryLookup.
 
 ---
- include/clang/Lex/DirectoryLookup.h |  3 ++-
- lib/Lex/HeaderSearch.cpp            | 10 ++++++----
+ clang/include/clang/Lex/DirectoryLookup.h |  3 ++-
+ clang/lib/Lex/HeaderSearch.cpp            | 10 ++++++----
  2 files changed, 8 insertions(+), 5 deletions(-)
 
-diff --git a/include/clang/Lex/DirectoryLookup.h b/include/clang/Lex/DirectoryLookup.h
-index da2ae9fce1..9e92a6e570 100644
---- a/include/clang/Lex/DirectoryLookup.h
-+++ b/include/clang/Lex/DirectoryLookup.h
+diff --git a/clang/include/clang/Lex/DirectoryLookup.h b/clang/include/clang/Lex/DirectoryLookup.h
+index da2ae9fce1aa..9e92a6e570c5 100644
+--- a/clang/include/clang/Lex/DirectoryLookup.h
++++ b/clang/include/clang/Lex/DirectoryLookup.h
 @@ -182,7 +182,8 @@ public:
               SmallVectorImpl<char> *RelativePath, Module *RequestingModule,
               ModuleMap::KnownHeader *SuggestedModule,
@@ -22,10 +22,10 @@ index da2ae9fce1..9e92a6e570 100644
  
  private:
    Optional<FileEntryRef> DoFrameworkLookup(
-diff --git a/lib/Lex/HeaderSearch.cpp b/lib/Lex/HeaderSearch.cpp
-index 9dda763eb2..fb93b7068f 100644
---- a/lib/Lex/HeaderSearch.cpp
-+++ b/lib/Lex/HeaderSearch.cpp
+diff --git a/clang/lib/Lex/HeaderSearch.cpp b/clang/lib/Lex/HeaderSearch.cpp
+index 92bc78265b2f..de1b1a03adde 100644
+--- a/clang/lib/Lex/HeaderSearch.cpp
++++ b/clang/lib/Lex/HeaderSearch.cpp
 @@ -379,7 +379,8 @@ Optional<FileEntryRef> DirectoryLookup::LookupFile(
      SmallVectorImpl<char> *SearchPath, SmallVectorImpl<char> *RelativePath,
      Module *RequestingModule, ModuleMap::KnownHeader *SuggestedModule,
@@ -65,5 +65,5 @@ index 9dda763eb2..fb93b7068f 100644
        assert(IsInHeaderMap && "MappedName should come from a header map");
        CacheLookup.MappedName =
 -- 
-2.34.1
+2.42.0
 

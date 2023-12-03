@@ -1,18 +1,18 @@
-From 7c291fd653b94edb926887cec20c8771eac54aaa Mon Sep 17 00:00:00 2001
+From d7b5106adffd89f6a3e15032739873dbcab1a6ec Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Wed, 6 Apr 2016 16:31:34 +0200
-Subject: [PATCH 06/83] From Vassil: add (debug) printout of ModuleBuilder data
+Subject: [PATCH 06/73] From Vassil: add (debug) printout of ModuleBuilder data
  structures.
 
 ---
- include/clang/CodeGen/ModuleBuilder.h |   3 +
- lib/CodeGen/ModuleBuilder.cpp         | 118 ++++++++++++++++++++++++++
- 2 files changed, 121 insertions(+)
+ clang/include/clang/CodeGen/ModuleBuilder.h |   3 +
+ clang/lib/CodeGen/ModuleBuilder.cpp         | 117 ++++++++++++++++++++
+ 2 files changed, 120 insertions(+)
 
-diff --git a/include/clang/CodeGen/ModuleBuilder.h b/include/clang/CodeGen/ModuleBuilder.h
-index f9d056ed8b..1e68ef7832 100644
---- a/include/clang/CodeGen/ModuleBuilder.h
-+++ b/include/clang/CodeGen/ModuleBuilder.h
+diff --git a/clang/include/clang/CodeGen/ModuleBuilder.h b/clang/include/clang/CodeGen/ModuleBuilder.h
+index f9d056ed8b1e..1e68ef783281 100644
+--- a/clang/include/clang/CodeGen/ModuleBuilder.h
++++ b/clang/include/clang/CodeGen/ModuleBuilder.h
 @@ -20,6 +20,7 @@ namespace llvm {
    class LLVMContext;
    class Module;
@@ -30,11 +30,11 @@ index f9d056ed8b..1e68ef7832 100644
    /// Create a new \c llvm::Module after calling HandleTranslationUnit. This
    /// enable codegen in interactive processing environments.
    llvm::Module* StartModule(llvm::StringRef ModuleName, llvm::LLVMContext &C);
-diff --git a/lib/CodeGen/ModuleBuilder.cpp b/lib/CodeGen/ModuleBuilder.cpp
-index b63f756ca2..b84cafaa95 100644
---- a/lib/CodeGen/ModuleBuilder.cpp
-+++ b/lib/CodeGen/ModuleBuilder.cpp
-@@ -126,6 +126,120 @@ namespace {
+diff --git a/clang/lib/CodeGen/ModuleBuilder.cpp b/clang/lib/CodeGen/ModuleBuilder.cpp
+index 9439cc9c31a6..74c046643f28 100644
+--- a/clang/lib/CodeGen/ModuleBuilder.cpp
++++ b/clang/lib/CodeGen/ModuleBuilder.cpp
+@@ -126,6 +126,119 @@ namespace clang {
        return Builder->GetAddrOfGlobal(global, ForDefinition_t(isForDefinition));
      }
  
@@ -61,8 +61,7 @@ index b63f756ca2..b84cafaa95 100644
 +      out << " DeferredDeclsToEmit (std::vector<DeferredGlobal>)\n";
 +      for(auto I = Builder->DeferredDeclsToEmit.begin(),
 +            E = Builder->DeferredDeclsToEmit.end(); I != E; ++I) {
-+        I->GD.getDecl()->print(out);
-+        I->GV->print(out);
++        I->getDecl()->print(out);
 +        out << "\n";
 +      }
 +
@@ -155,7 +154,7 @@ index b63f756ca2..b84cafaa95 100644
      llvm::Module *StartModule(llvm::StringRef ModuleName,
                                llvm::LLVMContext &C) {
        assert(!M && "Replacing existing Module?");
-@@ -331,6 +445,10 @@ llvm::Constant *CodeGenerator::GetAddrOfGlobal(GlobalDecl global,
+@@ -331,6 +444,10 @@ llvm::Constant *CodeGenerator::GetAddrOfGlobal(GlobalDecl global,
             ->GetAddrOfGlobal(global, isForDefinition);
  }
  
@@ -167,5 +166,5 @@ index b63f756ca2..b84cafaa95 100644
                                           llvm::LLVMContext &C) {
    return static_cast<CodeGeneratorImpl*>(this)->StartModule(ModuleName, C);
 -- 
-2.34.1
+2.42.0
 

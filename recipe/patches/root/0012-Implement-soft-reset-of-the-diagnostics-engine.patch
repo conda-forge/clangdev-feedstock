@@ -1,17 +1,17 @@
-From 398b9a85b90ca08469c0f55bdb5d8cee466a5ad4 Mon Sep 17 00:00:00 2001
+From 67bfaea1e86d9abc2a05865ea1c0aaefae1e3f89 Mon Sep 17 00:00:00 2001
 From: Vassil Vassilev <vvasilev@cern.ch>
 Date: Thu, 27 Mar 2014 11:26:03 +0100
-Subject: [PATCH 12/83] Implement soft reset of the diagnostics engine.
+Subject: [PATCH 12/73] Implement soft reset of the diagnostics engine.
 
 ---
- include/clang/Basic/Diagnostic.h | 6 +++---
- lib/Basic/Diagnostic.cpp         | 4 +++-
+ clang/include/clang/Basic/Diagnostic.h | 6 +++---
+ clang/lib/Basic/Diagnostic.cpp         | 4 +++-
  2 files changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/include/clang/Basic/Diagnostic.h b/include/clang/Basic/Diagnostic.h
-index 3b915fb15a..19acd97f7c 100644
---- a/include/clang/Basic/Diagnostic.h
-+++ b/include/clang/Basic/Diagnostic.h
+diff --git a/clang/include/clang/Basic/Diagnostic.h b/clang/include/clang/Basic/Diagnostic.h
+index 3b915fb15a89..19acd97f7cb4 100644
+--- a/clang/include/clang/Basic/Diagnostic.h
++++ b/clang/include/clang/Basic/Diagnostic.h
 @@ -887,9 +887,9 @@ public:
      LastDiagLevel = Other.LastDiagLevel;
    }
@@ -25,10 +25,10 @@ index 3b915fb15a..19acd97f7c 100644
  
    //===--------------------------------------------------------------------===//
    // DiagnosticsEngine classification and reporting interfaces.
-diff --git a/lib/Basic/Diagnostic.cpp b/lib/Basic/Diagnostic.cpp
-index d3b2122e9c..ce9a345c4b 100644
---- a/lib/Basic/Diagnostic.cpp
-+++ b/lib/Basic/Diagnostic.cpp
+diff --git a/clang/lib/Basic/Diagnostic.cpp b/clang/lib/Basic/Diagnostic.cpp
+index d3b2122e9c59..ce9a345c4b90 100644
+--- a/clang/lib/Basic/Diagnostic.cpp
++++ b/clang/lib/Basic/Diagnostic.cpp
 @@ -130,7 +130,7 @@ bool DiagnosticsEngine::popMappings(SourceLocation Loc) {
    return true;
  }
@@ -55,5 +55,5 @@ index d3b2122e9c..ce9a345c4b 100644
  
  void DiagnosticsEngine::SetDelayedDiagnostic(unsigned DiagID, StringRef Arg1,
 -- 
-2.34.1
+2.42.0
 

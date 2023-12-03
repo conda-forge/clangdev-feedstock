@@ -1,0 +1,56 @@
+From f78bb89a43fe6081a0e67dd21cfbb9f009a1a2dc Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Mon, 12 Jan 2015 14:31:46 +0100
+Subject: [PATCH 24/73] Hand over deferred objects to the new CGModule; fixes
+ missing weak syms.
+
+---
+ clang/lib/CodeGen/ModuleBuilder.cpp | 29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
+
+diff --git a/clang/lib/CodeGen/ModuleBuilder.cpp b/clang/lib/CodeGen/ModuleBuilder.cpp
+index faec6d5df4c1..27745dbdebe2 100644
+--- a/clang/lib/CodeGen/ModuleBuilder.cpp
++++ b/clang/lib/CodeGen/ModuleBuilder.cpp
+@@ -130,9 +130,38 @@ namespace clang {
+                               llvm::LLVMContext& C,
+                               const CodeGenOptions& CGO) {
+       assert(!M && "Replacing existing Module?");
++
++      std::unique_ptr<CodeGen::CodeGenModule> OldBuilder;
++      OldBuilder.swap(Builder);
+       CodeGenOpts = CGO;
+       M.reset(new llvm::Module(ModuleName, C));
+       Initialize(*Ctx);
++
++      assert(OldBuilder->DeferredDeclsToEmit.empty()
++             && "Should have emitted all decls deferred to emit.");
++      assert(Builder->DeferredDecls.empty()
++             && "Newly created module should not have deferred decls");
++      Builder->DeferredDecls.swap(OldBuilder->DeferredDecls);
++
++      assert(Builder->DeferredVTables.empty()
++             && "Newly created module should not have deferred vtables");
++      Builder->DeferredVTables.swap(OldBuilder->DeferredVTables);
++
++      assert(Builder->MangledDeclNames.empty()
++             && "Newly created module should not have mangled decl names");
++      //Builder->MangledDeclNames.swap(OldBuilder->MangledDeclNames);
++
++      assert(Builder->Manglings.empty()
++             && "Newly created module should not have manglings");
++      // Calls swap() internally, *also* swapping the Allocator object which is
++      // essential to keep the storage!
++      Builder->Manglings = std::move(OldBuilder->Manglings);
++
++
++      assert(OldBuilder->WeakRefReferences.empty()
++             && "Not all WeakRefRefs have been applied");
++
++
+       return M.get();
+     }
+ 
+-- 
+2.42.0
+
