@@ -22,6 +22,6 @@ python:
 target_platform:
 - linux-64
 variant:
-- root_62810
+- root_63002
 zlib:
 - '1.2'
