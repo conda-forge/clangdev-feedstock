@@ -1,0 +1,33 @@
+From c117579f1aa11a939d83108e8ba0f1453db6cc6a Mon Sep 17 00:00:00 2001
+From: Jonas Hahnfeld <jonas.hahnfeld@cern.ch>
+Date: Thu, 30 Nov 2023 16:51:23 +0100
+Subject: [PATCH 41/65] PR73955: [clang][Sema] Always clear UndefinedButUsed
+
+Before, it was only cleared if there were undefined entities. This
+is important for Clang's incremental parsing as used by clang-repl
+that might receive multiple calls to Sema.ActOnEndOfTranslationUnit.
+---
+ clang/lib/Sema/Sema.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/clang/lib/Sema/Sema.cpp b/clang/lib/Sema/Sema.cpp
+index 92c587ba904e..1d28f490dcb0 100644
+--- a/clang/lib/Sema/Sema.cpp
++++ b/clang/lib/Sema/Sema.cpp
+@@ -856,6 +856,7 @@ static void checkUndefinedButUsed(Sema &S) {
+   // Collect all the still-undefined entities with internal linkage.
+   SmallVector<std::pair<NamedDecl *, SourceLocation>, 16> Undefined;
+   S.getUndefinedButUsed(Undefined);
++  S.UndefinedButUsed.clear();
+   if (Undefined.empty()) return;
+ 
+   for (auto Undef : Undefined) {
+@@ -909,8 +910,6 @@ static void checkUndefinedButUsed(Sema &S) {
+     if (UseLoc.isValid())
+       S.Diag(UseLoc, diag::note_used_here);
+   }
+-
+-  S.UndefinedButUsed.clear();
+ }
+ 
+ void Sema::LoadExternalWeakUndeclaredIdentifiers() {
