@@ -1,0 +1,24 @@
+MACOSX_DEPLOYMENT_TARGET:
+- '10.9'
+channel_sources:
+- conda-forge
+channel_targets:
+- conda-forge main
+cxx_compiler:
+- clang_bootstrap
+cxx_compiler_version:
+- '16'
+libclang_soversion:
+- '13'
+libxml2:
+- '2.12'
+macos_machine:
+- x86_64-apple-darwin13.4.0
+target_platform:
+- osx-64
+variant:
+- root_master
+zlib:
+- '1.2'
+zstd:
+- '1.5'
