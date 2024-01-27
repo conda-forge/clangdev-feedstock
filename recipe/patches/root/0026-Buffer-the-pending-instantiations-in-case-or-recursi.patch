@@ -1,0 +1,39 @@
+From 820ff0eda8b1574284a9c909377e9141da39282f Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Tue, 2 Dec 2014 17:43:18 +0100
+Subject: [PATCH 26/65] Buffer the pending instantiations in case or recursive
+ parsing.
+
+---
+ clang/include/clang/Sema/Sema.h | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
+diff --git a/clang/include/clang/Sema/Sema.h b/clang/include/clang/Sema/Sema.h
+index 74da43b87cb3..b1f4420edb69 100644
+--- a/clang/include/clang/Sema/Sema.h
++++ b/clang/include/clang/Sema/Sema.h
+@@ -9962,6 +9962,24 @@ public:
+     }
+   };
+ 
++  class SavePendingInstantiationsRAII {
++  public:
++    SavePendingInstantiationsRAII(Sema &S):
++      SavedPendingLocalImplicitInstantiations(S), S(S) {
++      SavedPendingInstantiations.swap(S.PendingInstantiations);
++    }
++
++    ~SavePendingInstantiationsRAII() {
++      assert(S.PendingInstantiations.empty() &&
++             "there shouldn't be any pending instantiations");
++      SavedPendingInstantiations.swap(S.PendingInstantiations);
++    }
++  private:
++    LocalEagerInstantiationScope SavedPendingLocalImplicitInstantiations;
++    Sema &S;
++    std::deque<PendingImplicitInstantiation> SavedPendingInstantiations;
++  };
++
+   void PerformPendingInstantiations(bool LocalOnly = false);
+ 
+   TypeSourceInfo *SubstType(TypeSourceInfo *T,
