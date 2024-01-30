@@ -1,9 +1,9 @@
 cdt_name:
 - cos6
 channel_sources:
-- conda-forge
+- conda-forge/label/llvm_rc,conda-forge
 channel_targets:
-- conda-forge main
+- conda-forge llvm_rc
 cxx_compiler:
 - gxx
 cxx_compiler_version:
@@ -13,7 +13,7 @@ docker_image:
 libclang_soversion:
 - '13'
 libxml2:
-- '2.12'
+- '2'
 target_platform:
 - linux-64
 variant:
