@@ -1,6 +1,6 @@
-{% set version = "17.0.0.rc3" %}
+{% set version = "17.0.6" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 0 %}
+{% set build_number = 2 %}
 
 {% set minor_aware_ext = major_version %}
 {% if version.split(".")[1] | int > 0 %}
@@ -21,7 +21,7 @@ package:
 
 source:
   - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/llvm-project-{{ version.replace(".rc", "rc") }}.src.tar.xz
-    sha256: 60493f4e974fcca7b739aea4901af2d957b0eaea34b42815359be59cf6c88fa2
+    sha256: 58a8818c60e6627064f312dbf46c02d9949956558340938b71cf731ad8bc0813
     patches:
       - patches/0001-Fix-sysroot-detection-for-linux.patch
       - patches/0002-clang-add-conda-specific-env-var-CONDA_BUILD_SYSROOT.patch
@@ -32,6 +32,7 @@ source:
       # Only enable it for TARGET_OS_OSX.
       - patches/0006-Only-error-on-undefined-TARGET_OS_OSX.patch  # [osx and x86_64]
       - patches/0007-set-libclang-SOVERSION-unconditionally.patch
+      - patches/0008-Make-PIE-default-on-macOS-too.patch
       # check out git history before LLVM 16 for these patches
       # - patches/amd-roc-2.7.0.diff   # [variant != "hcc"]
       # - patches/amd-roc-hcc-2.7.0.diff  # [variant == "hcc"]
@@ -123,7 +124,6 @@ outputs:
         - {{ pin_subpackage("libclang", exact=True) }}
         - {{ pin_subpackage("libclang-cpp", exact=True) }}
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
-        - __osx >={{ MACOSX_DEPLOYMENT_TARGET }}        # [osx and x86_64]
         - llvmdev =={{ version }}
     test:
       commands:
@@ -165,7 +165,6 @@ outputs:
         - zlib
         - zstd
       run:
-        - __osx >={{ MACOSX_DEPLOYMENT_TARGET }}        # [osx and x86_64]
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
     test:
       commands:
@@ -208,7 +207,6 @@ outputs:
         - zlib
         - zstd
       run:
-        - __osx >={{ MACOSX_DEPLOYMENT_TARGET }}                              # [osx and x86_64]
         - {{ pin_compatible("libcxx", max_pin=None) }}                        # [osx]
         - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, exact=True) }}  # [unix]
     test:
@@ -254,7 +252,6 @@ outputs:
         - zlib
         - zstd
       run:
-        - __osx >={{ MACOSX_DEPLOYMENT_TARGET }}        # [osx and x86_64]
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
     test:
       commands:
@@ -319,7 +316,6 @@ outputs:
         - zlib
         - zstd
       run:
-        - __osx >={{ MACOSX_DEPLOYMENT_TARGET }}                      # [osx and x86_64]
         - {{ pin_compatible("libcxx", max_pin=None) }}                # [osx]
         - {{ pin_subpackage("libclang" ~ libclang_soversion, exact=True) }}
     test:
@@ -363,7 +359,6 @@ outputs:
         - zlib
         - zstd
       run:
-        - __osx >={{ MACOSX_DEPLOYMENT_TARGET }}                              # [osx and x86_64]
         - {{ pin_compatible("libcxx", max_pin=None) }}                        # [osx]
         - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, exact=True) }}  # [unix]
       run_constrained:
@@ -398,7 +393,6 @@ outputs:
         - zstd     # [unix]
     requirements:
       host:
-        - gcc_impl_{{ target_platform }}  # [linux]
         - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
         # Use the same requirements as the top-level requirements
         - libcxx {{ cxx_compiler_version }}  # [osx]
@@ -407,8 +401,9 @@ outputs:
         - zlib
         - zstd
       run:
-        - gcc_impl_{{ target_platform }}            # [linux]
-        - __osx >={{ MACOSX_DEPLOYMENT_TARGET }}    # [osx and x86_64]
+        - binutils_impl_{{ target_platform }}  # [linux]
+        - sysroot_{{ target_platform }}        # [linux]
+        - libgcc-devel_{{ target_platform }}   # [linux]
         - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
     test:
       commands:
@@ -438,7 +433,7 @@ outputs:
         - zlib
         - zstd
       run:
-        - __osx >={{ MACOSX_DEPLOYMENT_TARGET }}        # [osx and x86_64]
+        - libstdcxx-devel_{{ target_platform }}  # [linux]
         - {{ pin_subpackage("clang", exact=True) }}
     test:
       requires:
@@ -488,7 +483,6 @@ outputs:
         - zlib
         - zstd
       run:
-        - __osx >={{ MACOSX_DEPLOYMENT_TARGET }}                                  # [osx and x86_64]
         - {{ pin_compatible("libcxx", max_pin=None) }}                            # [osx]
         - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, max_pin="x.x") }}   # [unix]
     test:
@@ -535,7 +529,6 @@ outputs:
         - zlib
         - zstd
       run:
-        - __osx >={{ MACOSX_DEPLOYMENT_TARGET }}                                 # [osx and x86_64]
         - {{ pin_compatible("libcxx", max_pin=None) }}                           # [osx]
         - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, max_pin="x.x") }}  # [unix]
         - {{ pin_subpackage("clang-format-" ~ major_version, exact=True) }}      # [unix]
@@ -580,7 +573,6 @@ outputs:
         - zstd
       run:
         - ucrt                                          # [win]
-        - __osx >={{ MACOSX_DEPLOYMENT_TARGET }}        # [osx and x86_64]
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
         - {{ pin_subpackage("clang-format", exact=True) }}
         - {{ pin_subpackage("libclang" ~ libclang_soversion, max_pin=None) }}
