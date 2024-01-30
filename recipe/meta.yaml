@@ -3,7 +3,7 @@
 {% set build_number = 0 %}
 
 {% set minor_aware_ext = major_version %}
-{% if version.split(".")[1] | int > 0 %}
+{% if version.split(".")[1] | int > 1 %}
 {% set minor_aware_ext = major_version ~ "." ~ version.split(".")[1] %}
 {% elif version.split(".")[-1].startswith("rc") %}
 {% set minor_aware_ext = major_version ~ "rc" %}
