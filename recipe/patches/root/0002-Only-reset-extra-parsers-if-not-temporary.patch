@@ -1,7 +1,7 @@
 From aa84733d46ea24d5570c3efd2014d3a0a952773b Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Mon, 3 Mar 2014 23:35:20 +0100
-Subject: [PATCH 02/73] Only reset extra parsers if not temporary.
+Subject: [PATCH 02/74] Only reset extra parsers if not temporary.
 
 ---
  clang/lib/Parse/Parser.cpp | 6 ++++--

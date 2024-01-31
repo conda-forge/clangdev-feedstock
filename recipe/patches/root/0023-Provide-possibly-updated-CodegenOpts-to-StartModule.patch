@@ -1,7 +1,7 @@
 From 9f44e1e6b0b0ee7556b483f3443605ebac077f52 Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Wed, 7 Jan 2015 10:28:02 +0100
-Subject: [PATCH 23/73] Provide (possibly updated) CodegenOpts to StartModule.
+Subject: [PATCH 23/74] Provide (possibly updated) CodegenOpts to StartModule.
 
 ---
  clang/include/clang/CodeGen/ModuleBuilder.h |  3 +++

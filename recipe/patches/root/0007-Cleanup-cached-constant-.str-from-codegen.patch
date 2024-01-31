@@ -1,7 +1,7 @@
 From d27ff10e4dd2228a5b9c6ccfdbaad1513dd45b20 Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Wed, 6 Apr 2016 14:31:51 +0200
-Subject: [PATCH 07/73] Cleanup cached constant (.str) from codegen.
+Subject: [PATCH 07/74] Cleanup cached constant (.str) from codegen.
 
 ---
  clang/include/clang/CodeGen/ModuleBuilder.h |  3 +++

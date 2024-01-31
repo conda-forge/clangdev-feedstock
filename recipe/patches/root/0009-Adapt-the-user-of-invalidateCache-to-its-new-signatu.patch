@@ -1,7 +1,7 @@
 From 575f983b261703a12da41cb7c163a33d12c5ca35 Mon Sep 17 00:00:00 2001
 From: Vassil Vassilev <vvasilev@cern.ch>
 Date: Tue, 8 Apr 2014 18:00:07 +0200
-Subject: [PATCH 09/73] Adapt the user of invalidateCache to its new signature.
+Subject: [PATCH 09/74] Adapt the user of invalidateCache to its new signature.
  Note: this might be change of behavior, because the new implementation
  doesn't erase the entry from the ADT.
 

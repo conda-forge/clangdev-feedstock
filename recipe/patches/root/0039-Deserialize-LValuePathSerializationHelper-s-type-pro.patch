@@ -1,7 +1,7 @@
 From cf682d4cc2506bd1d5b0648cedbfd2fc329eaf64 Mon Sep 17 00:00:00 2001
 From: Chuanqi Xu <yedeng.yd@linux.alibaba.com>
 Date: Tue, 6 Dec 2022 17:38:57 +0800
-Subject: [PATCH 39/73] Deserialize LValuePathSerializationHelper's type
+Subject: [PATCH 39/74] Deserialize LValuePathSerializationHelper's type
  properly
 
 Close https://github.com/llvm/llvm-project/issues/58716.

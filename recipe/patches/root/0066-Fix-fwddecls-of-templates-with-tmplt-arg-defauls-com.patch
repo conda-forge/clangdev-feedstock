@@ -1,7 +1,7 @@
 From fb5108b54c5373a9fb9104e1bbfa6a489b183a89 Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Thu, 10 Aug 2017 13:32:05 +0200
-Subject: [PATCH 66/73] Fix fwddecls of templates with tmplt arg defauls coming
+Subject: [PATCH 66/74] Fix fwddecls of templates with tmplt arg defauls coming
  from dictionaries (CMS / std::less). (#849)
 
 ---

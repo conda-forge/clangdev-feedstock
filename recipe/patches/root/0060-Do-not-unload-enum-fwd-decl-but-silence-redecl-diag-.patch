@@ -1,7 +1,7 @@
 From 1509d33b34aecc85c52aba3969838ad5980de4c9 Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Wed, 16 May 2018 08:42:15 +0200
-Subject: [PATCH 60/73] Do not unload enum fwd decl but silence redecl diag
+Subject: [PATCH 60/74] Do not unload enum fwd decl but silence redecl diag
  (ROOT-9363 ROOT-9114).
 
 Unloading the enum forward decl has tragic consequences e.g. for template

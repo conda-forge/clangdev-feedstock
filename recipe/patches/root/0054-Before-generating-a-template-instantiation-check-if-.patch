@@ -1,7 +1,7 @@
 From d7319552d22e9223a1806657f96595aa04a56c75 Mon Sep 17 00:00:00 2001
 From: Vassil Vassilev <vvasilev@cern.ch>
 Date: Mon, 9 Sep 2013 11:32:31 +0200
-Subject: [PATCH 54/73] Before generating a template instantiation check if we
+Subject: [PATCH 54/74] Before generating a template instantiation check if we
  can get externally.
 
 This is useful when we have template specializations/instantiations in rootmap

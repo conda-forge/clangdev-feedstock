@@ -1,7 +1,7 @@
 From 0a6eae39d07f66c98c4d7160635a6e62693abdbb Mon Sep 17 00:00:00 2001
 From: Richard Smith <richard@metafoo.co.uk>
 Date: Mon, 24 Jul 2023 17:34:08 -0700
-Subject: [PATCH 44/73] Commit to a primary definition for a class when we load
+Subject: [PATCH 44/74] Commit to a primary definition for a class when we load
  its first member.
 
 Previously, we wouldn't do this if the first member loaded is within a

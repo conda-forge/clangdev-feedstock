@@ -1,7 +1,7 @@
 From bfc67d41315d3cff975fa4183a0592ec5cd940fb Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Tue, 27 Sep 2016 11:55:47 +0200
-Subject: [PATCH 65/73] Improve int literal printing for template args. To be
+Subject: [PATCH 65/74] Improve int literal printing for template args. To be
  upstreamed.
 
 This fixes

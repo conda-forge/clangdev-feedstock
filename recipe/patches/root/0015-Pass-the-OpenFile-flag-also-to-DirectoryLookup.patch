@@ -1,7 +1,7 @@
 From 9aa80bbb9b061a8ac3b94c13e1997d21f909eb0d Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Thu, 15 May 2014 14:50:06 +0200
-Subject: [PATCH 15/73] Pass the OpenFile flag also to DirectoryLookup.
+Subject: [PATCH 15/74] Pass the OpenFile flag also to DirectoryLookup.
 
 ---
  clang/include/clang/Lex/DirectoryLookup.h |  3 ++-

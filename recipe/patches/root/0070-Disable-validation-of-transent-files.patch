@@ -1,7 +1,7 @@
 From 2229d2cb451a91fffe52511eefb8fd053d349086 Mon Sep 17 00:00:00 2001
 From: Vassil Vassilev <v.g.vassilev@gmail.com>
 Date: Fri, 4 Oct 2019 15:49:01 +0300
-Subject: [PATCH 70/73] Disable validation of transent files.
+Subject: [PATCH 70/74] Disable validation of transent files.
 
 In clang a transient file is a header file which is stored in the pch/pcm file.
 If this file does not exist, clang creates a virtual file of the unzipped stored

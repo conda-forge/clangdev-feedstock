@@ -1,7 +1,7 @@
 From 1ca381b47bd93fb4790dc5e178802ef18cd77594 Mon Sep 17 00:00:00 2001
 From: Vassil Vassilev <v.g.vassilev@gmail.com>
 Date: Wed, 17 May 2017 15:22:25 +0200
-Subject: [PATCH 31/73] Keep into account if files were virtual.
+Subject: [PATCH 31/74] Keep into account if files were virtual.
 
 In some cases we do not have files on disk. They are only available in the
 FileManager as virtual files and the SourceManager overrides their content.

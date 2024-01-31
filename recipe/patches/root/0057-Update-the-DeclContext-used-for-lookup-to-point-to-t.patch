@@ -1,7 +1,7 @@
 From a4112a75de6915f7d729f00272a8dc1996109066 Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Wed, 16 Jul 2014 11:28:29 +0200
-Subject: [PATCH 57/73] Update the DeclContext used for lookup to point to the
+Subject: [PATCH 57/74] Update the DeclContext used for lookup to point to the
  definition.
 
 While the ASTReader fills the existing Decl, we create a new redecl.

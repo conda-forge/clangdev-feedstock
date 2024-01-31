@@ -1,7 +1,7 @@
 From 14d4551bb8a50410654c18c36fe634fa2cb859e0 Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Tue, 28 Oct 2014 18:20:18 +0100
-Subject: [PATCH 63/73] Store token literal data in PCH. Avoids disk read on
+Subject: [PATCH 63/74] Store token literal data in PCH. Avoids disk read on
  PreProc expansion (ROOT-6794).
 
 ---

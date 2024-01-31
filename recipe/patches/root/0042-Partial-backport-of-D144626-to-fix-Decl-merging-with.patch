@@ -1,7 +1,7 @@
 From d37cfc2d72da0b49c7dfde58c8fc78e7fd610346 Mon Sep 17 00:00:00 2001
 From: Jonas Hahnfeld <jonas.hahnfeld@cern.ch>
 Date: Thu, 11 May 2023 18:33:20 +0200
-Subject: [PATCH 42/73] Partial backport of D144626 to fix Decl merging with
+Subject: [PATCH 42/74] Partial backport of D144626 to fix Decl merging with
  constraints
 
 This is a partial backport of the changes to isSameEntity from commit

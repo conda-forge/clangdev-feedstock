@@ -1,7 +1,7 @@
 From b91fb5deb07cf432b38cebf2af2c77cc4893f1f8 Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Tue, 2 Dec 2014 17:43:18 +0100
-Subject: [PATCH 21/73] Buffer the pending instantiations in case or recursive
+Subject: [PATCH 21/74] Buffer the pending instantiations in case or recursive
  parsing.
 
 ---

@@ -1,7 +1,7 @@
 From 59db66c03de359f318ddc9de017c22a28e43aa3e Mon Sep 17 00:00:00 2001
 From: Vassil Vassilev <vvasilev@cern.ch>
 Date: Tue, 17 Sep 2013 16:25:52 +0200
-Subject: [PATCH 08/73] Implement FileManager uncaching.
+Subject: [PATCH 08/74] Implement FileManager uncaching.
 
 If the file is marked for rereading and deleted in the meanwhile it will get different file stat and inode number. Teach the file manager to handle these situations.
 ---

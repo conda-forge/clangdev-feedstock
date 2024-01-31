@@ -18,6 +18,14 @@ if [[ "$variant" == "root"* ]]; then
     echo "Setting -DDEFAULT_SYSROOT=${default_sysroot}"
     CMAKE_ARGS="$CMAKE_ARGS -DDEFAULT_SYSROOT=${default_sysroot}"
   fi
+  rootversion=$((${variant:5}))
+  # ROOT 6.30 sets the minimum required C++ standard version to 17.
+  # In 6.30.04 a patch to clang from upstream was introduced that also enforces
+  # this requirement on the build of clang. Since we are already building clang
+  # for ROOT specifically, also set the C++ standard for the build.
+  if [[ $rootversion -ge 63004 ]]; then
+    CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_CXX_STANDARD=17"
+  fi
 fi
 
 if [[ "$CONDA_BUILD_CROSS_COMPILATION" == "1" ]]; then

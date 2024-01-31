@@ -1,7 +1,7 @@
 From 80f5623c39ebab088227b4d6eb015dac0fa1a672 Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Mon, 6 Oct 2014 10:36:05 +0200
-Subject: [PATCH 61/73] Do not read the source file to emit annotations.
+Subject: [PATCH 61/74] Do not read the source file to emit annotations.
 
 ---
  clang/lib/CodeGen/CodeGenModule.cpp | 9 ++++++---

@@ -1,7 +1,7 @@
 From e4f569cee0a5c5c8a1539bc958819462d4c30b9a Mon Sep 17 00:00:00 2001
 From: Vassil Vassilev <v.g.vassilev@gmail.com>
 Date: Sun, 7 Jan 2018 15:16:11 +0200
-Subject: [PATCH 51/73] D41416: [modules] [pch] Do not deserialize all lazy
+Subject: [PATCH 51/74] D41416: [modules] [pch] Do not deserialize all lazy
  template specializations when looking for one.
 
 ---

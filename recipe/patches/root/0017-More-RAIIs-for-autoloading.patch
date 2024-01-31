@@ -1,7 +1,7 @@
 From 5263f2116e548a670a352a604d7ac44f2e764f06 Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Mon, 26 Aug 2013 15:08:12 +0200
-Subject: [PATCH 17/73] More RAIIs for autoloading.
+Subject: [PATCH 17/74] More RAIIs for autoloading.
 
 ---
  clang/include/clang/Lex/Preprocessor.h | 68 ++++++++++++++++++++++++++
