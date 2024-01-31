@@ -1,4 +1,4 @@
-From 790933939291c1d7204bc98c51da8727da871c81 Mon Sep 17 00:00:00 2001
+From 3d48e9d06b4c1af2995851c21856858579c05c8e Mon Sep 17 00:00:00 2001
 From: Nehal J Wani <nehaljw.kkd1@gmail.com>
 Date: Sat, 25 Aug 2018 09:20:04 -0500
 Subject: [PATCH 2/8] clang: add conda specific env var CONDA_BUILD_SYSROOT
@@ -9,10 +9,10 @@ Subject: [PATCH 2/8] clang: add conda specific env var CONDA_BUILD_SYSROOT
  2 files changed, 10 insertions(+), 1 deletion(-)
 
 diff --git a/clang/lib/Driver/Driver.cpp b/clang/lib/Driver/Driver.cpp
-index bdbdad9362e1..eef06f2c0a59 100644
+index 93cddf742d52..00d0466a5de2 100644
 --- a/clang/lib/Driver/Driver.cpp
 +++ b/clang/lib/Driver/Driver.cpp
-@@ -1348,6 +1348,11 @@ Compilation *Driver::BuildCompilation(ArrayRef<const char *> ArgList) {
+@@ -1352,6 +1352,11 @@ Compilation *Driver::BuildCompilation(ArrayRef<const char *> ArgList) {
        CompilerPath = Split.second;
      }
    }
@@ -25,7 +25,7 @@ index bdbdad9362e1..eef06f2c0a59 100644
      SysRoot = A->getValue();
    if (const Arg *A = Args.getLastArg(options::OPT__dyld_prefix_EQ))
 diff --git a/clang/lib/Lex/InitHeaderSearch.cpp b/clang/lib/Lex/InitHeaderSearch.cpp
-index 41382d7cb3fc..3f2fab2b5bb9 100644
+index 2218db15013d..d05cfa38e4fb 100644
 --- a/clang/lib/Lex/InitHeaderSearch.cpp
 +++ b/clang/lib/Lex/InitHeaderSearch.cpp
 @@ -24,6 +24,7 @@
@@ -36,7 +36,7 @@ index 41382d7cb3fc..3f2fab2b5bb9 100644
  #include "llvm/Support/raw_ostream.h"
  #include "llvm/TargetParser/Triple.h"
  #include <optional>
-@@ -241,7 +242,10 @@ void InitHeaderSearch::AddDefaultCIncludePaths(const llvm::Triple &triple,
+@@ -210,7 +211,10 @@ void InitHeaderSearch::AddDefaultCIncludePaths(const llvm::Triple &triple,
        [[fallthrough]];
      default:
        // FIXME: temporary hack: hard-coded paths.
