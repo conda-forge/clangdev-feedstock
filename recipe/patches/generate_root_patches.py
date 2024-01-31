@@ -23,7 +23,7 @@ def change_directory(path: str) -> None:
 
 
 LLVM_TAG = "llvmorg-13.0.1"
-ROOT_TAG = "v6-30-02"
+ROOT_TAG = "v6-30-04"
 
 
 def retrieve_root_llvm_fork_tag() -> str:
