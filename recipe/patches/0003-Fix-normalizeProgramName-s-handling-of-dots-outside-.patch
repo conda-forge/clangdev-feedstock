@@ -1,7 +1,7 @@
-From 703241c36d0d97cdbf8caaf9020a1ba68ca7dba8 Mon Sep 17 00:00:00 2001
+From 3f82e5619383f7fda54c0281e93bcce1d20678fb Mon Sep 17 00:00:00 2001
 From: Ray Donnelly <mingw.android@gmail.com>
 Date: Wed, 30 Aug 2017 20:01:49 +0100
-Subject: [PATCH 3/7] Fix normalizeProgramName()'s handling of dots outside of
+Subject: [PATCH 3/8] Fix normalizeProgramName()'s handling of dots outside of
  .exe
 
 It used to strip everything after the last dot, turning:
@@ -18,7 +18,7 @@ x86_64-apple-darwin13.4
  1 file changed, 22 insertions(+), 1 deletion(-)
 
 diff --git a/clang/lib/Driver/ToolChain.cpp b/clang/lib/Driver/ToolChain.cpp
-index d60fdbc1796..9bcd82e15d9 100644
+index 388030592b48..f41635fc0021 100644
 --- a/clang/lib/Driver/ToolChain.cpp
 +++ b/clang/lib/Driver/ToolChain.cpp
 @@ -55,6 +55,7 @@ using namespace driver;
@@ -40,7 +40,7 @@ index d60fdbc1796..9bcd82e15d9 100644
 +StringRef program_name_stem(StringRef path) {
 +  StringRef fname = llvm::sys::path::filename(path);
 +  size_t pos = StringRef::npos;
-+  if (fname.endswith_insensitive(".exe")) {
++  if (fname.ends_with_insensitive(".exe")) {
 +    pos = fname.find_last_of('.');
 +  }
 +  if (pos == StringRef::npos)
