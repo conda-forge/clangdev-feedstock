@@ -1,3 +1,8 @@
+# RC-phase: taking packages from conda-forge/label/llvm_rc
+# automatically pulls in libcxx >=17, which requires macOS.
+MACOSX_DEPLOYMENT_TARGET:   # [osx and x86_64]
+  - "10.13"                 # [osx and x86_64]
+
 c_compiler:          # [osx]
   - clang_bootstrap  # [osx]
 cxx_compiler:        # [osx]
