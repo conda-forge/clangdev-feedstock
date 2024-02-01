@@ -25,6 +25,12 @@ if [[ "$variant" == "root"* ]]; then
   # for ROOT specifically, also set the C++ standard for the build.
   if [[ $rootversion -ge 63004 ]]; then
     CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_CXX_STANDARD=17"
+    # Should deal with errors found on MacOS of the type
+    # note: 'shared_mutex' has been explicitly marked unavailable here
+    # See https://github.com/conda-forge/dealii-feedstock/pull/22
+    if [[ "$target_platform" == "osx-64" ]]; then
+      export CXXFLAGS="$CXXFLAGS -D_LIBCPP_DISABLE_AVAILABILITY"
+    fi
   fi
 fi
 
