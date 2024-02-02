@@ -12,24 +12,24 @@ jobs:
         CONFIG: linux_64_variantdefault
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-cos7-x86_64
-      linux_64_variantroot_63002:
-        CONFIG: linux_64_variantroot_63002
+      linux_64_variantroot_63004:
+        CONFIG: linux_64_variantroot_63004
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-cos7-x86_64
       linux_aarch64_variantdefault:
         CONFIG: linux_aarch64_variantdefault
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-cos7-x86_64
-      linux_aarch64_variantroot_63002:
-        CONFIG: linux_aarch64_variantroot_63002
+      linux_aarch64_variantroot_63004:
+        CONFIG: linux_aarch64_variantroot_63004
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-cos7-x86_64
       linux_ppc64le_variantdefault:
         CONFIG: linux_ppc64le_variantdefault
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-cos7-x86_64
-      linux_ppc64le_variantroot_63002:
-        CONFIG: linux_ppc64le_variantroot_63002
+      linux_ppc64le_variantroot_63004:
+        CONFIG: linux_ppc64le_variantroot_63004
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-cos7-x86_64
   timeoutInMinutes: 360

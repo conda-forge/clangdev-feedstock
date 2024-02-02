@@ -13,4 +13,4 @@ macos_machine:
 target_platform:
 - osx-64
 variant:
-- root_63002
+- root_63004
