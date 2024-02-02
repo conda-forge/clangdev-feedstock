@@ -159,6 +159,7 @@ outputs:
     build:
       track_features:
         - hcc          # [variant=="hcc"]
+        - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       build:
@@ -197,6 +198,7 @@ outputs:
     build:
       track_features:
         - hcc          # [variant=="hcc"]
+        - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:
         - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, max_pin="x.x") }}   # [unix]
@@ -228,6 +230,7 @@ outputs:
     build:
       track_features:
         - hcc          # [variant=="hcc"]
+        - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       {% if not win %}
       run_exports:   # [unix]
@@ -262,6 +265,7 @@ outputs:
     build:
       track_features:
         - hcc          # [variant=="hcc"]
+        - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:
         - libclang {{ minor_aware_ext }}.*
@@ -299,6 +303,7 @@ outputs:
     build:
       track_features:
         - hcc          # [variant=="hcc"]
+        - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       build:
@@ -345,6 +350,7 @@ outputs:
     build:
       track_features:
         - hcc          # [variant=="hcc"]
+        - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       host:
@@ -366,6 +372,7 @@ outputs:
     build:
       track_features:
         - hcc          # [variant=="hcc"]
+        - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       host:
@@ -388,6 +395,7 @@ outputs:
     build:
       track_features:
         - hcc          # [variant=="hcc"]
+        - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       # for windows, use the clang-format package.
       skip: true  # [win]
@@ -428,6 +436,7 @@ outputs:
     build:
       track_features:
         - hcc          # [variant=="hcc"]
+        - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       build:
@@ -465,6 +474,7 @@ outputs:
     build:
       track_features:
         - hcc          # [variant=="hcc"]
+        - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       build:
@@ -506,6 +516,7 @@ outputs:
       skip: true  # [win or variant=="hcc" or (build_platform != target_platform)]
       track_features:
         - hcc          # [variant=="hcc"]
+        - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     script: build_python_bindings.sh
     requirements:
