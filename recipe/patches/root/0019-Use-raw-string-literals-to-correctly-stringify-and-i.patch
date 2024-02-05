@@ -1,7 +1,7 @@
 From 34e154277df74fc97d3ced619c8f962d029fedf4 Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Fri, 12 Sep 2014 11:58:16 +0200
-Subject: [PATCH 19/73] Use raw string literals to correctly stringify '"' and
+Subject: [PATCH 19/74] Use raw string literals to correctly stringify '"' and
  '\\' in attributes.
 
 ---

@@ -1,7 +1,7 @@
 From 67bfaea1e86d9abc2a05865ea1c0aaefae1e3f89 Mon Sep 17 00:00:00 2001
 From: Vassil Vassilev <vvasilev@cern.ch>
 Date: Thu, 27 Mar 2014 11:26:03 +0100
-Subject: [PATCH 12/73] Implement soft reset of the diagnostics engine.
+Subject: [PATCH 12/74] Implement soft reset of the diagnostics engine.
 
 ---
  clang/include/clang/Basic/Diagnostic.h | 6 +++---

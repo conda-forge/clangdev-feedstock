@@ -17,6 +17,6 @@ docker_image:
 target_platform:
 - linux-aarch64
 variant:
-- root_63002
+- root_63004
 zlib:
 - '1.2'

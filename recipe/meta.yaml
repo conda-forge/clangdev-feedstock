@@ -1,6 +1,6 @@
 {% set version = "13.0.1" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 5 %}
+{% set build_number = 6 %}
 
 {% set minor_aware_ext = major_version %}
 {% set minor_int = version.split(".")[1] | int %}
@@ -106,6 +106,7 @@ source:
       - patches/root/0071-Import-various-changes-to-the-global-module-index.patch  # [variant and variant.startswith("root_")]
       - patches/root/0072-Do-not-install-Clang-Cling-Config.cmake-in-the-proje.patch  # [variant and variant.startswith("root_")]
       - patches/root/0073-AST-Print-honor-AlwaysIncludeTypeForTemplateArgument.patch  # [variant and variant.startswith("root_")]
+      - patches/root/0074-UPSTREAM-Introduce-paged-vector.patch  # [variant and variant.startswith("root_")]
     folder: .
   - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/clang-tools-extra-{{ version.replace(".rc", "rc") }}.src.tar.xz
     sha256: cc2bc8598848513fa2257a270083e986fd61048347eccf1d801926ea709392d0
@@ -159,6 +160,7 @@ outputs:
     build:
       track_features:
         - hcc          # [variant=="hcc"]
+        - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       build:
@@ -197,6 +199,7 @@ outputs:
     build:
       track_features:
         - hcc          # [variant=="hcc"]
+        - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:
         - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, max_pin="x.x") }}   # [unix]
@@ -228,6 +231,7 @@ outputs:
     build:
       track_features:
         - hcc          # [variant=="hcc"]
+        - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       {% if not win %}
       run_exports:   # [unix]
@@ -262,6 +266,7 @@ outputs:
     build:
       track_features:
         - hcc          # [variant=="hcc"]
+        - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:
         - libclang {{ minor_aware_ext }}.*
@@ -299,6 +304,7 @@ outputs:
     build:
       track_features:
         - hcc          # [variant=="hcc"]
+        - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       build:
@@ -345,6 +351,7 @@ outputs:
     build:
       track_features:
         - hcc          # [variant=="hcc"]
+        - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       host:
@@ -366,6 +373,7 @@ outputs:
     build:
       track_features:
         - hcc          # [variant=="hcc"]
+        - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       host:
@@ -388,6 +396,7 @@ outputs:
     build:
       track_features:
         - hcc          # [variant=="hcc"]
+        - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       # for windows, use the clang-format package.
       skip: true  # [win]
@@ -428,6 +437,7 @@ outputs:
     build:
       track_features:
         - hcc          # [variant=="hcc"]
+        - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       build:
@@ -465,6 +475,7 @@ outputs:
     build:
       track_features:
         - hcc          # [variant=="hcc"]
+        - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       build:
@@ -506,6 +517,7 @@ outputs:
       skip: true  # [win or variant=="hcc" or (build_platform != target_platform)]
       track_features:
         - hcc          # [variant=="hcc"]
+        - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     script: build_python_bindings.sh
     requirements:

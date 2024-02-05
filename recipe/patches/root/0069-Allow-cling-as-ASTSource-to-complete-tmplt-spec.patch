@@ -1,7 +1,7 @@
 From fd0abcdca4110c98a1de3d8d62287f8afe9952df Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Thu, 4 Feb 2021 11:37:23 +0100
-Subject: [PATCH 69/73] Allow cling as ASTSource to complete tmplt spec:
+Subject: [PATCH 69/74] Allow cling as ASTSource to complete tmplt spec:
 
 cling must be able to provide template specializations (that might be
 explicit specializations, residing in a library to be loaded by

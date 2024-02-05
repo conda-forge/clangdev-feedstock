@@ -1,7 +1,7 @@
 From 33a0fdc1977ef8e528e3af03454bc25f8c6c2913 Mon Sep 17 00:00:00 2001
 From: Vassil Vassilev <v.g.vassilev@gmail.com>
 Date: Sat, 2 Apr 2022 21:44:35 +0000
-Subject: [PATCH 72/73] Do not install {Clang,Cling}Config.cmake in the project
+Subject: [PATCH 72/74] Do not install {Clang,Cling}Config.cmake in the project
  lib dir.
 
 This should fix the clad builds and unpollute the ROOTSYS/lib.

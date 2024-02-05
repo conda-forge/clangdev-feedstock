@@ -1,7 +1,7 @@
 From f78bb89a43fe6081a0e67dd21cfbb9f009a1a2dc Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Mon, 12 Jan 2015 14:31:46 +0100
-Subject: [PATCH 24/73] Hand over deferred objects to the new CGModule; fixes
+Subject: [PATCH 24/74] Hand over deferred objects to the new CGModule; fixes
  missing weak syms.
 
 ---

@@ -1,7 +1,7 @@
 From b2669d31e06431fe41793c38dccec9e109464734 Mon Sep 17 00:00:00 2001
 From: Vassil Vassilev <v.g.vassilev@gmail.com>
 Date: Mon, 13 Jan 2020 13:54:48 +0200
-Subject: [PATCH 53/73] Improve ROOT startup time by not merging identifier
+Subject: [PATCH 53/74] Improve ROOT startup time by not merging identifier
  tables
 
 Each module has a set of identifier tables which aid lookup. Based on this

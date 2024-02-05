@@ -1,7 +1,7 @@
 From a4a07431177f1ea7d0e4257fc97c6eaf4ce00fb8 Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Fri, 21 Mar 2014 17:31:31 +0100
-Subject: [PATCH 58/73] Expose all files included in PCH/PCM to FileManager.
+Subject: [PATCH 58/74] Expose all files included in PCH/PCM to FileManager.
 
 Else, FileManager will fopen(), Preprocessor will notice that there is a defined
 code guard and not enter the source file, thus leaving the file handle unclosed.

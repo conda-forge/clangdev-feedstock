@@ -1,7 +1,7 @@
 From a543cbb92b1507bfbc01511fc88c70694a7107cc Mon Sep 17 00:00:00 2001
 From: Philippe Canal <pcanal@fnal.gov>
 Date: Thu, 24 Oct 2013 10:49:05 -0500
-Subject: [PATCH 48/73] Extend SubstTemplateTypeParmType to support
+Subject: [PATCH 48/74] Extend SubstTemplateTypeParmType to support
  non-canonical types.
 
 Previously SubstTemplateTypeParmType could only keep the canonical

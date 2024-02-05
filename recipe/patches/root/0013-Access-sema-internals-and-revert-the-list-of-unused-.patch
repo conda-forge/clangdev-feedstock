@@ -1,7 +1,7 @@
 From b5047c8c5c910b57a15d2cc46fead2758951e070 Mon Sep 17 00:00:00 2001
 From: Vassil Vassilev <vvasilev@cern.ch>
 Date: Fri, 28 Mar 2014 10:48:12 +0100
-Subject: [PATCH 13/73] Access sema internals and revert the list of unused
+Subject: [PATCH 13/74] Access sema internals and revert the list of unused
  decls.
 
 ---

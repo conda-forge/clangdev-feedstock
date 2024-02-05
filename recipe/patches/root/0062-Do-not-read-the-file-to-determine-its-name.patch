@@ -1,7 +1,7 @@
 From 5cbca33be41fb864929bb117963c906c838f3c20 Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Mon, 6 Oct 2014 10:36:27 +0200
-Subject: [PATCH 62/73] Do not read the file to determine its name!
+Subject: [PATCH 62/74] Do not read the file to determine its name!
 
 ---
  clang/lib/Basic/SourceManager.cpp | 9 +++++++++

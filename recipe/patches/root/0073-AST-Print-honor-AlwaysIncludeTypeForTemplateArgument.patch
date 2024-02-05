@@ -1,7 +1,7 @@
 From 68217e7f873d40cfd9de1c32ff0807d01f0470bf Mon Sep 17 00:00:00 2001
 From: Vassil Vassilev <v.g.vassilev@gmail.com>
 Date: Tue, 31 May 2022 04:56:34 +0000
-Subject: [PATCH 73/73] AST/Print: honor AlwaysIncludeTypeForTemplateArgument
+Subject: [PATCH 73/74] AST/Print: honor AlwaysIncludeTypeForTemplateArgument
  policy.
 
 This redoes D103040 in a way that AlwaysIncludeTypeForTemplateArgument = false

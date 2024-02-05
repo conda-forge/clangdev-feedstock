@@ -1,7 +1,7 @@
 From a57a9c2201c86ee5625f05294fc4a3684afd2734 Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Tue, 10 Sep 2013 17:01:46 +0200
-Subject: [PATCH 55/73] Duplicate declarations of template default argument
+Subject: [PATCH 55/74] Duplicate declarations of template default argument
  from rootmap files are just fine.
 
 ---

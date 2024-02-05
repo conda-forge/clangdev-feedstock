@@ -1,7 +1,7 @@
 From 19745d4f806d7b7c13627494cb2bfadc5e75460b Mon Sep 17 00:00:00 2001
 From: Nathan Ridge <zeratul976@hotmail.com>
 Date: Sun, 17 Oct 2021 23:29:23 -0400
-Subject: [PATCH 37/73] [clang] Allocate 2 bits to store the constexpr
+Subject: [PATCH 37/74] [clang] Allocate 2 bits to store the constexpr
  specifier kind when serializing
 
 Now that consteval and constinit are possible values, 1 bit

@@ -1,7 +1,7 @@
 From c4c66f6dd3bb0cf3b47e77365bda67c7c22e1dcc Mon Sep 17 00:00:00 2001
 From: Philippe Canal <pcanal@fnal.gov>
 Date: Sun, 15 Nov 2015 01:36:24 -0600
-Subject: [PATCH 27/73] Fix ROOT-7775 by making all static init function name
+Subject: [PATCH 27/74] Fix ROOT-7775 by making all static init function name
  unique.
 
 In EmitCXXGlobalVarDeclInitFunc make the init function name more unique when module are used.

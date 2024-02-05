@@ -1,7 +1,7 @@
 From f4f9e68641b2fadd9d568dcb2d239c03ff2fcc7c Mon Sep 17 00:00:00 2001
 From: CristinaCristescu <bianca-cristina.cristescu@cern.ch>
 Date: Tue, 29 Oct 2013 09:57:54 +0100
-Subject: [PATCH 04/73] Remove macro and print macro.
+Subject: [PATCH 04/74] Remove macro and print macro.
 
 ---
  clang/include/clang/Lex/Preprocessor.h | 11 ++++++++

@@ -1,7 +1,7 @@
 From b39a3ad11209c00af9ccbea13e7ebde5fffb847d Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Mon, 26 Aug 2013 14:30:31 +0200
-Subject: [PATCH 03/73] Let autoload act on fwd declares.
+Subject: [PATCH 03/74] Let autoload act on fwd declares.
 
 ---
  clang/lib/Sema/SemaLookup.cpp | 8 +++++++-

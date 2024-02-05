@@ -1,7 +1,7 @@
 From f22ecc349fb27edf6ecadf5a9f301609f3ba24e7 Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Mon, 23 Mar 2015 15:22:49 +0100
-Subject: [PATCH 28/73] Do not load the source file just to get an irrelevant
+Subject: [PATCH 28/74] Do not load the source file just to get an irrelevant
  SourceLoc (ROOT-7111).
 
 ---
