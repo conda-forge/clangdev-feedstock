@@ -2,16 +2,16 @@
 {% set major_version = version.split(".")[0] %}
 {% set build_number = 0 %}
 
-{% set minor_aware_ext = major_version %}
-{% if version.split(".")[1] | int > 1 %}
+# always includes minor as of v18, see https://github.com/llvm/llvm-project/issues/76273
 {% set minor_aware_ext = major_version ~ "." ~ version.split(".")[1] %}
-{% elif version.split(".")[-1].startswith("rc") %}
-{% set minor_aware_ext = major_version ~ "rc" %}
+{% if version.split(".")[-1].startswith("rc") %}
+{% set minor_aware_ext = minor_aware_ext ~ "rc" %}
 {% elif version.split(".")[-1] == "dev0" %}
-{% set minor_aware_ext = major_version ~ "git" %}
+{% set minor_aware_ext = minor_aware_ext ~ "git" %}
 {% endif %}
 
 {% if libclang_soversion is not defined %}
+# see https://github.com/llvm/llvm-project/blob/release/18.x/clang/tools/libclang/CMakeLists.txt
 {% set libclang_soversion = "13" %}
 {% endif %}
 
