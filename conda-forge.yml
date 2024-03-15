@@ -10,4 +10,4 @@ github:
   tooling_branch_name: main
 provider:
   win: azure
-test_on_native_only: true
+test: native_and_emulated
