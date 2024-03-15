@@ -1,17 +1,17 @@
-{% set version = "17.0.6" %}
+{% set version = "18.1.1" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 3 %}
+{% set build_number = 0 %}
 
-{% set minor_aware_ext = major_version %}
-{% if version.split(".")[1] | int > 0 %}
+# always includes minor as of v18, see https://github.com/llvm/llvm-project/issues/76273
 {% set minor_aware_ext = major_version ~ "." ~ version.split(".")[1] %}
-{% elif version.split(".")[-1].startswith("rc") %}
-{% set minor_aware_ext = major_version ~ "rc" %}
+{% if version.split(".")[-1].startswith("rc") %}
+{% set minor_aware_ext = minor_aware_ext ~ "rc" %}
 {% elif version.split(".")[-1] == "dev0" %}
-{% set minor_aware_ext = major_version ~ "git" %}
+{% set minor_aware_ext = minor_aware_ext ~ "git" %}
 {% endif %}
 
 {% if libclang_soversion is not defined %}
+# see https://github.com/llvm/llvm-project/blob/release/18.x/clang/tools/libclang/CMakeLists.txt
 {% set libclang_soversion = "13" %}
 {% endif %}
 
@@ -21,7 +21,7 @@ package:
 
 source:
   - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/llvm-project-{{ version.replace(".rc", "rc") }}.src.tar.xz
-    sha256: 58a8818c60e6627064f312dbf46c02d9949956558340938b71cf731ad8bc0813
+    sha256: 8f34c6206be84b186b4b31f47e1b52758fa38348565953fad453d177ef34c0ad
     patches:
       - patches/0001-Fix-sysroot-detection-for-linux.patch
       - patches/0002-clang-add-conda-specific-env-var-CONDA_BUILD_SYSROOT.patch
@@ -93,6 +93,7 @@ outputs:
     build:
       track_features:
         - hcc          # [variant=="hcc"]
+        - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
@@ -142,6 +143,7 @@ outputs:
       skip: true  # [win]
       track_features:
         - hcc          # [variant=="hcc"]
+        - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:
         - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, max_pin="x.x") }}   # [unix]
@@ -183,6 +185,7 @@ outputs:
     build:
       track_features:
         - hcc          # [variant=="hcc"]
+        - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:   # [unix]
         - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, max_pin="x.x") }}   # [unix]
@@ -226,6 +229,7 @@ outputs:
     build:
       track_features:
         - hcc          # [variant=="hcc"]
+        - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:
         # note that the name (e.g. libclang13) does not necessarily
@@ -289,6 +293,7 @@ outputs:
     build:
       track_features:
         - hcc          # [variant=="hcc"]
+        - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:
         # note that the name (e.g. libclang13) does not necessarily
@@ -387,6 +392,10 @@ outputs:
     script: install_clang_symlinks.sh  # [unix]
     script: install_clang_symlinks.bat  # [win]
     build:
+      track_features:
+        - hcc          # [variant=="hcc"]
+        - root         # [variant and variant.startswith("root_")]
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
         - libxml2
@@ -418,6 +427,7 @@ outputs:
     build:
       track_features:
         - hcc          # [variant=="hcc"]
+        - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
@@ -455,6 +465,7 @@ outputs:
     build:
       track_features:
         - hcc          # [variant=="hcc"]
+        - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       # for windows, use the clang-format package.
       skip: true  # [win]
@@ -501,6 +512,7 @@ outputs:
     build:
       track_features:
         - hcc          # [variant=="hcc"]
+        - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
@@ -545,6 +557,7 @@ outputs:
     build:
       track_features:
         - hcc          # [variant=="hcc"]
+        - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
