@@ -1,4 +1,4 @@
-{% set version = "18.1.1" %}
+{% set version = "18.1.2" %}
 {% set major_version = version.split(".")[0] %}
 {% set build_number = 0 %}
 
@@ -21,7 +21,7 @@ package:
 
 source:
   - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/llvm-project-{{ version.replace(".rc", "rc") }}.src.tar.xz
-    sha256: 8f34c6206be84b186b4b31f47e1b52758fa38348565953fad453d177ef34c0ad
+    sha256: 51073febd91d1f2c3b411d022695744bda322647e76e0b4eb1918229210c48d5
     patches:
       - patches/0001-Fix-sysroot-detection-for-linux.patch
       - patches/0002-clang-add-conda-specific-env-var-CONDA_BUILD_SYSROOT.patch
@@ -223,9 +223,9 @@ outputs:
     script: install_libclang.sh  # [unix]
     script: install_libclang.bat  # [win]
     files:
-      - Library/bin/libclang-13.dll  # [win]
-      - lib/libclang.so.13           # [linux]
-      - lib/libclang.13.dylib        # [osx]
+      - Library/bin/libclang-{{ libclang_soversion }}.dll   # [win]
+      - lib/libclang.so.{{ libclang_soversion }}            # [linux]
+      - lib/libclang.{{ libclang_soversion }}.dylib         # [osx]
     build:
       track_features:
         - hcc          # [variant=="hcc"]
