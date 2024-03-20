@@ -1,6 +1,6 @@
 {% set version = "16.0.6" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 5 %}
+{% set build_number = 6 %}
 
 {% set minor_aware_ext = major_version %}
 {% if version.split(".")[1] | int > 0 %}
@@ -29,6 +29,7 @@ source:
       - patches/0006-Only-error-on-undefined-TARGET_OS_OSX.patch  # [osx and x86_64]
       - patches/0007-set-libclang-SOVERSION-unconditionally.patch
       - patches/0008-Make-PIE-default-on-macOS-too.patch
+      - patches/0009-Find-conda-gcc-installation.patch
       # check out git history before LLVM 16 for these patches
       # - patches/amd-roc-2.7.0.diff   # [variant != "hcc"]
       # - patches/amd-roc-hcc-2.7.0.diff  # [variant == "hcc"]

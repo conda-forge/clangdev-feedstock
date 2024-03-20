@@ -1,7 +1,7 @@
 From 3e7e229e2da4008946ba9b5cf15f3a9606a835ee Mon Sep 17 00:00:00 2001
 From: Ray Donnelly <mingw.android@gmail.com>
 Date: Wed, 30 Aug 2017 20:01:49 +0100
-Subject: [PATCH 3/7] Fix normalizeProgramName()'s handling of dots outside of
+Subject: [PATCH 3/9] Fix normalizeProgramName()'s handling of dots outside of
  .exe
 
 It used to strip everything after the last dot, turning:
@@ -18,7 +18,7 @@ x86_64-apple-darwin13.4
  1 file changed, 22 insertions(+), 1 deletion(-)
 
 diff --git a/clang/lib/Driver/ToolChain.cpp b/clang/lib/Driver/ToolChain.cpp
-index bc70205a6c0..3a7948509a6 100644
+index bc70205a6c01..3a7948509a66 100644
 --- a/clang/lib/Driver/ToolChain.cpp
 +++ b/clang/lib/Driver/ToolChain.cpp
 @@ -51,6 +51,7 @@ using namespace driver;
