@@ -1,7 +1,7 @@
-From 69fe023dd8ac35c609f8c417bc7164a7e079f7cf Mon Sep 17 00:00:00 2001
+From 9bd333821060e178aa8ee74ec79b15d9f8c18a52 Mon Sep 17 00:00:00 2001
 From: Nehal J Wani <nehaljw.kkd1@gmail.com>
 Date: Sat, 25 Aug 2018 09:20:04 -0500
-Subject: [PATCH 2/7] clang: add conda specific env var CONDA_BUILD_SYSROOT
+Subject: [PATCH 2/8] clang: add conda specific env var CONDA_BUILD_SYSROOT
 
 ---
  clang/lib/Driver/Driver.cpp        | 5 +++++
@@ -9,7 +9,7 @@ Subject: [PATCH 2/7] clang: add conda specific env var CONDA_BUILD_SYSROOT
  2 files changed, 10 insertions(+), 1 deletion(-)
 
 diff --git a/clang/lib/Driver/Driver.cpp b/clang/lib/Driver/Driver.cpp
-index 3f29afd3597..5f5858e9aae 100644
+index 3f29afd35971..5f5858e9aae9 100644
 --- a/clang/lib/Driver/Driver.cpp
 +++ b/clang/lib/Driver/Driver.cpp
 @@ -1270,6 +1270,11 @@ Compilation *Driver::BuildCompilation(ArrayRef<const char *> ArgList) {
@@ -25,7 +25,7 @@ index 3f29afd3597..5f5858e9aae 100644
      SysRoot = A->getValue();
    if (const Arg *A = Args.getLastArg(options::OPT__dyld_prefix_EQ))
 diff --git a/clang/lib/Lex/InitHeaderSearch.cpp b/clang/lib/Lex/InitHeaderSearch.cpp
-index 158b5667151..a3ab5f8f18b 100644
+index 158b5667151f..a3ab5f8f18b2 100644
 --- a/clang/lib/Lex/InitHeaderSearch.cpp
 +++ b/clang/lib/Lex/InitHeaderSearch.cpp
 @@ -25,6 +25,7 @@
