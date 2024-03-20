@@ -223,9 +223,9 @@ outputs:
     script: install_libclang.sh  # [unix]
     script: install_libclang.bat  # [win]
     files:
-      - Library/bin/libclang-13.dll  # [win]
-      - lib/libclang.so.13           # [linux]
-      - lib/libclang.13.dylib        # [osx]
+      - Library/bin/libclang-{{ libclang_soversion }}.dll   # [win]
+      - lib/libclang.so.{{ libclang_soversion }}            # [linux]
+      - lib/libclang.{{ libclang_soversion }}.dylib         # [osx]
     build:
       track_features:
         - hcc          # [variant=="hcc"]
