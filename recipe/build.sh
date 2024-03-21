@@ -15,13 +15,16 @@ rm -rf llvm-project
 cd clang
 
 IFS='.' read -r -a PKG_VER_ARRAY <<< "${PKG_VERSION}"
-# default SOVER for tagged releases is just the major version
-SOVER_EXT=${VER_ARR[0]}
+# default SOVER for tagged releases is major.minor since LLVM 18
+SOVER_EXT="${PKG_VER_ARRAY[0]}.${PKG_VER_ARRAY[1]}"
 if [[ "${PKG_VERSION}" == *dev0 ]]; then
     # otherwise with git suffix
     SOVER_EXT="${SOVER_EXT}git"
 fi
 
+# link to versioned libLTO.dylib (which is present in libllvm<major> that
+# libclang<sover> depends on), as the unversioned symlink is only present
+# in llvmdev, which may not be present when using clang.
 sed -i.bak "s/libLTO.dylib/libLTO.${SOVER_EXT}.dylib/g" lib/Driver/ToolChains/Darwin.cpp
 
 if [[ "$variant" == "hcc" ]]; then

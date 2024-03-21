@@ -1,6 +1,6 @@
 {% set version = "18.1.2" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 0 %}
+{% set build_number = 1 %}
 
 # always includes minor as of v18, see https://github.com/llvm/llvm-project/issues/76273
 {% set minor_aware_ext = major_version ~ "." ~ version.split(".")[1] %}
@@ -23,17 +23,18 @@ source:
   - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/llvm-project-{{ version.replace(".rc", "rc") }}.src.tar.xz
     sha256: 51073febd91d1f2c3b411d022695744bda322647e76e0b4eb1918229210c48d5
     patches:
-      - patches/0001-Fix-sysroot-detection-for-linux.patch
-      - patches/0002-clang-add-conda-specific-env-var-CONDA_BUILD_SYSROOT.patch
-      - patches/0003-Fix-normalizeProgramName-s-handling-of-dots-outside-.patch
-      - patches/0004-Set-VERSION-in-osx-as-well.patch
-      - patches/0005-Fix-crosscompiling-LLVM-tools.patch
+      - patches/0001-Find-conda-gcc-installation.patch
+      - patches/0002-Fix-sysroot-detection-for-linux.patch
+      - patches/0003-clang-add-conda-specific-env-var-CONDA_BUILD_SYSROOT.patch
+      - patches/0004-Fix-normalizeProgramName-s-handling-of-dots-outside-.patch
+      - patches/0005-Set-VERSION-in-osx-as-well.patch
+      - patches/0006-Fix-crosscompiling-LLVM-tools.patch
       # Disable -Werror,-Wundef-prefix=TARGET_OS as they are not yet defined in the 10.9 SDK used for osx-64
       # Only enable it for TARGET_OS_OSX.
-      - patches/0006-Only-error-on-undefined-TARGET_OS_OSX.patch  # [osx and x86_64]
-      - patches/0007-set-libclang-SOVERSION-unconditionally.patch
-      - patches/0008-Make-PIE-default-on-macOS-too.patch
-      - patches/0009-Find-ROCm-device-library-in-conda-layout.patch
+      - patches/0007-Only-error-on-undefined-TARGET_OS_OSX.patch  # [osx and x86_64]
+      - patches/0008-set-libclang-SOVERSION-unconditionally.patch
+      - patches/0009-Make-PIE-default-on-macOS-too.patch
+      - patches/0010-Find-ROCm-device-library-in-conda-layout.patch
       # check out git history before LLVM 16 for these patches
       # - patches/amd-roc-2.7.0.diff   # [variant != "hcc"]
       # - patches/amd-roc-hcc-2.7.0.diff  # [variant == "hcc"]
