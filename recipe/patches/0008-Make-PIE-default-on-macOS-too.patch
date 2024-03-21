@@ -1,7 +1,7 @@
-From 8499b6deb5473e7d2f4da6bf3a4a8e4d7111069a Mon Sep 17 00:00:00 2001
+From fafe121e6f7f24cb98f777d5d46ed4a83b4b9d68 Mon Sep 17 00:00:00 2001
 From: Isuru Fernando <isuruf@gmail.com>
 Date: Thu, 28 Dec 2023 19:32:19 +0530
-Subject: [PATCH 8/8] Make PIE default on macOS too.
+Subject: [PATCH 8/9] Make PIE default on macOS too.
 
 This is the default for Linux from LLVM-15
 ---
@@ -21,6 +21,3 @@ index fb3f8f16d04f..8fecffd409e4 100644
  
  bool MachO::isPICDefaultForced() const {
    return (getArch() == llvm::Triple::x86_64 ||
--- 
-2.42.0
-
