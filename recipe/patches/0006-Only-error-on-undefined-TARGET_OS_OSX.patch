@@ -1,14 +1,14 @@
-From b086213219636f638130e31191cea639911ed07e Mon Sep 17 00:00:00 2001
+From 2558138323b45deec17ddf80c468ab9daf68529a Mon Sep 17 00:00:00 2001
 From: "Uwe L. Korn" <uwe.korn@quantco.com>
 Date: Tue, 11 May 2021 15:09:51 +0200
-Subject: [PATCH 6/7] Only error on undefined TARGET_OS_OSX
+Subject: [PATCH 6/8] Only error on undefined TARGET_OS_OSX
 
 ---
  clang/lib/Driver/ToolChains/Darwin.cpp | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/clang/lib/Driver/ToolChains/Darwin.cpp b/clang/lib/Driver/ToolChains/Darwin.cpp
-index bada811daad..c4dc8054b18 100644
+index bada811daadf..c4dc8054b181 100644
 --- a/clang/lib/Driver/ToolChains/Darwin.cpp
 +++ b/clang/lib/Driver/ToolChains/Darwin.cpp
 @@ -1092,7 +1092,7 @@ DarwinClang::DarwinClang(const Driver &D, const llvm::Triple &Triple,
