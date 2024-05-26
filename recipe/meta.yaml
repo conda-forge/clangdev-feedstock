@@ -29,12 +29,9 @@ source:
       - patches/0004-Fix-normalizeProgramName-s-handling-of-dots-outside-.patch
       - patches/0005-Set-VERSION-in-osx-as-well.patch
       - patches/0006-Fix-crosscompiling-LLVM-tools.patch
-      # Disable -Werror,-Wundef-prefix=TARGET_OS as they are not yet defined in the 10.9 SDK used for osx-64
-      # Only enable it for TARGET_OS_OSX.
-      - patches/0007-Only-error-on-undefined-TARGET_OS_OSX.patch  # [osx and x86_64]
-      - patches/0008-set-libclang-SOVERSION-unconditionally.patch
-      - patches/0009-Make-PIE-default-on-macOS-too.patch
-      - patches/0010-Find-ROCm-device-library-in-conda-layout.patch
+      - patches/0007-set-libclang-SOVERSION-unconditionally.patch
+      - patches/0008-Make-PIE-default-on-macOS-too.patch
+      - patches/0009-Find-ROCm-device-library-in-conda-layout.patch
       # check out git history before LLVM 16 for these patches
       # - patches/amd-roc-2.7.0.diff   # [variant != "hcc"]
       # - patches/amd-roc-hcc-2.7.0.diff  # [variant == "hcc"]
