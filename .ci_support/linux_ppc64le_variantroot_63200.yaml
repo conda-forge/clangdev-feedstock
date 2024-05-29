@@ -21,7 +21,7 @@ libxml2:
 target_platform:
 - linux-ppc64le
 variant:
-- default
+- root_63200
 zip_keys:
 - - c_stdlib_version
   - cdt_name

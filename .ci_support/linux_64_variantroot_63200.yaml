@@ -1,9 +1,9 @@
 c_stdlib:
 - sysroot
 c_stdlib_version:
-- '2.17'
+- '2.12'
 cdt_name:
-- cos7
+- cos6
 channel_sources:
 - conda-forge
 channel_targets:
@@ -19,9 +19,9 @@ libclang_soversion:
 libxml2:
 - '2'
 target_platform:
-- linux-ppc64le
+- linux-64
 variant:
-- default
+- root_63200
 zip_keys:
 - - c_stdlib_version
   - cdt_name
