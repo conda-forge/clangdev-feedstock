@@ -1,4 +1,4 @@
-{% set version = "18.1.6" %}
+{% set version = "18.1.7" %}
 {% set major_version = version.split(".")[0] %}
 {% set build_number = 0 %}
 
@@ -20,8 +20,8 @@ package:
   version: {{ version }}
 
 source:
-  - url: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ version.replace(".rc", "-rc") }}/llvm-project-{{ version.replace(".rc", "rc") }}.src.tar.xz
-    sha256: bd4b4cb6374bcd5fc5a3ba60cb80425d29da34f316b8821abc12c0db225cf6b4
+  - url: https://github.com/llvm/llvm-project/archive/refs/tags/llvmorg-{{ version.replace(".rc", "-rc") }}.tar.gz
+    sha256: b60df7cbe02cef2523f7357120fb0d46cbb443791cde3a5fb36b82c335c0afc9
     patches:
       - patches/0001-Find-conda-gcc-installation.patch
       - patches/0002-Fix-sysroot-detection-for-linux.patch
@@ -101,6 +101,7 @@ outputs:
         - zstd     # [unix]
     requirements:
       build:
+        - {{ stdlib('c') }}
         - {{ compiler('cxx') }}
         - cmake
         - ninja  # [win]
@@ -153,6 +154,7 @@ outputs:
         - zstd     # [unix]
     requirements:
       build:
+        - {{ stdlib('c') }}
         - {{ compiler('cxx') }}
         - cmake
         - ninja  # [win]
@@ -195,6 +197,7 @@ outputs:
         - zstd     # [unix]
     requirements:
       build:
+        - {{ stdlib('c') }}
         - {{ compiler('cxx') }}
         - cmake
         - ninja  # [win]
@@ -241,6 +244,7 @@ outputs:
         - zstd     # [unix]
     requirements:
       build:
+        - {{ stdlib('c') }}
         - {{ compiler('cxx') }}
         - cmake
         - ninja                      # [win]
@@ -305,6 +309,7 @@ outputs:
         - zstd     # [unix]
     requirements:
       build:
+        - {{ stdlib('c') }}
         - {{ compiler('cxx') }}
         - cmake
         - ninja                      # [win]
@@ -348,6 +353,7 @@ outputs:
         - zstd     # [unix]
     requirements:
       build:
+        - {{ stdlib('c') }}
         - {{ compiler('cxx') }}
         - cmake
         - ninja                              # [win]
@@ -477,6 +483,7 @@ outputs:
       build:
         # "compiling .pyc files" fails without this
         - python >3
+        - {{ stdlib('c') }}
         - {{ compiler('cxx') }}
         - cmake
         - make   # [unix]
@@ -522,6 +529,7 @@ outputs:
       build:
         # "compiling .pyc files" fails without this
         - python >3
+        - {{ stdlib('c') }}
         - {{ compiler('cxx') }}
         - cmake
         - ninja  # [win]
@@ -566,6 +574,7 @@ outputs:
       build:
         # "compiling .pyc files" fails without this
         - python >3
+        - {{ stdlib('c') }}
         - {{ compiler('cxx') }}
         - cmake
         - ninja  # [win]
