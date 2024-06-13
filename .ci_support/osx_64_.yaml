@@ -7,9 +7,9 @@ c_stdlib:
 c_stdlib_version:
 - '10.13'
 channel_sources:
-- conda-forge
+- conda-forge/label/llvm_dev,conda-forge
 channel_targets:
-- conda-forge main
+- conda-forge llvm_dev
 cxx_compiler:
 - clang_bootstrap
 cxx_compiler_version:
@@ -25,6 +25,6 @@ target_platform:
 variant:
 - default
 zlib:
-- '1.2'
+- '1'
 zstd:
 - '1.5'
