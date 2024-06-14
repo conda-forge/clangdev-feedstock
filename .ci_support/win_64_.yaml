@@ -1,9 +1,9 @@
 c_stdlib:
 - vs
 channel_sources:
-- conda-forge
+- conda-forge/label/llvm_dev,conda-forge
 channel_targets:
-- conda-forge main
+- conda-forge llvm_dev
 cxx_compiler:
 - vs2019
 libclang_soversion:
@@ -15,6 +15,6 @@ target_platform:
 variant:
 - default
 zlib:
-- '1.2'
+- '1'
 zstd:
 - '1.5'

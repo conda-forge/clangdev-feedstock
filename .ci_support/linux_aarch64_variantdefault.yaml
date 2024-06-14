@@ -9,9 +9,9 @@ cdt_arch:
 cdt_name:
 - cos7
 channel_sources:
-- conda-forge
+- conda-forge/label/llvm_dev,conda-forge
 channel_targets:
-- conda-forge main
+- conda-forge llvm_dev
 cxx_compiler:
 - gxx
 cxx_compiler_version:
@@ -30,6 +30,6 @@ zip_keys:
 - - c_stdlib_version
   - cdt_name
 zlib:
-- '1.2'
+- '1'
 zstd:
 - '1.5'

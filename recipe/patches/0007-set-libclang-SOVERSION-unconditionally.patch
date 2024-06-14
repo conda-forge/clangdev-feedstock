@@ -1,4 +1,4 @@
-From c20486aa9cde575aba207a20bc4cea402f783132 Mon Sep 17 00:00:00 2001
+From 9296bd7686e2d80f146fd4c53a78bd8b78b40a8a Mon Sep 17 00:00:00 2001
 From: "H. Vetinari" <h.vetinari@gmx.com>
 Date: Thu, 14 Apr 2022 11:57:00 +1100
 Subject: [PATCH 7/9] set libclang SOVERSION unconditionally
@@ -9,7 +9,7 @@ and avoid creating libclang with full version suffix
  1 file changed, 10 insertions(+), 6 deletions(-)
 
 diff --git a/clang/tools/libclang/CMakeLists.txt b/clang/tools/libclang/CMakeLists.txt
-index 3faabda0ea2a..53924bd65579 100644
+index 4c2c4f7d0afd..5d07d4b72fcc 100644
 --- a/clang/tools/libclang/CMakeLists.txt
 +++ b/clang/tools/libclang/CMakeLists.txt
 @@ -9,10 +9,7 @@

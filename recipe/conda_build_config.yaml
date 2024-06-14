@@ -12,3 +12,8 @@ libclang_soversion:
 variant:
   - default
   - hcc   # [linux]
+
+channel_targets:
+  - conda-forge llvm_dev
+channel_sources:
+  - conda-forge/label/llvm_dev,conda-forge
