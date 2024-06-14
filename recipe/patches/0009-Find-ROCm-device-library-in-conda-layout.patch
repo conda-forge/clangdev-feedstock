@@ -1,4 +1,4 @@
-From 281cfde2713a5f2ba2d38e8479a0ab9e745cb581 Mon Sep 17 00:00:00 2001
+From eb38584b01ee1023a8f8183781528268d4740b47 Mon Sep 17 00:00:00 2001
 From: Isuru Fernando <isuruf@gmail.com>
 Date: Mon, 11 Mar 2024 14:03:12 -0500
 Subject: [PATCH 9/9] Find ROCm device library in conda layout
@@ -8,7 +8,7 @@ Subject: [PATCH 9/9] Find ROCm device library in conda layout
  1 file changed, 19 insertions(+)
 
 diff --git a/clang/lib/Driver/ToolChains/AMDGPU.cpp b/clang/lib/Driver/ToolChains/AMDGPU.cpp
-index 20f879e2f75c..5020315c5f58 100644
+index 20f879e2f75c..60246cf2dc82 100644
 --- a/clang/lib/Driver/ToolChains/AMDGPU.cpp
 +++ b/clang/lib/Driver/ToolChains/AMDGPU.cpp
 @@ -432,6 +432,25 @@ void RocmInstallationDetector::detectDeviceLibrary() {
@@ -16,7 +16,7 @@ index 20f879e2f75c..5020315c5f58 100644
      return;
  
 +  // Find device libraries in <LLVM_DIR>/lib/amdgcn/bitcode
-+  LibDevicePath = D.getInstalledDir();;
++  LibDevicePath = D.Dir;
 +  llvm::sys::path::append(LibDevicePath, CLANG_INSTALL_LIBDIR_BASENAME,
 +                          "amdgcn", "bitcode");
 +  HasDeviceLibrary = CheckDeviceLib(LibDevicePath, true);
