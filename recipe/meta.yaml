@@ -35,9 +35,6 @@ source:
       - patches/0008-Make-PIE-default-on-macOS-too.patch
       - patches/0009-Find-ROCm-device-library-in-conda-layout.patch
       - patches/0010-Find-conda-gcc-installation.patch
-      # check out git history before LLVM 16 for these patches
-      # - patches/amd-roc-2.7.0.diff   # [variant != "hcc"]
-      # - patches/amd-roc-hcc-2.7.0.diff  # [variant == "hcc"]
     # name folder for easier deletion; we do the equivalent of downloading
     # the subproject sources, so the work folder then has clang in it;
     # for details see build scripts
@@ -45,7 +42,6 @@ source:
 
 build:
   number: {{ build_number }}
-  skip: true  # [variant == "hcc"]
 
 requirements:
   build:
@@ -94,7 +90,6 @@ outputs:
     script: install_clangdev.bat  # [win]
     build:
       track_features:
-        - hcc          # [variant=="hcc"]
         - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       ignore_run_exports_from:
@@ -145,7 +140,6 @@ outputs:
     build:
       skip: true  # [win]
       track_features:
-        - hcc          # [variant=="hcc"]
         - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:
@@ -183,12 +177,11 @@ outputs:
   - name: libclang-cpp
     # note that this is just an empty wrapper on windows
     script: install_libclang_cpp.sh  # [unix]
-    files:   # [unix]
+    files:                      # [unix]
       - lib/libclang-cpp.so     # [linux]
       - lib/libclang-cpp.dylib  # [osx]
     build:
       track_features:
-        - hcc          # [variant=="hcc"]
         - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:   # [unix]
@@ -233,7 +226,6 @@ outputs:
       - lib/libclang.13.dylib        # [osx]
     build:
       track_features:
-        - hcc          # [variant=="hcc"]
         - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:
@@ -298,7 +290,6 @@ outputs:
       - lib/libclang.dylib        # [osx]
     build:
       track_features:
-        - hcc          # [variant=="hcc"]
         - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:
@@ -347,7 +338,7 @@ outputs:
       - Library/bin/clang-{{ major_version }}.exe  # [win]
     build:
       track_features:
-        - hcc          # [variant=="hcc"]
+        - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
@@ -401,7 +392,6 @@ outputs:
     script: install_clang_symlinks.bat  # [win]
     build:
       track_features:
-        - hcc          # [variant=="hcc"]
         - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       ignore_run_exports_from:
@@ -441,7 +431,6 @@ outputs:
     script: install_clangxx.bat  # [win]
     build:
       track_features:
-        - hcc          # [variant=="hcc"]
         - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       ignore_run_exports_from:
@@ -483,7 +472,6 @@ outputs:
       - bin/clang-format-{{ major_version }}                # [unix]
     build:
       track_features:
-        - hcc          # [variant=="hcc"]
         - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       # for windows, use the clang-format package.
@@ -531,7 +519,6 @@ outputs:
       - Library/bin/clang-format.exe   # [win]
     build:
       track_features:
-        - hcc          # [variant=="hcc"]
         - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       ignore_run_exports_from:
@@ -577,7 +564,6 @@ outputs:
     script: install_clang_tools.bat  # [win]
     build:
       track_features:
-        - hcc          # [variant=="hcc"]
         - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       ignore_run_exports_from:
