@@ -1,0 +1,250 @@
+From 38186de41db0faa3a3bc4f79d79d864df366da52 Mon Sep 17 00:00:00 2001
+From: Corentin Jabot <corentinjabot@gmail.com>
+Date: Fri, 17 Feb 2023 19:45:30 +0100
+Subject: [PATCH 02/66] UPSTREAM: [Clang] Implement CWG2518 -
+ static_assert(false)
+
+This allows `static_assert(false)` to not be ill-formed
+in template definitions.
+
+This change is applied as a DR in all C++ modes.
+
+Of notes, a couple of tests were relying of the eager nature
+of static_assert
+
+* test/SemaTemplate/instantiation-dependence.cpp
+* test/SemaTemplate/instantiate-var-template.cpp
+
+I don't know if the changes to `static_assert`
+still allow that sort of tests to be expressed.
+
+Reviewed By: #clang-language-wg, erichkeane, aaron.ballman
+
+Differential Revision: https://reviews.llvm.org/D144285
+
+(cherry picked from commit 00e2098bf49f0ed45b3b8c22894cd3ac9a530e0f)
+---
+ clang/docs/ReleaseNotes.rst                   |  2 ++
+ clang/lib/Sema/SemaDeclCXX.cpp                | 12 +++++--
+ clang/test/CXX/drs/dr25xx.cpp                 | 34 +++++++++++++++++++
+ clang/test/SemaCXX/access-base-class.cpp      |  8 ++---
+ clang/test/SemaCXX/coroutines.cpp             |  2 +-
+ clang/test/SemaCXX/static-assert.cpp          | 23 +++++++++++--
+ .../SemaTemplate/instantiate-var-template.cpp |  3 +-
+ .../SemaTemplate/instantiation-dependence.cpp |  4 +--
+ clang/www/cxx_dr_status.html                  |  2 +-
+ 9 files changed, 76 insertions(+), 14 deletions(-)
+
+diff --git a/clang/docs/ReleaseNotes.rst b/clang/docs/ReleaseNotes.rst
+index 8d67ff904469..ebedc6b21ed7 100644
+--- a/clang/docs/ReleaseNotes.rst
++++ b/clang/docs/ReleaseNotes.rst
+@@ -223,6 +223,8 @@ sections with improvements to Clang's support for those languages.
+ 
+ C++ Language Changes
+ --------------------
++- Implemented `CWG2518 <https://wg21.link/CWG2518>`_ which allows ``static_assert(false)``
++  to not be ill-formed when its condition is evaluated in the context of a template definition.
+ 
+ C++20 Feature Support
+ ^^^^^^^^^^^^^^^^^^^^^
+diff --git a/clang/lib/Sema/SemaDeclCXX.cpp b/clang/lib/Sema/SemaDeclCXX.cpp
+index df83442a8cd1..b8f95a05bb76 100644
+--- a/clang/lib/Sema/SemaDeclCXX.cpp
++++ b/clang/lib/Sema/SemaDeclCXX.cpp
+@@ -16799,7 +16799,14 @@ Decl *Sema::BuildStaticAssertDeclaration(SourceLocation StaticAssertLoc,
+                        FoldKind).isInvalid())
+       Failed = true;
+ 
+-    if (!Failed && !Cond) {
++    // CWG2518
++    // [dcl.pre]/p10  If [...] the expression is evaluated in the context of a
++    // template definition, the declaration has no effect.
++    bool InTemplateDefinition =
++        getLangOpts().CPlusPlus && CurContext->isDependentContext();
++
++    if (!Failed && !Cond && !InTemplateDefinition) {
++
+       SmallString<256> MsgBuffer;
+       llvm::raw_svector_ostream Msg(MsgBuffer);
+       if (AssertMessage) {
+@@ -16830,7 +16837,8 @@ Decl *Sema::BuildStaticAssertDeclaration(SourceLocation StaticAssertLoc,
+         DiagnoseStaticAssertDetails(InnerCond);
+       } else {
+         Diag(StaticAssertLoc, diag::err_static_assert_failed)
+-          << !AssertMessage << Msg.str() << AssertExpr->getSourceRange();
++            << !AssertMessage << Msg.str() << AssertExpr->getSourceRange();
++        PrintContextStack();
+       }
+       Failed = true;
+     }
+diff --git a/clang/test/CXX/drs/dr25xx.cpp b/clang/test/CXX/drs/dr25xx.cpp
+index ee68b4ad45d1..c4f7d3ebde41 100644
+--- a/clang/test/CXX/drs/dr25xx.cpp
++++ b/clang/test/CXX/drs/dr25xx.cpp
+@@ -1,5 +1,39 @@
+ // RUN: %clang_cc1 -std=c++20 -triple x86_64-unknown-unknown %s -verify
+ 
++namespace dr2518 { // dr2518: 17 review
++
++template <class T>
++void f(T t) {
++  if constexpr (sizeof(T) != sizeof(int)) {
++    static_assert(false, "must be int-sized"); // expected-error {{must be int-size}}
++  }
++}
++
++void g(char c) {
++  f(0);
++  f(c); // expected-note {{requested here}}
++}
++
++template <typename Ty>
++struct S {
++  static_assert(false); // expected-error {{static assertion failed}}
++};
++
++template <>
++struct S<int> {};
++
++template <>
++struct S<float> {};
++
++int test_specialization() {
++  S<int> s1;
++  S<float> s2;
++  S<double> s3; // expected-note {{in instantiation of template class 'dr2518::S<double>' requested here}}
++}
++
++}
++
++
+ namespace dr2565 { // dr2565: 16 open
+   template<typename T>
+     concept C = requires (typename T::type x) {
+diff --git a/clang/test/SemaCXX/access-base-class.cpp b/clang/test/SemaCXX/access-base-class.cpp
+index 2b16d3fdda56..47d0f02ec545 100644
+--- a/clang/test/SemaCXX/access-base-class.cpp
++++ b/clang/test/SemaCXX/access-base-class.cpp
+@@ -96,14 +96,14 @@ struct flag {
+ };
+ 
+ template <class T>
+-struct trait : flag<sizeof(T)> {};
++struct trait : flag<sizeof(T)> {}; // expected-note 2{{here}}
+ 
+-template <class T, bool Inferred = trait<T>::value>
++template <class T, bool Inferred = trait<T>::value> // expected-note {{here}}
+ struct a {};
+ 
+ template <class T>
+ class b {
+-  a<T> x;
++  a<T> x; // expected-note {{here}}
+   using U = a<T>;
+ };
+ 
+@@ -113,5 +113,5 @@ struct Impossible {
+ };
+ 
+ // verify "no member named 'value'" bogus diagnostic is not emitted.
+-trait<b<Impossible<0>>>::value;
++trait<b<Impossible<0>>>::value; // expected-note {{here}}
+ } // namespace T8
+diff --git a/clang/test/SemaCXX/coroutines.cpp b/clang/test/SemaCXX/coroutines.cpp
+index 3f779dd913f8..e480c0d34593 100644
+--- a/clang/test/SemaCXX/coroutines.cpp
++++ b/clang/test/SemaCXX/coroutines.cpp
+@@ -1309,7 +1309,7 @@ struct DepTestType {
+   }
+ };
+ 
+-template struct DepTestType<int>; // expected-note {{requested here}}
++template struct DepTestType<int>; // expected-note 2{{requested here}}
+ template CoroMemberTag DepTestType<int>::test_member_template(long, const char *) const &&;
+ 
+ template CoroMemberTag DepTestType<int>::test_static_template<void>(const char *volatile &, unsigned);
+diff --git a/clang/test/SemaCXX/static-assert.cpp b/clang/test/SemaCXX/static-assert.cpp
+index ed2389f4eb10..97a3aaec0a08 100644
+--- a/clang/test/SemaCXX/static-assert.cpp
++++ b/clang/test/SemaCXX/static-assert.cpp
+@@ -52,9 +52,11 @@ static_assert(false, "🏳️‍🌈 🏴󠁧󠁢󠁥󠁮󠁧󠁿 🇪🇺"); //
+ 
+ template<typename T> struct AlwaysFails {
+   // Only give one error here.
+-  static_assert(false, ""); // expected-error {{static assertion failed}}
++  static_assert(false, ""); // expected-error 2{{static assertion failed}}
+ };
+-AlwaysFails<int> alwaysFails;
++AlwaysFails<int> alwaysFails; // expected-note {{instantiation}}
++AlwaysFails<double> alwaysFails2; // expected-note {{instantiation}}
++
+ 
+ template<typename T> struct StaticAssertProtected {
+   static_assert(__is_literal(T), ""); // expected-error {{static assertion failed}}
+@@ -217,6 +219,23 @@ static_assert(constexprNotBool, "message"); // expected-error {{value of type 'c
+ 
+ static_assert(1 , "") // expected-error {{expected ';' after 'static_assert'}}
+ 
++namespace DependentAlwaysFalse {
++template <typename Ty>
++struct S {
++  static_assert(false); // expected-error{{static assertion failed}} \
++                        // expected-warning {{C++17 extension}}
++};
++
++template <typename Ty>
++struct T {
++  static_assert(false, "test"); // expected-error{{static assertion failed: test}}
++};
++
++int f() {
++  S<double> s; //expected-note {{in instantiation of template class 'DependentAlwaysFalse::S<double>' requested here}}
++  T<double> t; //expected-note {{in instantiation of template class 'DependentAlwaysFalse::T<double>' requested here}}
++}
++}
+ 
+ namespace Diagnostics {
+   /// No notes for literals.
+diff --git a/clang/test/SemaTemplate/instantiate-var-template.cpp b/clang/test/SemaTemplate/instantiate-var-template.cpp
+index 349a80bdd0dc..60d3bd3b59f5 100644
+--- a/clang/test/SemaTemplate/instantiate-var-template.cpp
++++ b/clang/test/SemaTemplate/instantiate-var-template.cpp
+@@ -31,8 +31,7 @@ namespace InstantiationDependent {
+   static_assert(b<char> == 1, ""); // expected-note {{in instantiation of}}
+ 
+   template<typename T> void f() {
+-    static_assert(a<sizeof(sizeof(f(T())))> == 0, ""); // expected-error {{static assertion failed due to requirement 'a<sizeof (sizeof (f(type-parameter-0-0())))> == 0'}} \
+-                                                       // expected-note {{evaluates to '1 == 0'}}
++    int check[a<sizeof(sizeof(f(T())))> == 0 ? 1 : -1]; // expected-error {{array with a negative size}}
+   }
+ }
+ 
+diff --git a/clang/test/SemaTemplate/instantiation-dependence.cpp b/clang/test/SemaTemplate/instantiation-dependence.cpp
+index 8ef18e8e0559..82665b26b122 100644
+--- a/clang/test/SemaTemplate/instantiation-dependence.cpp
++++ b/clang/test/SemaTemplate/instantiation-dependence.cpp
+@@ -37,8 +37,8 @@ namespace PR33655 {
+   template<class ...Args> using indirect_void_t = typename indirect_void_t_imp<Args...>::type;
+ 
+   template<class T> void foo() {
+-    static_assert(!__is_void(indirect_void_t<T>)); // "ok", dependent
+-    static_assert(!__is_void(void_t<T>)); // expected-error {{failed}}
++    int check1[__is_void(indirect_void_t<T>) == 0 ? 1 : -1]; // "ok", dependent
++    int check2[__is_void(void_t<T>) == 0 ? 1 : -1]; // expected-error {{array with a negative size}}
+   }
+ }
+ 
+diff --git a/clang/www/cxx_dr_status.html b/clang/www/cxx_dr_status.html
+index 0c621a789434..acd77bd99b5a 100755
+--- a/clang/www/cxx_dr_status.html
++++ b/clang/www/cxx_dr_status.html
+@@ -14915,7 +14915,7 @@ and <I>POD class</I></td>
+     <td><a href="https://wg21.link/cwg2518">2518</a></td>
+     <td>review</td>
+     <td>Conformance requirements and <TT>#error</TT>/<TT>#warning</TT></td>
+-    <td align="center">Not resolved</td>
++    <td class="unreleased" align="center">Clang 17</td>
+   </tr>
+   <tr class="open" id="2519">
+     <td><a href="https://wg21.link/cwg2519">2519</a></td>
