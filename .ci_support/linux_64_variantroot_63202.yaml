@@ -21,11 +21,11 @@ libxml2:
 target_platform:
 - linux-64
 variant:
-- root_63200
+- root_63202
 zip_keys:
 - - c_stdlib_version
   - cdt_name
 zlib:
-- '1.2'
+- '1'
 zstd:
 - '1.5'

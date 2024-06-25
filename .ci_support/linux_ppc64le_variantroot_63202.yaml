@@ -1,11 +1,7 @@
-BUILD:
-- aarch64-conda_cos7-linux-gnu
 c_stdlib:
 - sysroot
 c_stdlib_version:
 - '2.17'
-cdt_arch:
-- aarch64
 cdt_name:
 - cos7
 channel_sources:
@@ -23,13 +19,13 @@ libclang_soversion:
 libxml2:
 - '2'
 target_platform:
-- linux-aarch64
+- linux-ppc64le
 variant:
-- root_63200
+- root_63202
 zip_keys:
 - - c_stdlib_version
   - cdt_name
 zlib:
-- '1.2'
+- '1'
 zstd:
 - '1.5'
