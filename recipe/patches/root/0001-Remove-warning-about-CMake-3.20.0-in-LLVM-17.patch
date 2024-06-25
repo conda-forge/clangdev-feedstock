@@ -1,7 +1,7 @@
 From 5ab940de1792ce9317d93378c88bea7969517f82 Mon Sep 17 00:00:00 2001
 From: Jonas Hahnfeld <jonas.hahnfeld@cern.ch>
 Date: Fri, 28 Jul 2023 16:15:45 +0200
-Subject: [PATCH 01/65] Remove warning about CMake 3.20.0 in LLVM 17
+Subject: [PATCH 01/66] Remove warning about CMake 3.20.0 in LLVM 17
 
 ---
  clang/CMakeLists.txt | 7 -------
