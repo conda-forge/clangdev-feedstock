@@ -47,8 +47,6 @@ requirements:
     - cmake
     - ninja  # [win]
     - make   # [unix]
-    # Needed to unpack the source tarball
-    - m2w64-xz  # [win]
     # "compiling .pyc files" fails without this
     - python >3
     - llvmdev =={{ version }}    # [build_platform != target_platform]
