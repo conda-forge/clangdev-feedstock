@@ -65,26 +65,6 @@ requirements:
     - zlib
     - zstd
 
-test:
-  requires:
-    - {{ compiler('cxx') }}
-    - cmake
-  files:
-    - mytest.c
-  commands:
-    - $PREFIX/bin/clang --version        # [unix]
-    - $PREFIX/bin/clang++ --version      # [unix]
-    - $PREFIX/bin/clang-check --version  # [unix]
-
-    - $PREFIX/bin/clang -v -c mytest.c      # [unix]
-    - '%LIBRARY_BIN%/clang -v -c mytest.c'  # [win]
-
-    - test -f $PREFIX/lib/libclangBasic.a                   # [unix]
-
-    - if not exist %LIBRARY_INC%\clang\Lex\Lexer.h exit 1   # [win]
-    - test -f $PREFIX/include/clang/Lex/Lexer.h             # [unix]
-
-
 outputs:
   - name: clangdev
     script: install_clangdev.sh  # [unix]
@@ -127,14 +107,32 @@ outputs:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
         - llvmdev =={{ version }}
     test:
+      requires:
+        - {{ compiler('cxx') }}
+        - cmake
+      files:
+        - mytest.c
       commands:
         # static library
         - test -f $PREFIX/lib/libclangAST.a                         # [unix]
+        - test -f $PREFIX/lib/libclangBasic.a                       # [unix]
         - if not exist %LIBRARY_LIB%\clangAST.lib exit 1            # [win]
+        - if not exist %LIBRARY_LIB%\clangBasic.lib exit 1          # [win]
 
         # headers
         - test -f $PREFIX/include/clang/Config/config.h             # [unix]
+        - test -f $PREFIX/include/clang/Lex/Lexer.h                 # [unix]
         - if not exist %LIBRARY_INC%\clang\Config\config.h exit 1   # [win]
+        - if not exist %LIBRARY_INC%\clang\Lex\Lexer.h exit 1       # [win]
+
+        # symlinks
+        - $PREFIX/bin/clang --version           # [unix]
+        - $PREFIX/bin/clang++ --version         # [unix]
+        - $PREFIX/bin/clang-check --version     # [unix]
+
+        # basic compilation
+        - $PREFIX/bin/clang -v -c mytest.c      # [unix]
+        - '%LIBRARY_BIN%/clang -v -c mytest.c'  # [win]
 
   - name: libclang-cpp{{ minor_aware_ext }}
     script: install_libclang_cpp.sh  # [unix]
