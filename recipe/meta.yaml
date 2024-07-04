@@ -1,6 +1,6 @@
 {% set version = "16.0.6" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 8 %}
+{% set build_number = 9 %}
 
 {% set minor_aware_ext = major_version %}
 {% if version.split(".")[1] | int > 0 %}
@@ -33,72 +33,75 @@ source:
       # check out git history before LLVM 16 for these patches
       # - patches/amd-roc-2.7.0.diff   # [variant != "hcc"]
       # - patches/amd-roc-hcc-2.7.0.diff  # [variant == "hcc"]
+{% if variant and variant.startswith("root_") %}
       # ROOT patches to clang 16
-      - patches/root/0001-Remove-warning-about-CMake-3.20.0-in-LLVM-17.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0002-UPSTREAM-clang-repl-Correctly-disambiguate-dtor-decl.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0003-UPSTREAM-clang-repl-Do-not-assert-if-we-have-weak-re.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0004-UPSTREAM-clang-repl-Consider-the-scope-spec-in-templ.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0005-UPSTREAM-clang-modules-Add-features-for-recent-C-ver.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0006-UPSTREAM-Commit-to-a-primary-definition-for-a-class-.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0007-UPSTREAM-clang-repl-Disambiguate-global-namespace-id.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0008-UPSTREAM-CodeGen-Clean-up-access-to-EmittedDeferredD.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0009-UPSTREAM-CodeGen-Keep-track-of-eagerly-emitted-globa.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0010-UPSTREAM-clang-repl-Disambiguate-declarations-with-p.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0011-UPSTREAM-clang-repl-Emit-const-variables-only-once.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0012-UPSTREAM-clang-Sema-Always-clear-UndefinedButUsed.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0013-UPSTREAM-Fix-crash-with-modules-and-constexpr-destru.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0014-Temporary-parsers-should-not-manipulate-global-parse.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0015-Only-reset-extra-parsers-if-not-temporary.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0016-Let-autoload-act-on-fwd-declares.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0017-Remove-macro-and-print-macro.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0018-Find-an-easier-way-of-accessing-CodeGenModule-intern.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0019-From-Vassil-add-debug-printout-of-ModuleBuilder-data.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0020-Cleanup-cached-constant-.str-from-codegen.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0021-Implement-FileManager-uncaching.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0022-Mark-the-file-entry-invalid-until-reread.-Invalidate.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0023-In-cases-of-nested-parsing-at-execution-time-sometim.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0024-Access-sema-internals-and-revert-the-list-of-unused-.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0025-Make-sure-the-inode-did-not-get-updated-since-we-rea.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0026-More-RAIIs-for-autoloading.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0027-Use-raw-string-literals-to-correctly-stringify-and-i.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0028-Accessor-to-is-file-opened-this-is-crucial-info-for-.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0029-Buffer-the-pending-instantiations-in-case-or-recursi.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0030-Also-store-Parser-paren-numbers-likely-fixes-ROOT-69.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0031-Provide-possibly-updated-CodegenOpts-to-StartModule.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0032-Clear-pending-decls-from-Builder-in-case-of-errors-R.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0033-Fix-ROOT-7775-by-making-all-static-init-function-nam.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0034-Do-not-load-the-source-file-just-to-get-an-irrelevan.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0035-Do-not-collect-DeleteExprs-over-incremental-end-of-T.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0036-Keep-into-account-if-files-were-virtual.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0037-cxxmodules-Don-t-complain-when-modulemap-for-implici.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0038-Implement-a-module-attribute-optional-to-allow-missi.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0039-survive-Inon-accessible-directory.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0040-D154328-AST-Add-API-to-iterate-already-loaded-specia.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0041-Add-method-to-forget-generated-declarations.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0042-cxxmodules-Don-t-complain-when-modulemap-for-implici.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0043-D41416-modules-pch-Do-not-deserialize-all-lazy-templ.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0044-cxxmodules-Do-not-cache-the-file-lookup-failure.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0045-Improve-ROOT-startup-time-by-not-merging-identifier-.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0046-Before-generating-a-template-instantiation-check-if-.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0047-Duplicate-declarations-of-template-default-argument-.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0048-Implement-implicit-auto-keyword-injection-in-clang-i.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0049-Update-the-DeclContext-used-for-lookup-to-point-to-t.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0050-Expose-all-files-included-in-PCH-PCM-to-FileManager.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0051-Disable-diags-of-dupe-default-args-func-templt-tempo.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0052-Do-not-unload-enum-fwd-decl-but-silence-redecl-diag-.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0053-Do-not-read-the-source-file-to-emit-annotations.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0054-Do-not-read-the-file-to-determine-its-name.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0055-Store-token-literal-data-in-PCH.-Avoids-disk-read-on.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0056-Add-RAII-to-buffer-delayed-infos-for-recursive-parsi.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0057-Improve-int-literal-printing-for-template-args.-To-b.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0058-Fix-fwddecls-of-templates-with-tmplt-arg-defauls-com.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0059-D39714-cxxmodules-Refactor-generation-counter-in-LLV.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0060-Add-support-for-DiagnosticEngine-state-change-within.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0061-Allow-cling-as-ASTSource-to-complete-tmplt-spec.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0062-Disable-validation-of-transent-files.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0063-Import-various-changes-to-the-global-module-index.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0064-Do-not-install-Clang-Cling-Config.cmake-in-the-proje.patch  # [variant and variant.startswith("root_")]
-      - patches/root/0065-UPSTREAM-Introduce-paged-vector.patch  # [variant and variant.startswith("root_")]
+      - patches/root/0001-Remove-warning-about-CMake-3.20.0-in-LLVM-17.patch
+      - patches/root/0002-UPSTREAM-Clang-Implement-CWG2518-static_assert-false.patch
+      - patches/root/0003-UPSTREAM-clang-repl-Correctly-disambiguate-dtor-decl.patch
+      - patches/root/0004-UPSTREAM-clang-repl-Do-not-assert-if-we-have-weak-re.patch
+      - patches/root/0005-UPSTREAM-clang-repl-Consider-the-scope-spec-in-templ.patch
+      - patches/root/0006-UPSTREAM-clang-modules-Add-features-for-recent-C-ver.patch
+      - patches/root/0007-UPSTREAM-Commit-to-a-primary-definition-for-a-class-.patch
+      - patches/root/0008-UPSTREAM-clang-repl-Disambiguate-global-namespace-id.patch
+      - patches/root/0009-UPSTREAM-CodeGen-Clean-up-access-to-EmittedDeferredD.patch
+      - patches/root/0010-UPSTREAM-CodeGen-Keep-track-of-eagerly-emitted-globa.patch
+      - patches/root/0011-UPSTREAM-clang-repl-Disambiguate-declarations-with-p.patch
+      - patches/root/0012-UPSTREAM-clang-repl-Emit-const-variables-only-once.patch
+      - patches/root/0013-UPSTREAM-clang-Sema-Always-clear-UndefinedButUsed.patch
+      - patches/root/0014-UPSTREAM-Fix-crash-with-modules-and-constexpr-destru.patch
+      - patches/root/0015-Temporary-parsers-should-not-manipulate-global-parse.patch
+      - patches/root/0016-Only-reset-extra-parsers-if-not-temporary.patch
+      - patches/root/0017-Let-autoload-act-on-fwd-declares.patch
+      - patches/root/0018-Remove-macro-and-print-macro.patch
+      - patches/root/0019-Find-an-easier-way-of-accessing-CodeGenModule-intern.patch
+      - patches/root/0020-From-Vassil-add-debug-printout-of-ModuleBuilder-data.patch
+      - patches/root/0021-Cleanup-cached-constant-.str-from-codegen.patch
+      - patches/root/0022-Implement-FileManager-uncaching.patch
+      - patches/root/0023-Mark-the-file-entry-invalid-until-reread.-Invalidate.patch
+      - patches/root/0024-In-cases-of-nested-parsing-at-execution-time-sometim.patch
+      - patches/root/0025-Access-sema-internals-and-revert-the-list-of-unused-.patch
+      - patches/root/0026-Make-sure-the-inode-did-not-get-updated-since-we-rea.patch
+      - patches/root/0027-More-RAIIs-for-autoloading.patch
+      - patches/root/0028-Use-raw-string-literals-to-correctly-stringify-and-i.patch
+      - patches/root/0029-Accessor-to-is-file-opened-this-is-crucial-info-for-.patch
+      - patches/root/0030-Buffer-the-pending-instantiations-in-case-or-recursi.patch
+      - patches/root/0031-Also-store-Parser-paren-numbers-likely-fixes-ROOT-69.patch
+      - patches/root/0032-Provide-possibly-updated-CodegenOpts-to-StartModule.patch
+      - patches/root/0033-Clear-pending-decls-from-Builder-in-case-of-errors-R.patch
+      - patches/root/0034-Fix-ROOT-7775-by-making-all-static-init-function-nam.patch
+      - patches/root/0035-Do-not-load-the-source-file-just-to-get-an-irrelevan.patch
+      - patches/root/0036-Do-not-collect-DeleteExprs-over-incremental-end-of-T.patch
+      - patches/root/0037-Keep-into-account-if-files-were-virtual.patch
+      - patches/root/0038-cxxmodules-Don-t-complain-when-modulemap-for-implici.patch
+      - patches/root/0039-Implement-a-module-attribute-optional-to-allow-missi.patch
+      - patches/root/0040-survive-Inon-accessible-directory.patch
+      - patches/root/0041-D154328-AST-Add-API-to-iterate-already-loaded-specia.patch
+      - patches/root/0042-Add-method-to-forget-generated-declarations.patch
+      - patches/root/0043-cxxmodules-Don-t-complain-when-modulemap-for-implici.patch
+      - patches/root/0044-D41416-modules-pch-Do-not-deserialize-all-lazy-templ.patch
+      - patches/root/0045-cxxmodules-Do-not-cache-the-file-lookup-failure.patch
+      - patches/root/0046-Improve-ROOT-startup-time-by-not-merging-identifier-.patch
+      - patches/root/0047-Before-generating-a-template-instantiation-check-if-.patch
+      - patches/root/0048-Duplicate-declarations-of-template-default-argument-.patch
+      - patches/root/0049-Implement-implicit-auto-keyword-injection-in-clang-i.patch
+      - patches/root/0050-Update-the-DeclContext-used-for-lookup-to-point-to-t.patch
+      - patches/root/0051-Expose-all-files-included-in-PCH-PCM-to-FileManager.patch
+      - patches/root/0052-Disable-diags-of-dupe-default-args-func-templt-tempo.patch
+      - patches/root/0053-Do-not-unload-enum-fwd-decl-but-silence-redecl-diag-.patch
+      - patches/root/0054-Do-not-read-the-source-file-to-emit-annotations.patch
+      - patches/root/0055-Do-not-read-the-file-to-determine-its-name.patch
+      - patches/root/0056-Store-token-literal-data-in-PCH.-Avoids-disk-read-on.patch
+      - patches/root/0057-Add-RAII-to-buffer-delayed-infos-for-recursive-parsi.patch
+      - patches/root/0058-Improve-int-literal-printing-for-template-args.-To-b.patch
+      - patches/root/0059-Fix-fwddecls-of-templates-with-tmplt-arg-defauls-com.patch
+      - patches/root/0060-D39714-cxxmodules-Refactor-generation-counter-in-LLV.patch
+      - patches/root/0061-Add-support-for-DiagnosticEngine-state-change-within.patch
+      - patches/root/0062-Allow-cling-as-ASTSource-to-complete-tmplt-spec.patch
+      - patches/root/0063-Disable-validation-of-transent-files.patch
+      - patches/root/0064-Import-various-changes-to-the-global-module-index.patch
+      - patches/root/0065-Do-not-install-Clang-Cling-Config.cmake-in-the-proje.patch
+      - patches/root/0066-UPSTREAM-Introduce-paged-vector.patch
+{% endif %}
     # name folder for easier deletion; we do the equivalent of downloading
     # the subproject sources, so the work folder then has clang in it;
     # for details see build scripts
