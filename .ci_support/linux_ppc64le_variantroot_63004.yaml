@@ -15,4 +15,4 @@ target_platform:
 variant:
 - root_63004
 zlib:
-- '1.2'
+- '1'
