@@ -1,17 +1,17 @@
-From cb71f0cbf7a7b92cdec94b0945c779482ecbb967 Mon Sep 17 00:00:00 2001
+From 7b989d9d97b777e6edc4a2c46da80a56d7c03be9 Mon Sep 17 00:00:00 2001
 From: "Uwe L. Korn" <uwe.korn@quantco.com>
 Date: Tue, 11 May 2021 15:09:51 +0200
-Subject: [PATCH 07/10] Only error on undefined TARGET_OS_OSX
+Subject: [PATCH 7/9] Only error on undefined TARGET_OS_OSX
 
 ---
  clang/lib/Driver/ToolChains/Darwin.cpp | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/clang/lib/Driver/ToolChains/Darwin.cpp b/clang/lib/Driver/ToolChains/Darwin.cpp
-index 261f522f6c49..cf28bf94dc72 100644
+index 901f5262ed82..b0fe8d3e5292 100644
 --- a/clang/lib/Driver/ToolChains/Darwin.cpp
 +++ b/clang/lib/Driver/ToolChains/Darwin.cpp
-@@ -992,7 +992,7 @@ DarwinClang::DarwinClang(const Driver &D, const llvm::Triple &Triple,
+@@ -1004,7 +1004,7 @@ DarwinClang::DarwinClang(const Driver &D, const llvm::Triple &Triple,
  
  void DarwinClang::addClangWarningOptions(ArgStringList &CC1Args) const {
    // Always error about undefined 'TARGET_OS_*' macros.

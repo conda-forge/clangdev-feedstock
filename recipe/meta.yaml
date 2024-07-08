@@ -1,6 +1,6 @@
 {% set version = "13.0.1" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 10 %}
+{% set build_number = 11 %}
 
 {% set minor_aware_ext = major_version %}
 {% set minor_int = version.split(".")[1] | int %}
@@ -32,10 +32,9 @@ source:
       # Disable -Werror,-Wundef-prefix=TARGET_OS as they are not yet defined in the 10.9 SDK used for osx-64
       # Only enable it for TARGET_OS_OSX.
       - patches/0007-Only-error-on-undefined-TARGET_OS_OSX.patch                    # [osx and x86_64]
-      - patches/0008-Improve-logic-for-finding-the-macos-sysroot-for-cond.patch     # [osx]
       # backport https://github.com/llvm/llvm-project/commit/ca80c2438697dd10c60e11c07d68e3b784013b93
-      - patches/0009-Driver-Support-GCC-detection-for-GCC-compiled-with-e.patch
-      - patches/0010-Remove-trailing-null-bytes-from-the-sysroot-that-com.patch     # [variant and variant.startswith("root_")]
+      - patches/0008-Driver-Support-GCC-detection-for-GCC-compiled-with-e.patch
+      - patches/0009-Remove-trailing-null-bytes-from-the-sysroot-that-com.patch     # [variant and variant.startswith("root_")]
 
     {% if (variant or "").startswith("root_") or (variant or "").startswith("cling_") %}
       # the following patches are 100% identical between
