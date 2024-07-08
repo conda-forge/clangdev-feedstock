@@ -1,4 +1,4 @@
-From 5ab940de1792ce9317d93378c88bea7969517f82 Mon Sep 17 00:00:00 2001
+From c4957e0c053d2f8869f9c065385a58dc3fd97437 Mon Sep 17 00:00:00 2001
 From: Jonas Hahnfeld <jonas.hahnfeld@cern.ch>
 Date: Fri, 28 Jul 2023 16:15:45 +0200
 Subject: [PATCH 01/66] Remove warning about CMake 3.20.0 in LLVM 17
@@ -8,7 +8,7 @@ Subject: [PATCH 01/66] Remove warning about CMake 3.20.0 in LLVM 17
  1 file changed, 7 deletions(-)
 
 diff --git a/clang/CMakeLists.txt b/clang/CMakeLists.txt
-index 090cfa352078..21b3abe6e229 100644
+index 3f617c602446..fe4fa3bb1452 100644
 --- a/clang/CMakeLists.txt
 +++ b/clang/CMakeLists.txt
 @@ -11,13 +11,6 @@ include(${LLVM_COMMON_CMAKE_UTILS}/Modules/CMakePolicy.cmake

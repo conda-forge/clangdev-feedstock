@@ -1,4 +1,4 @@
-From f364880edbe5278dba035446430da2172890111f Mon Sep 17 00:00:00 2001
+From 692558d0ddf56831db8fd43d5ecf09a010fdd9db Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Fri, 21 Mar 2014 17:31:31 +0100
 Subject: [PATCH 51/66] Expose all files included in PCH/PCM to FileManager.

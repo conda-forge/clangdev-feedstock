@@ -1,4 +1,4 @@
-From 38b6e17d3f2c608d94dd3377aa008e7c166abcc3 Mon Sep 17 00:00:00 2001
+From 1d31169cc4104bb785dd753847031a57245bbdfa Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Wed, 7 Jan 2015 10:28:02 +0100
 Subject: [PATCH 32/66] Provide (possibly updated) CodegenOpts to StartModule.

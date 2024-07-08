@@ -1,4 +1,4 @@
-From 04ad134ee5ec41cacfac0154e5d7a6bb4464cb6c Mon Sep 17 00:00:00 2001
+From 325904933c3f50cae1214a24b1e00f866dedee97 Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Wed, 6 Apr 2016 16:31:34 +0200
 Subject: [PATCH 20/66] From Vassil: add (debug) printout of ModuleBuilder data

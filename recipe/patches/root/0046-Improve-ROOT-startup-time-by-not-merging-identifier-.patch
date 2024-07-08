@@ -1,4 +1,4 @@
-From 06f4423efc7cbbd7bd58f03ca6e61b5b4cc304a7 Mon Sep 17 00:00:00 2001
+From ff1df10eae9606a902a674b78319c61b95268b92 Mon Sep 17 00:00:00 2001
 From: Vassil Vassilev <v.g.vassilev@gmail.com>
 Date: Mon, 13 Jan 2020 13:54:48 +0200
 Subject: [PATCH 46/66] Improve ROOT startup time by not merging identifier

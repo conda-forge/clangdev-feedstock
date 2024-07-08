@@ -1,4 +1,4 @@
-From 28592ef035866f83f4cbc6a1e44cb4f191e99804 Mon Sep 17 00:00:00 2001
+From b21a4ce89558bb544961b921d9d3f28c5ddc508e Mon Sep 17 00:00:00 2001
 From: Jonas Hahnfeld <jonas.hahnfeld@cern.ch>
 Date: Mon, 15 Jan 2024 08:40:26 +0100
 Subject: [PATCH 14/66] UPSTREAM: Fix crash with modules and constexpr

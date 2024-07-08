@@ -1,4 +1,4 @@
-From 8b0940bb4b5125b1baa134d0be9b9afb05dcd3e8 Mon Sep 17 00:00:00 2001
+From a7b00ddf18084008cb09dd689b898ab865b27f69 Mon Sep 17 00:00:00 2001
 From: Philippe Canal <pcanal@fnal.gov>
 Date: Tue, 28 Jan 2020 15:49:01 -0600
 Subject: [PATCH 61/66] Add support for DiagnosticEngine state change within

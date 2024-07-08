@@ -1,4 +1,4 @@
-From 23f2ecfc0ac7d397ec424350a6851df01ccfd699 Mon Sep 17 00:00:00 2001
+From c70e2db7a42898cc02323c9dad368a081a98eaf2 Mon Sep 17 00:00:00 2001
 From: Vassil Vassilev <v.g.vassilev@gmail.com>
 Date: Wed, 17 May 2017 15:22:25 +0200
 Subject: [PATCH 37/66] Keep into account if files were virtual.

@@ -1,4 +1,4 @@
-From 5f3b687edb87ce59476c0a47d683bf9fc2c3cb30 Mon Sep 17 00:00:00 2001
+From 518aff49c780ee9dc951094b9703da27909f289d Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Mon, 20 Oct 2014 14:15:26 +0200
 Subject: [PATCH 29/66] Accessor to "is file opened"; this is crucial info for

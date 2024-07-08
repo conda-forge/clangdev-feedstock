@@ -1,4 +1,4 @@
-From 10f8b1c470560b5dbb574c3cf8ff7d5bd3e84a9b Mon Sep 17 00:00:00 2001
+From b006abf9cecc8d3a008ddadb821ee632726c3607 Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Wed, 16 Jul 2014 11:28:29 +0200
 Subject: [PATCH 50/66] Update the DeclContext used for lookup to point to the

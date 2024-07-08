@@ -1,4 +1,4 @@
-From 94c6cdd97dbb59302a110c0747744a972d485319 Mon Sep 17 00:00:00 2001
+From 91d2f839244cf18d12f054b47a895106f77f67c9 Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Mon, 26 Aug 2013 14:30:31 +0200
 Subject: [PATCH 17/66] Let autoload act on fwd declares.

@@ -1,4 +1,4 @@
-From 53451239fa132559547b7dd8022d74526fba102a Mon Sep 17 00:00:00 2001
+From 3e87ce773345e2fc21895d6be10b470e905dfabb Mon Sep 17 00:00:00 2001
 From: Isuru Fernando <isuruf@gmail.com>
 Date: Sat, 27 Jul 2019 11:55:23 -0500
 Subject: [PATCH 4/9] Set VERSION in osx as well

@@ -1,4 +1,4 @@
-From cddff6c12a3efb91ca7c33fa4505c11fafe5cc6c Mon Sep 17 00:00:00 2001
+From a2696a5fc63b6d41cd65a4afb6f86727a0e0ae48 Mon Sep 17 00:00:00 2001
 From: Vassil Vassilev <v.g.vassilev@gmail.com>
 Date: Sun, 7 Jan 2018 15:16:11 +0200
 Subject: [PATCH 44/66] D41416: [modules] [pch] Do not deserialize all lazy

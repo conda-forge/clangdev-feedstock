@@ -1,4 +1,4 @@
-From 78dde6ef5d73886dba4fcc54075805b86154f976 Mon Sep 17 00:00:00 2001
+From b6ec57d70f11417b8fce078738e1d29c0d238974 Mon Sep 17 00:00:00 2001
 From: Vassil Vassilev <vvasilev@cern.ch>
 Date: Thu, 27 Feb 2014 15:50:03 +0100
 Subject: [PATCH 19/66] Find an easier way of accessing CodeGenModule

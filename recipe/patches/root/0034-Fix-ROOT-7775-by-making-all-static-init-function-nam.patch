@@ -1,4 +1,4 @@
-From d8118da5241aa9bd0f90f29ce9612f7d32a41e85 Mon Sep 17 00:00:00 2001
+From 72cdb3c06a638fe3834d334cc30e486b90f5e52d Mon Sep 17 00:00:00 2001
 From: Philippe Canal <pcanal@fnal.gov>
 Date: Sun, 15 Nov 2015 01:36:24 -0600
 Subject: [PATCH 34/66] Fix ROOT-7775 by making all static init function name

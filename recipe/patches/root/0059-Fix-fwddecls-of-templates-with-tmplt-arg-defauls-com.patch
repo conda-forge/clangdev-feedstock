@@ -1,4 +1,4 @@
-From 4d3a6d7ce00692fc18e032c0aeb0d4c45e5ff3c2 Mon Sep 17 00:00:00 2001
+From a015b082c7f8e992279614ae773f401d1b2e295c Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Thu, 10 Aug 2017 13:32:05 +0200
 Subject: [PATCH 59/66] Fix fwddecls of templates with tmplt arg defauls coming

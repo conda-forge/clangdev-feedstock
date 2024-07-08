@@ -1,4 +1,4 @@
-From 3ff0471c5b8fb50e0065bd1bf3b2c5018e20bee0 Mon Sep 17 00:00:00 2001
+From b4b7f4bf5959c66858b3e570a03847084ae69f3b Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Mon, 26 Aug 2013 15:08:12 +0200
 Subject: [PATCH 27/66] More RAIIs for autoloading.

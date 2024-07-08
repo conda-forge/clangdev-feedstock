@@ -1,4 +1,4 @@
-From fafe121e6f7f24cb98f777d5d46ed4a83b4b9d68 Mon Sep 17 00:00:00 2001
+From f1bba27ac004ed0012135402f599a5b8ca699d3f Mon Sep 17 00:00:00 2001
 From: Isuru Fernando <isuruf@gmail.com>
 Date: Thu, 28 Dec 2023 19:32:19 +0530
 Subject: [PATCH 8/9] Make PIE default on macOS too.
@@ -9,10 +9,10 @@ This is the default for Linux from LLVM-15
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/clang/lib/Driver/ToolChains/Darwin.cpp b/clang/lib/Driver/ToolChains/Darwin.cpp
-index fb3f8f16d04f..8fecffd409e4 100644
+index d1301caf1228..6fb32345c575 100644
 --- a/clang/lib/Driver/ToolChains/Darwin.cpp
 +++ b/clang/lib/Driver/ToolChains/Darwin.cpp
-@@ -2966,7 +2966,7 @@ bool Darwin::SupportsEmbeddedBitcode() const {
+@@ -3038,7 +3038,7 @@ bool Darwin::SupportsEmbeddedBitcode() const {
  
  bool MachO::isPICDefault() const { return true; }
  

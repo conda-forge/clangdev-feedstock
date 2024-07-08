@@ -1,4 +1,4 @@
-From 86b39db81944585ae3c7fd74c235b1fbc5b2863d Mon Sep 17 00:00:00 2001
+From 60c10302919561825ede4fcddca8f72ee3ffae05 Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Fri, 12 Sep 2014 11:58:16 +0200
 Subject: [PATCH 28/66] Use raw string literals to correctly stringify '"' and

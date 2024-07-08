@@ -1,8 +1,7 @@
-From b09a6325ed8e74e8abebbaf96275dba8cae1c668 Mon Sep 17 00:00:00 2001
+From c50e94404b09c1a8e24dda76f9d20739df5e072d Mon Sep 17 00:00:00 2001
 From: Vassil Vassilev <v.g.vassilev@gmail.com>
 Date: Wed, 28 Mar 2018 12:40:52 +0200
-Subject: [PATCH 60/66] [D39714][cxxmodules] Refactor generation counter in
- LLVM
+Subject: [PATCH 60/66] Refactor generation counter in LLVM
 
 Right now the ExternalASTSources in LLVM have an awkward way
 of implementing their generation counters, which provide an
