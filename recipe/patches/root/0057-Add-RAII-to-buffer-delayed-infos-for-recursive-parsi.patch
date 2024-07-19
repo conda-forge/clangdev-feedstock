@@ -1,4 +1,4 @@
-From 881c8d67c8b1f2a23d7d3ecf50960f6ae20445a4 Mon Sep 17 00:00:00 2001
+From 8a71b3e0ed30f654629becef16a9711d3faa310d Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Fri, 22 Jul 2016 18:04:04 +0200
 Subject: [PATCH 57/66] Add RAII to buffer delayed infos, for recursive

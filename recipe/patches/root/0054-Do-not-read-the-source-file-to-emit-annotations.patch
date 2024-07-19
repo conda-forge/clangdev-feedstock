@@ -1,4 +1,4 @@
-From 6864f892f3b82735502f57ad0feb0bb69e4ab051 Mon Sep 17 00:00:00 2001
+From c2468a7dc81e5bee85a3fdcc4a2790d4353a3247 Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Mon, 6 Oct 2014 10:36:05 +0200
 Subject: [PATCH 54/66] Do not read the source file to emit annotations.

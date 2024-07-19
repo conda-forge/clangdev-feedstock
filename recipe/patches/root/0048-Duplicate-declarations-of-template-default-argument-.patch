@@ -1,4 +1,4 @@
-From ceed749510f426b442fdc37274cd4fedad7ff752 Mon Sep 17 00:00:00 2001
+From 4601a46ac09c49ef6942525edb01ce950c140f99 Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Tue, 10 Sep 2013 17:01:46 +0200
 Subject: [PATCH 48/66] Duplicate declarations of template default argument

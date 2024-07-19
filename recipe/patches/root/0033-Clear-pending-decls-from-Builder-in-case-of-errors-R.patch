@@ -1,4 +1,4 @@
-From 30506d2be3539f078be8fa6c027e652c888c1aab Mon Sep 17 00:00:00 2001
+From 6d8290c8d5b0290d5f187b2b64a69e3e37fa3769 Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Thu, 28 May 2015 11:43:50 +0200
 Subject: [PATCH 33/66] Clear pending decls from Builder in case of errors

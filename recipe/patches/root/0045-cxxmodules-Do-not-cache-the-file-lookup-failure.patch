@@ -1,7 +1,7 @@
-From f1a23756c84af97f9db5db993f694976d65a3c08 Mon Sep 17 00:00:00 2001
+From 37f08904a75c4a1762a8fb59490e54e3c1598a51 Mon Sep 17 00:00:00 2001
 From: Vassil Vassilev <v.g.vassilev@gmail.com>
 Date: Mon, 14 Dec 2020 10:56:27 +0000
-Subject: [PATCH 45/66] [cxxmodules] Do not cache the file lookup failure.
+Subject: [PATCH 45/66] Do not cache the file lookup failure.
 
 In cases where we have the module cache path and prebuilt module path pointing
 to the same location, the FileManager should not cache the module file lookup

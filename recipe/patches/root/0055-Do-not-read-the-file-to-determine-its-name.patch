@@ -1,4 +1,4 @@
-From 197614ca5bf4c6e8ff8602082e75c34c88b4be05 Mon Sep 17 00:00:00 2001
+From c86f755d0678216a77bfd0a1c384985b4a31b342 Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Mon, 6 Oct 2014 10:36:27 +0200
 Subject: [PATCH 55/66] Do not read the file to determine its name!

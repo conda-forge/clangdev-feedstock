@@ -1,6 +1,6 @@
 {% set version = "16.0.6" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 9 %}
+{% set build_number = 10 %}
 
 {% set minor_aware_ext = major_version %}
 {% if version.split(".")[1] | int > 0 %}

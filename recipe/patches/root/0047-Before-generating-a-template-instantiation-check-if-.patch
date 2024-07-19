@@ -1,4 +1,4 @@
-From a3941998d9a910b57491dc03356e048b76350afd Mon Sep 17 00:00:00 2001
+From fab2740eaf41da20c7087c560a5f24fd07b27321 Mon Sep 17 00:00:00 2001
 From: Vassil Vassilev <vvasilev@cern.ch>
 Date: Mon, 9 Sep 2013 11:32:31 +0200
 Subject: [PATCH 47/66] Before generating a template instantiation check if we

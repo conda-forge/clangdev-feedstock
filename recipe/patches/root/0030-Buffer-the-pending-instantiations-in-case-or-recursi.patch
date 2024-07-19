@@ -1,4 +1,4 @@
-From 6077632a2c78cd7fa685ff0892f20ec12b58ab5c Mon Sep 17 00:00:00 2001
+From d7a6ead6c6c0e4721ca27b0e1fcc8a8ca86ec248 Mon Sep 17 00:00:00 2001
 From: Axel Naumann <Axel.Naumann@cern.ch>
 Date: Tue, 2 Dec 2014 17:43:18 +0100
 Subject: [PATCH 30/66] Buffer the pending instantiations in case or recursive

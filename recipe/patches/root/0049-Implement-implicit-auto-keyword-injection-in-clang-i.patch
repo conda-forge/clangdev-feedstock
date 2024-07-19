@@ -1,4 +1,4 @@
-From fd2e8747c3a5568b6f205bdba2fc83d59fd785b3 Mon Sep 17 00:00:00 2001
+From 47521d8f25af443234bc2e6b768b3fd977922659 Mon Sep 17 00:00:00 2001
 From: Vassil Vassilev <vvasilev@cern.ch>
 Date: Tue, 1 Oct 2013 12:33:16 +0200
 Subject: [PATCH 49/66] Implement implicit auto keyword injection in clang

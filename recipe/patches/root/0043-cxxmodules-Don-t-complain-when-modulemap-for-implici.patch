@@ -1,8 +1,8 @@
-From efe8065edab125e9de55dbca7ada562c26ce9618 Mon Sep 17 00:00:00 2001
+From 26a16a37175cb1b10d2359011d5a925ed5c0cf1c Mon Sep 17 00:00:00 2001
 From: Vassil Vassilev <v.g.vassilev@gmail.com>
 Date: Thu, 21 Feb 2019 09:29:38 +0200
-Subject: [PATCH 43/66] [cxxmodules] Don't complain when modulemap for implicit
- modules has changed
+Subject: [PATCH 43/66] Don't complain when modulemap for implicit modules has
+ changed
 
 This patch (also) aims to make runtime module installable.
 
