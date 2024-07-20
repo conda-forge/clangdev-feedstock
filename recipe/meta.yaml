@@ -1,6 +1,6 @@
 {% set version = "16.0.6" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 10 %}
+{% set build_number = 11 %}
 
 {% set minor_aware_ext = major_version %}
 {% if version.split(".")[1] | int > 0 %}
@@ -493,6 +493,13 @@ outputs:
         - clang --version
         - clang-cl --version
         - clang-cpp --version
+        # on linux, $TRIPLE-clang{,-cpp} are in this package
+        - x86_64-conda-linux-gnu-clang --version            # [linux64]
+        - x86_64-conda-linux-gnu-clang-cpp --version        # [linux64]
+        - aarch64-conda-linux-gnu-clang --version           # [aarch64]
+        - aarch64-conda-linux-gnu-clang-cpp --version       # [aarch64]
+        - powerpc64le-conda-linux-gnu-clang --version       # [ppc64le]
+        - powerpc64le-conda-linux-gnu-clang-cpp --version   # [ppc64le]
 
   - name: clangxx
     script: install_clangxx.sh  # [unix]
@@ -530,6 +537,10 @@ outputs:
         - unset CONDA_BUILD_SYSROOT   # [unix]
         - set "CONDA_BUILD_SYSROOT="  # [win]
         - clang++ -v -c mytest.cxx
+        # on linux, $TRIPLE-clang++ is in this package
+        - x86_64-conda-linux-gnu-clang++ --version          # [linux64]
+        - aarch64-conda-linux-gnu-clang++ --version         # [aarch64]
+        - powerpc64le-conda-linux-gnu-clang++ --version     # [ppc64le]
 
   - name: clang-format-{{ major_version }}
     script: install_clang_format.sh  # [unix]
