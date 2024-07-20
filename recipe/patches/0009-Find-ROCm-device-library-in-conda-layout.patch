@@ -1,4 +1,4 @@
-From 04615fd6f04ffa5ca7d0f0a1310804167a5499b5 Mon Sep 17 00:00:00 2001
+From 90ff366749dc09eae1bc69e00afd91e6db05ceee Mon Sep 17 00:00:00 2001
 From: Isuru Fernando <isuruf@gmail.com>
 Date: Mon, 11 Mar 2024 14:03:12 -0500
 Subject: [PATCH 9/9] Find ROCm device library in conda layout
