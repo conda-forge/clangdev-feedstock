@@ -12,3 +12,9 @@ libclang_soversion:
 # keep for use with root when it catches up
 variant:
   - default
+
+channel_targets:
+  - conda-forge llvm_rc
+
+channel_sources:
+  - conda-forge/label/llvm_rc,conda-forge
