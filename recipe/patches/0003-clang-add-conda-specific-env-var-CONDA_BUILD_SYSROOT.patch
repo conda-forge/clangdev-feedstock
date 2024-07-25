@@ -1,0 +1,157 @@
+From 631014f6a95f535410619a2a6e4a878d5dbbc9da Mon Sep 17 00:00:00 2001
+From: Nehal J Wani <nehaljw.kkd1@gmail.com>
+Date: Sat, 25 Aug 2018 09:20:04 -0500
+Subject: [PATCH 3/9] clang: add conda specific env var CONDA_BUILD_SYSROOT
+
+And also improve logic for finding the macos sysroot for conda
+
+Co-authored-by: Chris Burr <christopher.burr@cern.ch>
+Co-authored-by: Vincenzo Eduardo Padulano <v.e.padulano@gmail.com>
+Co-authored-by: Isuru Fernando <isuruf@gmail.com>
+---
+ clang/lib/Driver/Driver.cpp            |  5 ++
+ clang/lib/Driver/ToolChains/Darwin.cpp | 76 +++++++++++++++++++++++++-
+ clang/lib/Lex/InitHeaderSearch.cpp     |  6 +-
+ 3 files changed, 84 insertions(+), 3 deletions(-)
+
+diff --git a/clang/lib/Driver/Driver.cpp b/clang/lib/Driver/Driver.cpp
+index 93cddf742d52..00d0466a5de2 100644
+--- a/clang/lib/Driver/Driver.cpp
++++ b/clang/lib/Driver/Driver.cpp
+@@ -1352,6 +1352,11 @@ Compilation *Driver::BuildCompilation(ArrayRef<const char *> ArgList) {
+       CompilerPath = Split.second;
+     }
+   }
++  if (std::optional<std::string> CondaBuildSysrootValue =
++          llvm::sys::Process::GetEnv("CONDA_BUILD_SYSROOT")) {
++    SysRoot = *CondaBuildSysrootValue;
++  }
++  // Override CONDA_BUILD_SYSROOT and consume sysroot option
+   if (const Arg *A = Args.getLastArg(options::OPT__sysroot_EQ))
+     SysRoot = A->getValue();
+   if (const Arg *A = Args.getLastArg(options::OPT__dyld_prefix_EQ))
+diff --git a/clang/lib/Driver/ToolChains/Darwin.cpp b/clang/lib/Driver/ToolChains/Darwin.cpp
+index fae8ad1a958a..2d5295719c58 100644
+--- a/clang/lib/Driver/ToolChains/Darwin.cpp
++++ b/clang/lib/Driver/ToolChains/Darwin.cpp
+@@ -29,6 +29,18 @@
+ #include "llvm/TargetParser/Triple.h"
+ #include <cstdlib> // ::getenv
+ 
++// Extra includes for conda patch
++#include <cstdio>
++#include <memory>
++#include <optional>
++#include <string>
++#include "llvm/ADT/ArrayRef.h"
++#include "llvm/ADT/StringRef.h"
++#include "llvm/Support/FileSystem.h"
++#include "llvm/Support/FileUtilities.h"
++#include "llvm/Support/MemoryBuffer.h"
++#include "llvm/Support/Program.h"
++
+ using namespace clang::driver;
+ using namespace clang::driver::tools;
+ using namespace clang::driver::toolchains;
+@@ -2186,15 +2198,75 @@ void Darwin::AddDeploymentTarget(DerivedArgList &Args) const {
+     if (!getVFS().exists(A->getValue()))
+       getDriver().Diag(clang::diag::warn_missing_sysroot) << A->getValue();
+   } else {
++    std::string foundSDKPath = "/";
++    std::string prefixToTry = "/";
++
+     if (char *env = ::getenv("SDKROOT")) {
+       // We only use this value as the default if it is an absolute path,
+       // exists, and it is not the root path.
+       if (llvm::sys::path::is_absolute(env) && getVFS().exists(env) &&
+           StringRef(env) != "/") {
+-        Args.append(Args.MakeSeparateArg(
+-            nullptr, Opts.getOption(options::OPT_isysroot), env));
++        foundSDKPath = std::string(env);
++      }
++    }
++
++    if (foundSDKPath == "/") {
++      if (char *env = ::getenv("CONDA_BUILD_SYSROOT")) {
++        // We only use this value as the default if it is an absolute path,
++        // exists, and it is not the root path.
++        if (llvm::sys::path::is_absolute(env) && getVFS().exists(env) &&
++            StringRef(env) != "/") {
++          foundSDKPath = std::string(env);
++        }
+       }
+     }
++
++    // If the SDK is not found by now and it's not inside /, our only choice
++    // is to fail or ask Apple CLI utilities for help
++    if (foundSDKPath == "/" && !getVFS().exists("/usr/include/sys/types.h")) {
++
++      auto pathFromExecutable = [](llvm::ArrayRef<llvm::StringRef> Argv)
++          -> std::optional<std::string> {
++        // Inspired by clang-tools-extra/clangd/CompileCommands.cpp
++        auto Exe = llvm::sys::findProgramByName(Argv[0]);
++        if (!Exe) {
++          return std::nullopt;
++        }
++        llvm::SmallString<64> OutFile;
++        llvm::sys::fs::createTemporaryFile("darwin-adddeploymenttarget", "",
++                                           OutFile);
++        llvm::FileRemover OutRemover(OutFile);
++        std::optional<llvm::StringRef> Redirects[3] = {
++            /*stdin=*/{""}, /*stdout=*/{OutFile.str()}, /*stderr=*/{""}};
++        int Ret = llvm::sys::ExecuteAndWait(*Exe, Argv,
++                                            /*Env=*/std::nullopt, Redirects,
++                                            /*SecondsToWait=*/10);
++        if (Ret != 0) {
++          return std::nullopt;
++        }
++
++        auto Buf = llvm::MemoryBuffer::getFile(OutFile);
++        if (!Buf) {
++          return std::nullopt;
++        }
++        llvm::StringRef Path = Buf->get()->getBuffer().trim();
++        if (Path.empty()) {
++          return std::nullopt;
++        }
++        return Path.str();
++      };
++
++      auto XcrunPath = pathFromExecutable({"xcrun", "--show-sdk-path"});
++      if (foundSDKPath == "/" && XcrunPath &&
++          getVFS().exists(XcrunPath.value() + "/usr/include/sys/types.h")) {
++        foundSDKPath = XcrunPath.value();
++      }
++    }
++
++    if (foundSDKPath != "/") {
++      Args.append(Args.MakeSeparateArg(
++          nullptr, Opts.getOption(options::OPT_isysroot), foundSDKPath));
++    }
+   }
+ 
+   // Read the SDKSettings.json file for more information, like the SDK version
+diff --git a/clang/lib/Lex/InitHeaderSearch.cpp b/clang/lib/Lex/InitHeaderSearch.cpp
+index 2218db15013d..d05cfa38e4fb 100644
+--- a/clang/lib/Lex/InitHeaderSearch.cpp
++++ b/clang/lib/Lex/InitHeaderSearch.cpp
+@@ -24,6 +24,7 @@
+ #include "llvm/ADT/Twine.h"
+ #include "llvm/Support/ErrorHandling.h"
+ #include "llvm/Support/Path.h"
++#include "llvm/Support/Process.h"
+ #include "llvm/Support/raw_ostream.h"
+ #include "llvm/TargetParser/Triple.h"
+ #include <optional>
+@@ -210,7 +211,10 @@ void InitHeaderSearch::AddDefaultCIncludePaths(const llvm::Triple &triple,
+       [[fallthrough]];
+     default:
+       // FIXME: temporary hack: hard-coded paths.
+-      AddPath("/usr/local/include", System, false);
++      std::optional<std::string> CondaBuildSysrootValue =
++              llvm::sys::Process::GetEnv("CONDA_BUILD_SYSROOT");
++      if (!CondaBuildSysrootValue.has_value())
++        AddPath("/usr/local/include", System, false);
+       break;
+     }
+   }
