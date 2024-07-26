@@ -1,4 +1,4 @@
-From 0357a1816f76c0ae2ea6251fe491653fd3613266 Mon Sep 17 00:00:00 2001
+From a72f1382b51402d088067ca95886a234f9c3c221 Mon Sep 17 00:00:00 2001
 From: Isuru Fernando <isuruf@gmail.com>
 Date: Sat, 27 Jul 2019 11:55:23 -0500
 Subject: [PATCH 5/9] Set VERSION in osx as well
@@ -8,7 +8,7 @@ Subject: [PATCH 5/9] Set VERSION in osx as well
  1 file changed, 5 insertions(+)
 
 diff --git a/clang/tools/libclang/CMakeLists.txt b/clang/tools/libclang/CMakeLists.txt
-index b5b6d2807d71..3faabda0ea2a 100644
+index 7b634003d11f..4c2c4f7d0afd 100644
 --- a/clang/tools/libclang/CMakeLists.txt
 +++ b/clang/tools/libclang/CMakeLists.txt
 @@ -173,6 +173,11 @@ if(ENABLE_SHARED)
