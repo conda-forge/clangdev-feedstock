@@ -5,7 +5,8 @@
 # always includes minor as of v18, see https://github.com/llvm/llvm-project/issues/76273
 {% set minor_aware_ext = major_version ~ "." ~ version.split(".")[1] %}
 {% if version.split(".")[-1].startswith("rc") %}
-{% set minor_aware_ext = minor_aware_ext ~ "rc" %}
+# as of LLVM 19, we expect an "-rcX" suffix for the release candidates
+{% set minor_aware_ext = minor_aware_ext ~ "-" ~ version.split(".")[-1] %}
 {% elif version.split(".")[-1] == "dev0" %}
 {% set minor_aware_ext = minor_aware_ext ~ "git" %}
 {% endif %}
