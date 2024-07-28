@@ -4,11 +4,14 @@
 
 # always includes minor as of v18, see https://github.com/llvm/llvm-project/issues/76273
 {% set minor_aware_ext = major_version ~ "." ~ version.split(".")[1] %}
+
+# construct full sover, which contains extra suffixes for rc/dev builds
+{% set sover = minor_aware_ext %}
 {% if version.split(".")[-1].startswith("rc") %}
 # as of LLVM 19, we expect an "-rcX" suffix for the release candidates
-{% set minor_aware_ext = minor_aware_ext ~ "-" ~ version.split(".")[-1] %}
+{% set sover = minor_aware_ext ~ "-" ~ version.split(".")[-1] %}
 {% elif version.split(".")[-1] == "dev0" %}
-{% set minor_aware_ext = minor_aware_ext ~ "git" %}
+{% set sover = minor_aware_ext ~ "git" %}
 {% endif %}
 
 {% if libclang_soversion is not defined %}
@@ -133,8 +136,8 @@ outputs:
   - name: libclang-cpp{{ minor_aware_ext }}
     script: install_libclang_cpp.sh  # [unix]
     files:
-      - lib/libclang-cpp.so.{{ minor_aware_ext }}     # [linux]
-      - lib/libclang-cpp.{{ minor_aware_ext }}.dylib  # [osx]
+      - lib/libclang-cpp.so.{{ sover }}     # [linux]
+      - lib/libclang-cpp.{{ sover }}.dylib  # [osx]
     build:
       skip: true  # [win]
       track_features:
@@ -168,12 +171,12 @@ outputs:
     test:
       commands:
         # presence of versioned library
-        - test -f $PREFIX/lib/libclang-cpp.so.{{ minor_aware_ext }}         # [linux]
-        - test -f $PREFIX/lib/libclang-cpp.{{ minor_aware_ext }}.dylib      # [osx]
+        - test -f $PREFIX/lib/libclang-cpp.so.{{ sover }}       # [linux]
+        - test -f $PREFIX/lib/libclang-cpp.{{ sover }}.dylib    # [osx]
 
         # absence of unversioned library
-        - test ! -f $PREFIX/lib/libclang-cpp.so                             # [linux]
-        - test ! -f $PREFIX/lib/libclang-cpp.dylib                          # [osx]
+        - test ! -f $PREFIX/lib/libclang-cpp.so                 # [linux]
+        - test ! -f $PREFIX/lib/libclang-cpp.dylib              # [osx]
 
   - name: libclang-cpp
     # note that this is just an empty wrapper on windows
@@ -378,12 +381,12 @@ outputs:
     test:
       commands:
         # presence of versioned libraries
-        - test -f $PREFIX/lib/libclang-cpp.so.{{ minor_aware_ext }}     # [linux]
-        - test -f $PREFIX/lib/libclang-cpp.{{ minor_aware_ext }}.dylib  # [osx]
+        - test -f $PREFIX/lib/libclang-cpp.so.{{ sover }}       # [linux]
+        - test -f $PREFIX/lib/libclang-cpp.{{ sover }}.dylib    # [osx]
 
         # absence of unversioned libraries
-        - test ! -f $PREFIX/lib/libclang-cpp.so                         # [linux]
-        - test ! -f $PREFIX/lib/libclang-cpp.dylib                      # [osx]
+        - test ! -f $PREFIX/lib/libclang-cpp.so                 # [linux]
+        - test ! -f $PREFIX/lib/libclang-cpp.dylib              # [osx]
 
         # headers
         - test -f $PREFIX/lib/clang/{{ major_version }}/include/stdatomic.h                 # [unix]
