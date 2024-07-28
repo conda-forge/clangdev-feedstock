@@ -1,0 +1,39 @@
+From 4fa189cdd7a083061adb5484c1097a71d7262299 Mon Sep 17 00:00:00 2001
+From: Isuru Fernando <isuruf@gmail.com>
+Date: Mon, 11 Mar 2024 14:03:12 -0500
+Subject: [PATCH 9/9] Find ROCm device library in conda layout
+
+---
+ clang/lib/Driver/ToolChains/AMDGPU.cpp | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+
+diff --git a/clang/lib/Driver/ToolChains/AMDGPU.cpp b/clang/lib/Driver/ToolChains/AMDGPU.cpp
+index 453daed7cc7d..b0358acfed3b 100644
+--- a/clang/lib/Driver/ToolChains/AMDGPU.cpp
++++ b/clang/lib/Driver/ToolChains/AMDGPU.cpp
+@@ -433,6 +433,25 @@ void RocmInstallationDetector::detectDeviceLibrary() {
+   if (HasDeviceLibrary)
+     return;
+ 
++  // Find device libraries in <LLVM_DIR>/lib/amdgcn/bitcode
++  LibDevicePath = D.Dir;
++  llvm::sys::path::append(LibDevicePath, CLANG_INSTALL_LIBDIR_BASENAME,
++                          "amdgcn", "bitcode");
++  HasDeviceLibrary = CheckDeviceLib(LibDevicePath, true);
++  if (HasDeviceLibrary)
++    return;
++
++  // Find device libraries in the real path of the invoked clang, resolving symbolic
++  // link of clang itself.
++  llvm::SmallString<256> RealClangPath;
++  llvm::sys::fs::real_path(D.getClangProgramPath(), RealClangPath);
++  LibDevicePath = llvm::sys::path::parent_path(RealClangPath);
++  llvm::sys::path::append(LibDevicePath, CLANG_INSTALL_LIBDIR_BASENAME,
++                          "amdgcn", "bitcode");
++  HasDeviceLibrary = CheckDeviceLib(LibDevicePath, true);
++  if (HasDeviceLibrary)
++    return;
++
+   // Find device libraries in a legacy ROCm directory structure
+   // ${ROCM_ROOT}/amdgcn/bitcode/*
+   auto &ROCmDirs = getInstallationPathCandidates();
