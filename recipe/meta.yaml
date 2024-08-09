@@ -1,6 +1,6 @@
 {% set version = "18.1.8" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 1 %}
+{% set build_number = 2 %}
 
 # always includes minor as of v18, see https://github.com/llvm/llvm-project/issues/76273
 {% set minor_aware_ext = major_version ~ "." ~ version.split(".")[1] %}
@@ -369,11 +369,6 @@ outputs:
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}                        # [osx]
         - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, exact=True) }}  # [unix]
-      run_constrained:
-        - clangdev {{ version }}
-        - clangxx {{ version }}
-        - clang-tools {{ version }}
-        - llvm-tools {{ version }}
     test:
       commands:
         # presence of versioned libraries
