@@ -184,6 +184,7 @@ outputs:
         - {{ pin_subpackage("libclang-cpp", exact=True) }}
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
         - llvmdev =={{ version }}
+        - libcxx <={{ cxx_compiler_version }}           # [osx]
     test:
       commands:
         - test -f "$PREFIX/include/clang/Config/config.h"   # [unix]
@@ -215,7 +216,7 @@ outputs:
         - llvm =={{ version }}
         - zlib   # [linux]
       run:
-        - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
+        - libcxx >={{ version }},<={{ cxx_compiler_version }}   # [osx]
     test:
       commands:
         - test ! -f "$PREFIX/lib/libclang-cpp.so"                             # [linux]
@@ -249,7 +250,7 @@ outputs:
         - zlib   # [linux]
         - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, exact=True) }}  # [unix]
       run:
-        - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
+        - libcxx >={{ version }},<={{ cxx_compiler_version }}                 # [osx]
         - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, exact=True) }}  # [unix]
     test:
       commands:
@@ -282,7 +283,7 @@ outputs:
         - zlib                                          # [linux or win]
         - {{ pin_subpackage("clang", exact=True) }}
       run:
-        - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
+        - libcxx >={{ version }},<={{ cxx_compiler_version }}   # [osx]
     test:
       commands:
         - test -f "$PREFIX/lib/libclang.so"                           # [linux]
@@ -319,7 +320,7 @@ outputs:
         - zlib                               # [linux or win]
         - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, exact=True) }}  # [unix]
       run:
-        - {{ pin_compatible("libcxx", max_pin=None) }}                        # [osx]
+        - libcxx >={{ version }},<={{ cxx_compiler_version }}                 # [osx]
         - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, exact=True) }}  # [unix]
       run_constrained:
         - clangdev {{ version }}
@@ -458,7 +459,7 @@ outputs:
         - llvm =={{ version }}
         - zlib                               # [linux or win]
       run:
-        - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
+        - libcxx >={{ version }},<={{ cxx_compiler_version }}                    # [osx]
         - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, max_pin="x.x") }}  # [unix]
         - {{ pin_subpackage("clang-format-" ~ major_version, exact=True) }}      # [unix]
     test:
@@ -496,9 +497,9 @@ outputs:
         - llvm =={{ version }}
         - zlib                               # [linux or win]
       run:
-        - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
         - {{ pin_subpackage("clang-format", exact=True) }}
         - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, max_pin="x.x") }}   # [unix]
+        - libcxx >={{ version }},<={{ cxx_compiler_version }}                     # [osx]
         - libclang {{ minor_aware_ext }}.*   # [unix]
       run_constrained:
         - clangdev {{ version }}
