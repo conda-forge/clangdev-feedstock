@@ -118,6 +118,7 @@ build:
 
 requirements:
   build:
+    - {{ stdlib('c') }}
     - {{ compiler('cxx') }}
     - cmake
     - ninja  # [win]
@@ -163,6 +164,7 @@ outputs:
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       build:
+        - {{ stdlib('c') }}
         - {{ compiler('cxx') }}
         - cmake
         - ninja  # [win]
@@ -205,6 +207,7 @@ outputs:
       skip: true  # [win]
     requirements:
       build:
+        - {{ stdlib('c') }}
         - {{ compiler('cxx') }}
         - cmake
         - ninja  # [win]
@@ -238,6 +241,7 @@ outputs:
       {% endif %}
     requirements:
       build:
+        - {{ stdlib('c') }}
         - {{ compiler('cxx') }}
         - cmake
         - ninja  # [win]
@@ -271,6 +275,7 @@ outputs:
         - libclang {{ minor_aware_ext }}.*
     requirements:
       build:
+        - {{ stdlib('c') }}
         - {{ compiler('cxx') }}
         - cmake
         - ninja                      # [win]
@@ -307,6 +312,7 @@ outputs:
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       build:
+        - {{ stdlib('c') }}
         - {{ compiler('cxx') }}
         - cmake
         - ninja                              # [win]
@@ -407,6 +413,7 @@ outputs:
       build:
         # "compiling .pyc files" fails without this
         - python >3
+        - {{ stdlib('c') }}
         - {{ compiler('cxx') }}
         - cmake
         - make   # [unix]
@@ -445,6 +452,7 @@ outputs:
       build:
         # "compiling .pyc files" fails without this
         - python >3
+        - {{ stdlib('c') }}
         - {{ compiler('cxx') }}
         - cmake
         - ninja  # [win]
@@ -483,6 +491,7 @@ outputs:
       build:
         # "compiling .pyc files" fails without this
         - python >3
+        - {{ stdlib('c') }}
         - {{ compiler('cxx') }}
         - cmake
         - ninja  # [win]
