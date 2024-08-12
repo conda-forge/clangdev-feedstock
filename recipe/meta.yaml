@@ -5,7 +5,7 @@
 {% set minor_aware_ext = major_version %}
 {% set minor_int = version.split(".")[1] | int %}
 {% if minor_int > 0 %}
-{% set minor_aware_ext = major_version + "." + version.split(".")[1] %}
+{% set minor_aware_ext = major_version ~ "." ~ version.split(".")[1] %}
 {% endif %}
 
 {% if not variant %}
@@ -198,7 +198,7 @@ outputs:
         - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:
-        - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, max_pin="x.x") }}   # [unix]
+        - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, max_pin="x.x") }}   # [unix]
       skip: true  # [win]
     requirements:
       build:
@@ -231,7 +231,7 @@ outputs:
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       {% if not win %}
       run_exports:   # [unix]
-        - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, max_pin="x.x") }}   # [unix]
+        - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, max_pin="x.x") }}   # [unix]
       {% endif %}
     requirements:
       build:
@@ -247,10 +247,10 @@ outputs:
         - llvmdev =={{ version }}
         - llvm =={{ version }}
         - zlib   # [linux]
-        - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, exact=True) }}  # [unix]
+        - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, exact=True) }}  # [unix]
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
-        - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, exact=True) }}  # [unix]
+        - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, exact=True) }}  # [unix]
     test:
       commands:
         - test -f "$PREFIX/lib/libclang-cpp.so"                     # [linux]
@@ -317,10 +317,10 @@ outputs:
         - llvmdev =={{ version }}
         - llvm =={{ version }}
         - zlib                               # [linux or win]
-        - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, exact=True) }}  # [unix]
+        - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, exact=True) }}  # [unix]
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}                        # [osx]
-        - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, exact=True) }}  # [unix]
+        - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, exact=True) }}  # [unix]
       run_constrained:
         - clangdev {{ version }}
         - clangxx {{ version }}
@@ -420,7 +420,7 @@ outputs:
         - libxml2                         # [win]
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
-        - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, max_pin="x.x") }}   # [unix]
+        - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, max_pin="x.x") }}   # [unix]
     test:
       commands:
         - clang-format-{{ major_version }} --version
@@ -452,15 +452,15 @@ outputs:
         - {{ pin_subpackage("clangxx", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
         - {{ pin_subpackage("libclang-cpp", exact=True) }}
-        - {{ pin_subpackage("clang-format-" + major_version, exact=True) }}   # [unix]
+        - {{ pin_subpackage("clang-format-" ~ major_version, exact=True) }}   # [unix]
         - libcxx {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
         - llvm =={{ version }}
         - zlib                               # [linux or win]
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
-        - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, max_pin="x.x") }}   # [unix]
-        - {{ pin_subpackage("clang-format-" + major_version, exact=True) }}   # [unix]
+        - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, max_pin="x.x") }}  # [unix]
+        - {{ pin_subpackage("clang-format-" ~ major_version, exact=True) }}      # [unix]
     test:
       commands:
         - clang-format --version
@@ -498,7 +498,7 @@ outputs:
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}  # [osx]
         - {{ pin_subpackage("clang-format", exact=True) }}
-        - {{ pin_subpackage("libclang-cpp" + minor_aware_ext, max_pin="x.x") }}   # [unix]
+        - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, max_pin="x.x") }}   # [unix]
         - libclang {{ minor_aware_ext }}.*   # [unix]
       run_constrained:
         - clangdev {{ version }}
