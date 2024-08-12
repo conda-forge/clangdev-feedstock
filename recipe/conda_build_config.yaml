@@ -1,22 +1,13 @@
-cxx_compiler:
-  - clang_bootstrap  # [osx]
-  - gxx              # [linux]
+cxx_compiler:           # [osx]
+  - clang_bootstrap     # [osx]
 
-c_compiler:
-  - clang_bootstrap  # [osx]
-  - gcc              # [linux]
-
-c_compiler_version:     # [osx]
-  - "*"                 # [osx and x86_64]
-  - 11                  # [osx and arm64]
-
-cxx_compiler_version:   # [osx or (linux and ppc64le)]
-  - "*"                 # [osx and x86_64]
-  - 11                  # [osx and arm64]
+cxx_compiler_version:   # [osx or linux]
+  # use an old-enough compiler that allows us
+  # to restrict libcxx version
+  - 16                  # [osx]
   # linking error with gcc 9
-  - 8                   # [linux and ppc64le]
+  - 8                   # [linux]
 
 variant:
   - default
-  - hcc   # [linux]
   - root_63004  # [linux or osx]

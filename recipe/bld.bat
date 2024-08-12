@@ -20,9 +20,7 @@ cmake -G "Ninja" ^
     -DLLVM_ENABLE_LIBXML2=OFF ^
     -DPython3_EXECUTABLE=%BUILD_PREFIX%\python ^
     %SRC_DIR%
-
-if errorlevel 1 exit 1
+if %ERRORLEVEL% neq 0 exit 1
 
 ninja -j%CPU_COUNT%
-if errorlevel 1 exit 1
-
+if %ERRORLEVEL% neq 0 exit 1
