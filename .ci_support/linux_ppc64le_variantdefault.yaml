@@ -15,4 +15,4 @@ target_platform:
 variant:
 - default
 zlib:
-- '1.2'
+- '1'
