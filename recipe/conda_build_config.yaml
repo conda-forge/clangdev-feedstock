@@ -10,5 +10,4 @@ cxx_compiler_version:   # [osx or linux]
 
 variant:
   - default
-  - hcc   # [linux]
   - root_63004  # [linux or osx]

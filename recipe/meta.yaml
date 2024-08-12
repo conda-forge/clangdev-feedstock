@@ -29,8 +29,6 @@ source:
       # Disable -Werror,-Wundef-prefix=TARGET_OS as they are not yet defined in the 10.9 SDK used for osx-64
       # Only enable it for TARGET_OS_OSX.
       - patches/0007-Only-error-on-undefined-TARGET_OS_OSX.patch  # [osx and x86_64]
-      #- patches/amd-roc-2.7.0.diff   # [variant != "hcc"]
-      #- patches/amd-roc-hcc-2.7.0.diff  # [variant == "hcc"]
       - patches/Improve-logic-for-finding-the-macos-sysroot-for-cond.patch  # [osx]
       - patches/0008-Remove-trailing-null-bytes-from-the-sysroot-that-com.patch       # [variant and variant.startswith("root_")]
       - patches/root/0001-Temporary-parsers-should-not-manipulate-global-parse.patch  # [variant and variant.startswith("root_")]
@@ -114,7 +112,6 @@ source:
 
 build:
   number: {{ build_number }}
-  skip: true  # [(win and vc<14) or variant=="hcc"]
 
 requirements:
   build:
@@ -159,7 +156,6 @@ outputs:
     script: install_clangdev.bat  # [win]
     build:
       track_features:
-        - hcc          # [variant=="hcc"]
         - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
@@ -199,7 +195,6 @@ outputs:
     script: install_libclang_cpp.sh  # [unix]
     build:
       track_features:
-        - hcc          # [variant=="hcc"]
         - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:
@@ -232,7 +227,6 @@ outputs:
     script: install_libclang_cpp.sh  # [unix]
     build:
       track_features:
-        - hcc          # [variant=="hcc"]
         - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       {% if not win %}
@@ -268,7 +262,6 @@ outputs:
     script: install_libclang.bat  # [win]
     build:
       track_features:
-        - hcc          # [variant=="hcc"]
         - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:
@@ -307,7 +300,6 @@ outputs:
     script: install_clang.bat  # [win]
     build:
       track_features:
-        - hcc          # [variant=="hcc"]
         - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
@@ -355,7 +347,6 @@ outputs:
     script: install_clang_symlinks.bat  # [win]
     build:
       track_features:
-        - hcc          # [variant=="hcc"]
         - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
@@ -377,7 +368,6 @@ outputs:
     script: install_clangxx.bat  # [win]
     build:
       track_features:
-        - hcc          # [variant=="hcc"]
         - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
@@ -404,7 +394,6 @@ outputs:
     script: install_clang_format.bat  # [win]
     build:
       track_features:
-        - hcc          # [variant=="hcc"]
         - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       # for windows, use the clang-format package.
@@ -445,7 +434,6 @@ outputs:
     script: install_clang_format.bat  # [win]
     build:
       track_features:
-        - hcc          # [variant=="hcc"]
         - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
@@ -484,7 +472,6 @@ outputs:
     script: install_clang_tools.bat  # [win]
     build:
       track_features:
-        - hcc          # [variant=="hcc"]
         - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
@@ -527,7 +514,6 @@ outputs:
       # It can still be installed on Windows as it is marked as `noarch: python`
       skip: true  # [not linux64]
       track_features:
-        - hcc          # [variant=="hcc"]
         - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     script: build_python_bindings.sh
