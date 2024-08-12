@@ -118,6 +118,7 @@ build:
 
 requirements:
   build:
+    - {{ stdlib('c') }}
     - {{ compiler('cxx') }}
     - cmake >=3.4.3
     # Needed to unpack the source tarball
@@ -164,6 +165,7 @@ outputs:
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       build:
+        - {{ stdlib('c') }}
         - {{ compiler('cxx') }}
         - cmake >=3.4.3
         - ninja  # [win]
@@ -206,6 +208,7 @@ outputs:
       skip: true  # [win]
     requirements:
       build:
+        - {{ stdlib('c') }}
         - {{ compiler('cxx') }}
         - cmake >=3.4.3
         - ninja  # [win]
@@ -239,6 +242,7 @@ outputs:
       {% endif %}
     requirements:
       build:
+        - {{ stdlib('c') }}
         - {{ compiler('cxx') }}
         - cmake >=3.4.3
         - ninja  # [win]
@@ -272,6 +276,7 @@ outputs:
         - libclang {{ minor_aware_ext }}.*
     requirements:
       build:
+        - {{ stdlib('c') }}
         - {{ compiler('cxx') }}
         - cmake >=3.4.3
         - ninja                      # [win]
@@ -308,6 +313,7 @@ outputs:
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       build:
+        - {{ stdlib('c') }}
         - {{ compiler('cxx') }}
         - libcxx                             # [osx]
         - cmake >=3.4.3
@@ -408,6 +414,7 @@ outputs:
       build:
         # "compiling .pyc files" fails without this
         - python >3
+        - {{ stdlib('c') }}
         - {{ compiler('cxx') }}
         - cmake >=3.4.3
         - ninja  # [win]
@@ -447,6 +454,7 @@ outputs:
       build:
         # "compiling .pyc files" fails without this
         - python >3
+        - {{ stdlib('c') }}
         - {{ compiler('cxx') }}
         - cmake >=3.4.3
         - ninja  # [win]
@@ -485,6 +493,7 @@ outputs:
       build:
         # "compiling .pyc files" fails without this
         - python >3
+        - {{ stdlib('c') }}
         - {{ compiler('cxx') }}
         - cmake >=3.4.3
         - ninja  # [win]
