@@ -373,11 +373,6 @@ outputs:
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}                        # [osx]
         - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, exact=True) }}  # [unix]
-      run_constrained:
-        - clangdev {{ version }}
-        - clangxx {{ version }}
-        - clang-tools {{ version }}
-        - llvm-tools {{ version }}
     test:
       commands:
         # presence of versioned libraries
