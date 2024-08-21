@@ -503,6 +503,10 @@ outputs:
         - zlib     # [unix]
         - zstd     # [unix]
     requirements:
+      # for run-exports
+      build:                        # [win]
+        - {{ stdlib('c') }}         # [win]
+        - {{ compiler('cxx') }}     # [win]
       host:
         - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
         # Use the same requirements as the top-level requirements
@@ -536,6 +540,10 @@ outputs:
         - zlib     # [unix]
         - zstd     # [unix]
     requirements:
+      # for run-exports
+      build:                        # [win]
+        - {{ stdlib('c') }}         # [win]
+        - {{ compiler('cxx') }}     # [win]
       host:
         - {{ pin_subpackage("clang", exact=True) }}
         # Use the same requirements as the top-level requirements
