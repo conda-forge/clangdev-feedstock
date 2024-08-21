@@ -1,4 +1,4 @@
-From 32299d5c11a37cf93f6750723f15e45b7df90378 Mon Sep 17 00:00:00 2001
+From f957da489fc5d49f04051430965496d4708cf9f4 Mon Sep 17 00:00:00 2001
 From: Nehal J Wani <nehaljw.kkd1@gmail.com>
 Date: Sat, 25 Aug 2018 09:20:04 -0500
 Subject: [PATCH 3/9] clang: add conda specific env var CONDA_BUILD_SYSROOT
@@ -31,7 +31,7 @@ index 8e44d5afa40e..9c66a52a9887 100644
      SysRoot = A->getValue();
    if (const Arg *A = Args.getLastArg(options::OPT__dyld_prefix_EQ))
 diff --git a/clang/lib/Driver/ToolChains/Darwin.cpp b/clang/lib/Driver/ToolChains/Darwin.cpp
-index c6f9d7beffb1..ec3b6033313b 100644
+index 17d57b2f7eed..99747a4fb1aa 100644
 --- a/clang/lib/Driver/ToolChains/Darwin.cpp
 +++ b/clang/lib/Driver/ToolChains/Darwin.cpp
 @@ -29,6 +29,18 @@

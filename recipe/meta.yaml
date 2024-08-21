@@ -1,4 +1,4 @@
-{% set version = "19.1.0.rc2" %}
+{% set version = "19.1.0.rc3" %}
 {% set major_version = version.split(".")[0] %}
 {% set build_number = 0 %}
 
@@ -25,7 +25,7 @@ package:
 
 source:
   - url: https://github.com/llvm/llvm-project/archive/refs/tags/llvmorg-{{ version.replace(".rc", "-rc") }}.tar.gz
-    sha256: 5332e77a658136c778fc32ec2a3687de4d63e0ff48010be205c4e7af6e76f1f1
+    sha256: 57f926edf60a92947fa9b8b0adfdf3c6f2182a4ecf1c929176218eef619d7411
     patches:
       - patches/0001-Find-conda-gcc-installation.patch
       - patches/0002-Fix-sysroot-detection-for-linux.patch
@@ -373,11 +373,6 @@ outputs:
       run:
         - {{ pin_compatible("libcxx", max_pin=None) }}                        # [osx]
         - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, exact=True) }}  # [unix]
-      run_constrained:
-        - clangdev {{ version }}
-        - clangxx {{ version }}
-        - clang-tools {{ version }}
-        - llvm-tools {{ version }}
     test:
       commands:
         # presence of versioned libraries
@@ -416,6 +411,10 @@ outputs:
         - zlib     # [unix]
         - zstd     # [unix]
     requirements:
+      # for run-exports
+      build:                        # [win]
+        - {{ stdlib('c') }}         # [win]
+        - {{ compiler('cxx') }}     # [win]
       host:
         - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
         # Use the same requirements as the top-level requirements
@@ -455,6 +454,10 @@ outputs:
         - zlib     # [unix]
         - zstd     # [unix]
     requirements:
+      # for run-exports
+      build:                        # [win]
+        - {{ stdlib('c') }}         # [win]
+        - {{ compiler('cxx') }}     # [win]
       host:
         - {{ pin_subpackage("clang", exact=True) }}
         # Use the same requirements as the top-level requirements
