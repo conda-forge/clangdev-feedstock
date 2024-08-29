@@ -11,5 +11,4 @@ libclang_soversion:
 
 variant:
   - default
-  - hcc   # [linux]
   - root_63202  # [linux or osx]
