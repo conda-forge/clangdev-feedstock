@@ -9,6 +9,6 @@ cxx_compiler:        # [osx]
 libclang_soversion:
   - 13
 
+# keep for use with root when it catches up
 variant:
   - default
-  - hcc   # [linux]
