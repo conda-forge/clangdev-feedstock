@@ -1,6 +1,6 @@
 {% set version = "18.1.8" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 3 %}
+{% set build_number = 4 %}
 
 # always includes minor as of v18, see https://github.com/llvm/llvm-project/issues/76273
 {% set minor_aware_ext = major_version ~ "." ~ version.split(".")[1] %}
@@ -461,7 +461,7 @@ outputs:
         - zstd
       run:
         - libstdcxx-devel_{{ target_platform }}  # [linux]
-        - libcxx-devel                           # [osx]
+        - libcxx-devel {{ version }}             # [osx]
         - {{ pin_subpackage("clang", exact=True) }}
     test:
       requires:
