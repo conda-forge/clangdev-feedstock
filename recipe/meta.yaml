@@ -217,9 +217,10 @@ outputs:
   - name: libclang-cpp{{ minor_aware_ext }}
     script: install_libclang_cpp.sh  # [unix]
     files:
-      - lib/libclang-cpp.so.16     # [linux]
-      - lib/libclang-cpp.16.dylib  # [osx]
+      - lib/libclang-cpp.so.{{ minor_aware_ext }}     # [linux]
+      - lib/libclang-cpp.{{ minor_aware_ext }}.dylib  # [osx]
     build:
+      skip: true  # [win]
       track_features:
         - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
@@ -230,7 +231,6 @@ outputs:
         - zlib     # [unix]
         - libxml2  # [unix]
         - zstd     # [unix]
-      skip: true  # [win]
     requirements:
       build:
         - {{ stdlib('c') }}
