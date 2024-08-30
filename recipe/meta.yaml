@@ -537,6 +537,8 @@ outputs:
         - libstdcxx-devel_{{ target_platform }}  # [linux]
         - libcxx-devel {{ version }}             # [osx]
         - {{ pin_subpackage("clang", exact=True) }}
+      run_constrained:
+        - libcxx-devel {{ version }}             # [osx]
     test:
       requires:
         - {{ compiler("cxx") }}
