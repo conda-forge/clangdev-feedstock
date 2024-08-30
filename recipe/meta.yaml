@@ -170,7 +170,7 @@ outputs:
         - {{ pin_subpackage("libclang-cpp", exact=True) }}
         - llvmdev =={{ version }}
         # we need to do this manually because clang_bootstrap has no run-export
-        - libcxx >={{ cxx_compiler_version }}       # [osx]
+        - libcxx >={{ version }}    # [osx]
     test:
       requires:
         - {{ compiler('cxx') }}
@@ -234,7 +234,7 @@ outputs:
         - zstd
       run:
         # we need to do this manually because clang_bootstrap has no run-export
-        - libcxx >={{ cxx_compiler_version }}       # [osx]
+        - libcxx >={{ version }}    # [osx]
     test:
       commands:
         # presence of versioned library
@@ -282,7 +282,7 @@ outputs:
       run:
         - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, exact=True) }}  # [unix]
         # we need to do this manually because clang_bootstrap has no run-export
-        - libcxx >={{ cxx_compiler_version }}       # [osx]
+        - libcxx >={{ version }}    # [osx]
     test:
       commands:
         # presence on unix
@@ -331,7 +331,7 @@ outputs:
         - zstd
       run:
         # we need to do this manually because clang_bootstrap has no run-export
-        - libcxx >={{ cxx_compiler_version }}       # [osx]
+        - libcxx >={{ version }}    # [osx]
     test:
       commands:
         # presence of versioned libraries
@@ -398,7 +398,7 @@ outputs:
       run:
         - {{ pin_subpackage("libclang" ~ libclang_soversion, exact=True) }}
         # we need to do this manually because clang_bootstrap has no run-export
-        - libcxx >={{ cxx_compiler_version }}       # [osx]
+        - libcxx >={{ version }}    # [osx]
     test:
       commands:
         - test -f $PREFIX/lib/libclang.so                   # [linux]
@@ -442,7 +442,7 @@ outputs:
       run:
         - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, exact=True) }}  # [unix]
         # we need to do this manually because clang_bootstrap has no run-export
-        - libcxx >={{ cxx_compiler_version }}      # [osx]
+        - libcxx >={{ version }}    # [osx]
       run_constrained:
         - clangdev {{ version }}
         - clangxx {{ version }}
@@ -592,7 +592,7 @@ outputs:
       run:
         - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, max_pin="x.x") }}   # [unix]
         # we need to do this manually because clang_bootstrap has no run-export
-        - libcxx >={{ cxx_compiler_version }}       # [osx]
+        - libcxx >={{ version }}    # [osx]
     test:
       commands:
         - clang-format-{{ major_version }} --version
@@ -641,7 +641,7 @@ outputs:
         - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, max_pin="x.x") }}  # [unix]
         - {{ pin_subpackage("clang-format-" ~ major_version, exact=True) }}      # [unix]
         # we need to do this manually because clang_bootstrap has no run-export
-        - libcxx >={{ cxx_compiler_version }}       # [osx]
+        - libcxx >={{ version }}    # [osx]
     test:
       commands:
         - clang-format --version
@@ -689,7 +689,7 @@ outputs:
         - {{ pin_subpackage("libclang" ~ libclang_soversion, max_pin=None) }}
         - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, max_pin="x.x") }}   # [unix]
         # we need to do this manually because clang_bootstrap has no run-export
-        - libcxx >={{ cxx_compiler_version }}       # [osx]
+        - libcxx >={{ version }}    # [osx]
       run_constrained:
         - clangdev {{ version }}
     test:
