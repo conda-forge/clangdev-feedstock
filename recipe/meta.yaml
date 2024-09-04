@@ -1,6 +1,6 @@
 {% set version = "18.1.8" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 3 %}
+{% set build_number = 4 %}
 
 # always includes minor as of v18, see https://github.com/llvm/llvm-project/issues/76273
 {% set minor_aware_ext = major_version ~ "." ~ version.split(".")[1] %}
@@ -87,8 +87,8 @@ outputs:
         - {{ pin_subpackage("clang-tools", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
         - {{ pin_subpackage("libclang-cpp", exact=True) }}
-        # Use the same requirements as the top-level requirements
-        - libcxx-devel {{ cxx_compiler_version }}   # [osx]
+        # unpinned because we depend on clangxx here, which pins libcxx-devel
+        - libcxx-devel              # [osx]
         - llvmdev =={{ version }}
         - libxml2
         - zlib
@@ -101,7 +101,7 @@ outputs:
         - {{ pin_subpackage("libclang-cpp", exact=True) }}
         - llvmdev =={{ version }}
         # we need to do this manually because clang_bootstrap has no run-export
-        - libcxx >={{ cxx_compiler_version }}       # [osx]
+        - libcxx >={{ version }}    # [osx]
     test:
       requires:
         - {{ compiler('cxx') }}
@@ -165,7 +165,7 @@ outputs:
         - zstd
       run:
         # we need to do this manually because clang_bootstrap has no run-export
-        - libcxx >={{ cxx_compiler_version }}       # [osx]
+        - libcxx >={{ version }}    # [osx]
     test:
       commands:
         # presence of versioned library
@@ -213,7 +213,7 @@ outputs:
       run:
         - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, exact=True) }}  # [unix]
         # we need to do this manually because clang_bootstrap has no run-export
-        - libcxx >={{ cxx_compiler_version }}       # [osx]
+        - libcxx >={{ version }}    # [osx]
     test:
       commands:
         # presence on unix
@@ -262,7 +262,7 @@ outputs:
         - zstd
       run:
         # we need to do this manually because clang_bootstrap has no run-export
-        - libcxx >={{ cxx_compiler_version }}       # [osx]
+        - libcxx >={{ version }}    # [osx]
     test:
       commands:
         # presence of versioned libraries
@@ -329,7 +329,7 @@ outputs:
       run:
         - {{ pin_subpackage("libclang" ~ libclang_soversion, exact=True) }}
         # we need to do this manually because clang_bootstrap has no run-export
-        - libcxx >={{ cxx_compiler_version }}       # [osx]
+        - libcxx >={{ version }}    # [osx]
     test:
       commands:
         - test -f $PREFIX/lib/libclang.so                   # [linux]
@@ -373,7 +373,7 @@ outputs:
       run:
         - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, exact=True) }}  # [unix]
         # we need to do this manually because clang_bootstrap has no run-export
-        - libcxx >={{ cxx_compiler_version }}      # [osx]
+        - libcxx >={{ version }}    # [osx]
     test:
       commands:
         # presence of versioned libraries
@@ -461,7 +461,7 @@ outputs:
         - zstd
       run:
         - libstdcxx-devel_{{ target_platform }}  # [linux]
-        - libcxx-devel                           # [osx]
+        - libcxx-devel {{ version }}             # [osx]
         - {{ pin_subpackage("clang", exact=True) }}
     test:
       requires:
@@ -509,8 +509,8 @@ outputs:
         - {{ pin_subpackage("libclang", exact=True) }}
         - {{ pin_subpackage("libclang-cpp", exact=True) }}
         - llvm =={{ version }}
-        # Use the same requirements as the top-level requirements
-        - libcxx-devel {{ cxx_compiler_version }}   # [osx]
+        # unpinned because we depend on clangxx here, which pins libcxx-devel
+        - libcxx-devel              # [osx]
         - llvmdev =={{ version }}
         - libxml2
         - zlib
@@ -518,7 +518,7 @@ outputs:
       run:
         - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, max_pin="x.x") }}   # [unix]
         # we need to do this manually because clang_bootstrap has no run-export
-        - libcxx >={{ cxx_compiler_version }}       # [osx]
+        - libcxx >={{ version }}    # [osx]
     test:
       commands:
         - clang-format-{{ major_version }} --version
@@ -557,8 +557,8 @@ outputs:
         - {{ pin_subpackage("libclang-cpp", exact=True) }}
         - {{ pin_subpackage("clang-format-" ~ major_version, exact=True) }}      # [unix]
         - llvm =={{ version }}
-        # Use the same requirements as the top-level requirements
-        - libcxx-devel {{ cxx_compiler_version }}   # [osx]
+        # unpinned because we depend on clangxx here, which pins libcxx-devel
+        - libcxx-devel              # [osx]
         - llvmdev =={{ version }}
         - libxml2
         - zlib
@@ -567,7 +567,7 @@ outputs:
         - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, max_pin="x.x") }}  # [unix]
         - {{ pin_subpackage("clang-format-" ~ major_version, exact=True) }}      # [unix]
         # we need to do this manually because clang_bootstrap has no run-export
-        - libcxx >={{ cxx_compiler_version }}       # [osx]
+        - libcxx >={{ version }}    # [osx]
     test:
       commands:
         - clang-format --version
@@ -602,8 +602,8 @@ outputs:
         - {{ pin_subpackage("libclang-cpp", exact=True) }}
         - {{ pin_subpackage("clang-format", exact=True) }}
         - llvm =={{ version }}
-        # Use the same requirements as the top-level requirements
-        - libcxx-devel {{ cxx_compiler_version }}  # [osx]
+        # unpinned because we depend on clangxx here, which pins libcxx-devel
+        - libcxx-devel              # [osx]
         - llvmdev =={{ version }}
         - libxml2
         - zlib
@@ -614,7 +614,7 @@ outputs:
         - {{ pin_subpackage("libclang" ~ libclang_soversion, max_pin=None) }}
         - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, max_pin="x.x") }}   # [unix]
         # we need to do this manually because clang_bootstrap has no run-export
-        - libcxx >={{ cxx_compiler_version }}       # [osx]
+        - libcxx >={{ version }}    # [osx]
       run_constrained:
         - clangdev {{ version }}
     test:
