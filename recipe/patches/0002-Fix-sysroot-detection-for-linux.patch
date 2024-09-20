@@ -1,4 +1,4 @@
-From 748e0e2c13eb568d52ce18f75d578e38b52b1910 Mon Sep 17 00:00:00 2001
+From 302101043ac3076117bab45be0477bba1cf06e7f Mon Sep 17 00:00:00 2001
 From: Isuru Fernando <isuruf@gmail.com>
 Date: Mon, 8 Apr 2019 16:32:17 -0500
 Subject: [PATCH 2/9] Fix sysroot detection for linux
@@ -8,10 +8,10 @@ Subject: [PATCH 2/9] Fix sysroot detection for linux
  1 file changed, 16 insertions(+), 4 deletions(-)
 
 diff --git a/clang/lib/Driver/ToolChains/Linux.cpp b/clang/lib/Driver/ToolChains/Linux.cpp
-index 4300a2bdff17..401834493cb3 100644
+index 2265138edbff..8ff1c8d3f235 100644
 --- a/clang/lib/Driver/ToolChains/Linux.cpp
 +++ b/clang/lib/Driver/ToolChains/Linux.cpp
-@@ -398,18 +398,30 @@ std::string Linux::computeSysRoot() const {
+@@ -409,18 +409,30 @@ std::string Linux::computeSysRoot() const {
      return std::string();
    }
  
