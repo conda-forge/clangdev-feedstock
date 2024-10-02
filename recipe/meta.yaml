@@ -92,8 +92,9 @@ outputs:
         - {{ pin_subpackage("clang-tools", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
         - {{ pin_subpackage("libclang-cpp", exact=True) }}
-        # Use the same requirements as the top-level requirements
-        - libcxx-devel {{ cxx_compiler_version }}   # [osx]
+        # cannot pin to `cxx_compiler_version` here,
+        # because clangxx pins libcxx-devel to `version`
+        - libcxx-devel =={{ version }}  # [osx]
         - llvmdev =={{ version }}
         - libxml2
         - zlib
@@ -518,9 +519,10 @@ outputs:
         - {{ pin_subpackage("clangxx", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
         - {{ pin_subpackage("libclang-cpp", exact=True) }}
+        # cannot pin to `cxx_compiler_version` here,
+        # because clangxx pins libcxx-devel to `version`
+        - libcxx-devel =={{ version }}  # [osx]
         - llvm =={{ version }}
-        # Use the same requirements as the top-level requirements
-        - libcxx-devel {{ cxx_compiler_version }}   # [osx]
         - llvmdev =={{ version }}
         - libxml2
         - zlib
@@ -566,9 +568,10 @@ outputs:
         - {{ pin_subpackage("libclang", exact=True) }}
         - {{ pin_subpackage("libclang-cpp", exact=True) }}
         - {{ pin_subpackage("clang-format-" ~ major_version, exact=True) }}      # [unix]
+        # cannot pin to `cxx_compiler_version` here,
+        # because clangxx pins libcxx-devel to `version`
+        - libcxx-devel =={{ version }}  # [osx]
         - llvm =={{ version }}
-        # Use the same requirements as the top-level requirements
-        - libcxx-devel {{ cxx_compiler_version }}   # [osx]
         - llvmdev =={{ version }}
         - libxml2
         - zlib
@@ -611,9 +614,10 @@ outputs:
         - {{ pin_subpackage("libclang", exact=True) }}
         - {{ pin_subpackage("libclang-cpp", exact=True) }}
         - {{ pin_subpackage("clang-format", exact=True) }}
+        # cannot pin to `cxx_compiler_version` here,
+        # because clangxx pins libcxx-devel to `version`
+        - libcxx-devel =={{ version }}  # [osx]
         - llvm =={{ version }}
-        # Use the same requirements as the top-level requirements
-        - libcxx-devel {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
         - libxml2
         - zlib
