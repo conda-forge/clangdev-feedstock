@@ -38,6 +38,8 @@ source:
       - patches/0008-Make-PIE-default-on-macOS-too.patch
       - patches/0009-Find-ROCm-device-library-in-conda-layout.patch
       - patches/0010-Add-conda-mingw-paths.patch
+      # backport clang-bits of https://github.com/llvm/llvm-project/pull/110217
+      - patches/0011-clang-LLVM_ENABLE_RUNTIMES-flang-rt.patch
     # name folder for easier deletion; we do the equivalent of downloading
     # the subproject sources, so the work folder then has clang in it;
     # for details see build scripts

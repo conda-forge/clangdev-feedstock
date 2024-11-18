@@ -1,14 +1,14 @@
-From cb03470268c8ee2dca26a46a381cf27f1664f719 Mon Sep 17 00:00:00 2001
+From ecd6aef4cae68978ed0c3b8c785856dc0dc23a34 Mon Sep 17 00:00:00 2001
 From: Isuru Fernando <isuruf@gmail.com>
 Date: Mon, 11 Mar 2024 14:03:12 -0500
-Subject: [PATCH 9/9] Find ROCm device library in conda layout
+Subject: [PATCH 09/11] Find ROCm device library in conda layout
 
 ---
  clang/lib/Driver/ToolChains/AMDGPU.cpp | 19 +++++++++++++++++++
  1 file changed, 19 insertions(+)
 
 diff --git a/clang/lib/Driver/ToolChains/AMDGPU.cpp b/clang/lib/Driver/ToolChains/AMDGPU.cpp
-index 453daed7cc7d..b0358acfed3b 100644
+index a8061ffd9321..3e8f2a7cd38f 100644
 --- a/clang/lib/Driver/ToolChains/AMDGPU.cpp
 +++ b/clang/lib/Driver/ToolChains/AMDGPU.cpp
 @@ -433,6 +433,25 @@ void RocmInstallationDetector::detectDeviceLibrary() {
