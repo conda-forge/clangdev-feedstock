@@ -1,18 +1,24 @@
-From 852f3f28b5df96a57e56e1c2b112e028cfb94027 Mon Sep 17 00:00:00 2001
+From f957da489fc5d49f04051430965496d4708cf9f4 Mon Sep 17 00:00:00 2001
 From: Nehal J Wani <nehaljw.kkd1@gmail.com>
 Date: Sat, 25 Aug 2018 09:20:04 -0500
 Subject: [PATCH 3/9] clang: add conda specific env var CONDA_BUILD_SYSROOT
 
+And also improve logic for finding the macos sysroot for conda
+
+Co-authored-by: Chris Burr <christopher.burr@cern.ch>
+Co-authored-by: Vincenzo Eduardo Padulano <v.e.padulano@gmail.com>
+Co-authored-by: Isuru Fernando <isuruf@gmail.com>
 ---
- clang/lib/Driver/Driver.cpp        | 5 +++++
- clang/lib/Lex/InitHeaderSearch.cpp | 6 +++++-
- 2 files changed, 10 insertions(+), 1 deletion(-)
+ clang/lib/Driver/Driver.cpp            |  5 ++
+ clang/lib/Driver/ToolChains/Darwin.cpp | 76 +++++++++++++++++++++++++-
+ clang/lib/Lex/InitHeaderSearch.cpp     |  6 +-
+ 3 files changed, 84 insertions(+), 3 deletions(-)
 
 diff --git a/clang/lib/Driver/Driver.cpp b/clang/lib/Driver/Driver.cpp
-index f5ea73a04ae5..5ee727ea59d4 100644
+index 8e44d5afa40e..9c66a52a9887 100644
 --- a/clang/lib/Driver/Driver.cpp
 +++ b/clang/lib/Driver/Driver.cpp
-@@ -1370,6 +1370,11 @@ Compilation *Driver::BuildCompilation(ArrayRef<const char *> ArgList) {
+@@ -1371,6 +1371,11 @@ Compilation *Driver::BuildCompilation(ArrayRef<const char *> ArgList) {
        CompilerPath = Split.second;
      }
    }
@@ -24,6 +30,107 @@ index f5ea73a04ae5..5ee727ea59d4 100644
    if (const Arg *A = Args.getLastArg(options::OPT__sysroot_EQ))
      SysRoot = A->getValue();
    if (const Arg *A = Args.getLastArg(options::OPT__dyld_prefix_EQ))
+diff --git a/clang/lib/Driver/ToolChains/Darwin.cpp b/clang/lib/Driver/ToolChains/Darwin.cpp
+index 17d57b2f7eed..99747a4fb1aa 100644
+--- a/clang/lib/Driver/ToolChains/Darwin.cpp
++++ b/clang/lib/Driver/ToolChains/Darwin.cpp
+@@ -29,6 +29,18 @@
+ #include "llvm/TargetParser/Triple.h"
+ #include <cstdlib> // ::getenv
+ 
++// Extra includes for conda patch
++#include <cstdio>
++#include <memory>
++#include <optional>
++#include <string>
++#include "llvm/ADT/ArrayRef.h"
++#include "llvm/ADT/StringRef.h"
++#include "llvm/Support/FileSystem.h"
++#include "llvm/Support/FileUtilities.h"
++#include "llvm/Support/MemoryBuffer.h"
++#include "llvm/Support/Program.h"
++
+ using namespace clang::driver;
+ using namespace clang::driver::tools;
+ using namespace clang::driver::toolchains;
+@@ -2217,15 +2229,75 @@ void Darwin::AddDeploymentTarget(DerivedArgList &Args) const {
+     if (!getVFS().exists(A->getValue()))
+       getDriver().Diag(clang::diag::warn_missing_sysroot) << A->getValue();
+   } else {
++    std::string foundSDKPath = "/";
++    std::string prefixToTry = "/";
++
+     if (char *env = ::getenv("SDKROOT")) {
+       // We only use this value as the default if it is an absolute path,
+       // exists, and it is not the root path.
+       if (llvm::sys::path::is_absolute(env) && getVFS().exists(env) &&
+           StringRef(env) != "/") {
+-        Args.append(Args.MakeSeparateArg(
+-            nullptr, Opts.getOption(options::OPT_isysroot), env));
++        foundSDKPath = std::string(env);
++      }
++    }
++
++    if (foundSDKPath == "/") {
++      if (char *env = ::getenv("CONDA_BUILD_SYSROOT")) {
++        // We only use this value as the default if it is an absolute path,
++        // exists, and it is not the root path.
++        if (llvm::sys::path::is_absolute(env) && getVFS().exists(env) &&
++            StringRef(env) != "/") {
++          foundSDKPath = std::string(env);
++        }
+       }
+     }
++
++    // If the SDK is not found by now and it's not inside /, our only choice
++    // is to fail or ask Apple CLI utilities for help
++    if (foundSDKPath == "/" && !getVFS().exists("/usr/include/sys/types.h")) {
++
++      auto pathFromExecutable = [](llvm::ArrayRef<llvm::StringRef> Argv)
++          -> std::optional<std::string> {
++        // Inspired by clang-tools-extra/clangd/CompileCommands.cpp
++        auto Exe = llvm::sys::findProgramByName(Argv[0]);
++        if (!Exe) {
++          return std::nullopt;
++        }
++        llvm::SmallString<64> OutFile;
++        llvm::sys::fs::createTemporaryFile("darwin-adddeploymenttarget", "",
++                                           OutFile);
++        llvm::FileRemover OutRemover(OutFile);
++        std::optional<llvm::StringRef> Redirects[3] = {
++            /*stdin=*/{""}, /*stdout=*/{OutFile.str()}, /*stderr=*/{""}};
++        int Ret = llvm::sys::ExecuteAndWait(*Exe, Argv,
++                                            /*Env=*/std::nullopt, Redirects,
++                                            /*SecondsToWait=*/10);
++        if (Ret != 0) {
++          return std::nullopt;
++        }
++
++        auto Buf = llvm::MemoryBuffer::getFile(OutFile);
++        if (!Buf) {
++          return std::nullopt;
++        }
++        llvm::StringRef Path = Buf->get()->getBuffer().trim();
++        if (Path.empty()) {
++          return std::nullopt;
++        }
++        return Path.str();
++      };
++
++      auto XcrunPath = pathFromExecutable({"xcrun", "--show-sdk-path"});
++      if (foundSDKPath == "/" && XcrunPath &&
++          getVFS().exists(XcrunPath.value() + "/usr/include/sys/types.h")) {
++        foundSDKPath = XcrunPath.value();
++      }
++    }
++
++    if (foundSDKPath != "/") {
++      Args.append(Args.MakeSeparateArg(
++          nullptr, Opts.getOption(options::OPT_isysroot), foundSDKPath));
++    }
+   }
+ 
+   // Read the SDKSettings.json file for more information, like the SDK version
 diff --git a/clang/lib/Lex/InitHeaderSearch.cpp b/clang/lib/Lex/InitHeaderSearch.cpp
 index 2218db15013d..d05cfa38e4fb 100644
 --- a/clang/lib/Lex/InitHeaderSearch.cpp

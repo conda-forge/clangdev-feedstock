@@ -1,4 +1,4 @@
-From 9296bd7686e2d80f146fd4c53a78bd8b78b40a8a Mon Sep 17 00:00:00 2001
+From bbf7c64e11c653288b89e6fd3189dbbed500d61a Mon Sep 17 00:00:00 2001
 From: "H. Vetinari" <h.vetinari@gmx.com>
 Date: Thu, 14 Apr 2022 11:57:00 +1100
 Subject: [PATCH 7/9] set libclang SOVERSION unconditionally
