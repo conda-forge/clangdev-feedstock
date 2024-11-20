@@ -17,7 +17,7 @@ cd clang
 IFS='.' read -r -a PKG_VER_ARRAY <<< "${PKG_VERSION}"
 # default SOVER for tagged releases is major.minor since LLVM 18
 SOVER_EXT="${PKG_VER_ARRAY[0]}.${PKG_VER_ARRAY[1]}"
-if [[ "${PKG_VERSION}" == *dev0 ]]; then
+if [[ "${PKG_VERSION}" == *dev* ]]; then
     # otherwise with git suffix
     SOVER_EXT="${SOVER_EXT}git"
 fi
