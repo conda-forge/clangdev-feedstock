@@ -1,4 +1,4 @@
-{% set version = "20.0.0.dev0" %}
+{% set version = "20.0.0.dev1" %}
 {% set major_version = version.split(".")[0] %}
 {% set tail_version = version.split(".")[-1] %}
 {% set build_number = 0 %}
@@ -23,8 +23,8 @@ package:
 
 source:
   # - url: https://github.com/llvm/llvm-project/archive/refs/tags/llvmorg-{{ version.replace(".rc", "-rc") }}.tar.gz
-  - url: https://github.com/llvm/llvm-project/archive/87bfa58a5a4b85416d2486797d0f21fc67da5cf3.tar.gz
-    sha256: 6453827c61593a987f51a5eaa265f4ccfc60901821c9bbb1c6fd1ac17681f0e3
+  - url: https://github.com/llvm/llvm-project/archive/d6ec7c82f383ae4268f350f4d2e267af45fae8c0.tar.gz
+    sha256: 81e2a81196ac36405b480236e864e76ba79f1707d29e000a627fdbed6e345f2b
     patches:
       - patches/0001-Find-conda-gcc-installation.patch
       - patches/0002-Fix-sysroot-detection-for-linux.patch
