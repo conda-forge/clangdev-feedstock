@@ -62,8 +62,6 @@ requirements:
   host:
     - libcxx-devel {{ cxx_compiler_version }}   # [osx]
     - llvmdev =={{ version }}
-    # while we fix CMake metadata for llvmdev
-    - libllvm-c{{ major_version }}              # [win]
     - libxml2
     - zlib
     - zstd
