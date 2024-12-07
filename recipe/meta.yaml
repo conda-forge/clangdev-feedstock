@@ -1,18 +1,16 @@
-{% set version = "20.0.0.dev0" %}
+{% set version = "20.0.0.dev1" %}
 {% set major_version = version.split(".")[0] %}
+{% set tail_version = version.split(".")[-1] %}
 {% set build_number = 0 %}
 
 # always includes minor as of v18, see https://github.com/llvm/llvm-project/issues/76273
 {% set maj_min = major_version ~ "." ~ version.split(".")[1] %}
 
 # construct full sover, which contains extra suffixes for rc/dev builds
-{% set sover = maj_min %}
-{% if version.split(".")[-1].startswith("rc") %}
 # as of LLVM 19, we expect an "-rcX" suffix for the release candidates
-{% set sover = maj_min ~ "-" ~ version.split(".")[-1] %}
-{% elif version.split(".")[-1] == "dev0" %}
-{% set sover = maj_min ~ "git" %}
-{% endif %}
+{% set extra = "-" ~ tail_version if tail_version not in "0123456789" else "" %}
+{% set extra = "git" if tail_version|trim("0123456789") == "dev" else extra %}
+{% set sover = maj_min ~ extra %}
 
 {% if libclang_soversion is not defined %}
 # see https://github.com/llvm/llvm-project/blob/release/18.x/clang/tools/libclang/CMakeLists.txt
@@ -25,8 +23,8 @@ package:
 
 source:
   # - url: https://github.com/llvm/llvm-project/archive/refs/tags/llvmorg-{{ version.replace(".rc", "-rc") }}.tar.gz
-  - url: https://github.com/llvm/llvm-project/archive/87bfa58a5a4b85416d2486797d0f21fc67da5cf3.tar.gz
-    sha256: 6453827c61593a987f51a5eaa265f4ccfc60901821c9bbb1c6fd1ac17681f0e3
+  - url: https://github.com/llvm/llvm-project/archive/d6ec7c82f383ae4268f350f4d2e267af45fae8c0.tar.gz
+    sha256: 81e2a81196ac36405b480236e864e76ba79f1707d29e000a627fdbed6e345f2b
     patches:
       - patches/0001-Find-conda-gcc-installation.patch
       - patches/0002-Fix-sysroot-detection-for-linux.patch
@@ -64,8 +62,6 @@ requirements:
   host:
     - libcxx-devel {{ cxx_compiler_version }}   # [osx]
     - llvmdev =={{ version }}
-    # while we fix CMake metadata for llvmdev
-    - libllvm-c{{ major_version }}              # [win]
     - libxml2
     - zlib
     - zstd
