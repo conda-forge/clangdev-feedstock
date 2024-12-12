@@ -590,6 +590,7 @@ outputs:
     script: install_clang_tools.sh  # [unix]
     script: install_clang_tools.bat  # [win]
     build:
+      skip: true  # [win]
       track_features:
         - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
