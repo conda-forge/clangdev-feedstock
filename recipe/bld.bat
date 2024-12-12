@@ -41,5 +41,5 @@ cmake -G "Ninja" ^
     ..
 if %ERRORLEVEL% neq 0 exit 1
 
-ninja -j%CPU_COUNT%
+ninja -j1
 if %ERRORLEVEL% neq 0 exit 1
