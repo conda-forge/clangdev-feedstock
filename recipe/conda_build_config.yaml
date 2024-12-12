@@ -1,9 +1,13 @@
-c_compiler:          # [osx or win]
-  - clang_bootstrap  # [osx]
-  - clang            # [win]
-cxx_compiler:        # [osx or win]
-  - clang_bootstrap  # [osx]
-  - clangxx          # [win]
+c_compiler:             # [osx or win]
+  - clang_bootstrap     # [osx]
+  - clang               # [win]
+cxx_compiler:           # [osx or win]
+  - clang_bootstrap     # [osx]
+  - clangxx             # [win]
+c_compiler_version:     # [win]
+  - 19                  # [win]
+cxx_compiler_version:   # [win]
+  - 19                  # [win]
 
 # Starting from LLVM 14, the ABI of libclang doesn't necessarily
 # match the major version anymore - cf. #170 and
