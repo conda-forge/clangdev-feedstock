@@ -22,8 +22,8 @@ cd build
 set "CFLAGS= -MD"
 set "CXXFLAGS= -MD"
 
-set "CXX=cl.exe"
-set "CC=cl.exe"
+set "CXX=clang-cl.exe"
+set "CC=clang-cl.exe"
 
 cmake -G "Ninja" ^
     -DCMAKE_BUILD_TYPE="Release" ^
