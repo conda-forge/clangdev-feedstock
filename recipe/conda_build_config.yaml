@@ -1,9 +1,7 @@
-c_compiler:          # [osx or win]
+c_compiler:          # [osx]
   - clang_bootstrap  # [osx]
-  - vs2022           # [win]
-cxx_compiler:        # [osx or win]
+cxx_compiler:        # [osx]
   - clang_bootstrap  # [osx]
-  - vs2022           # [win]
 
 # Starting from LLVM 14, the ABI of libclang doesn't necessarily
 # match the major version anymore - cf. #170 and
