@@ -23,8 +23,8 @@ package:
 
 source:
   # - url: https://github.com/llvm/llvm-project/archive/refs/tags/llvmorg-{{ version.replace(".rc", "-rc") }}.tar.gz
-  - url: https://github.com/llvm/llvm-project/archive/f2d18a4d00c5f5dea436b4f7b62ec5c87b98eac2.tar.gz
-    sha256: 25479431076541dae16e50a97d39a1608d92281ba538a13d730ba9e6a1510b4f
+  - url: https://github.com/llvm/llvm-project/archive/be2df95e9281985b61270bb6420ea0eeeffbbe59.tar.gz
+    sha256: a92d032a2c93dc4fc252d76e95fee18590413e49f217106349044af76a2ba135
     patches:
       - patches/0001-Find-conda-gcc-installation.patch
       - patches/0002-Fix-sysroot-detection-for-linux.patch
