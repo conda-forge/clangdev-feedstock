@@ -5,7 +5,9 @@ channel_sources:
 channel_targets:
 - conda-forge llvm_dev
 cxx_compiler:
-- vs2019
+- clangxx
+cxx_compiler_version:
+- '19'
 libclang_soversion:
 - '13'
 libxml2:

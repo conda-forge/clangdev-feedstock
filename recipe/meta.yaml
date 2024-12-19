@@ -45,6 +45,8 @@ source:
 
 build:
   number: {{ build_number }}
+  # debug
+  skip: true  # [not win]
 
 requirements:
   build:
@@ -71,6 +73,7 @@ outputs:
     script: install_clangdev.sh  # [unix]
     script: install_clangdev.bat  # [win]
     build:
+      skip: true  # [win]
       track_features:
         - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
@@ -587,6 +590,7 @@ outputs:
     script: install_clang_tools.sh  # [unix]
     script: install_clang_tools.bat  # [win]
     build:
+      skip: true  # [win]
       track_features:
         - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
