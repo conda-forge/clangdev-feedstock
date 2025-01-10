@@ -1,4 +1,4 @@
-From ef77f122b7065302a8d7b8c7319058d14a961fd6 Mon Sep 17 00:00:00 2001
+From 62ef7a35fbe655a99cb1bee5e281336a00ae22d1 Mon Sep 17 00:00:00 2001
 From: Isuru Fernando <isuruf@gmail.com>
 Date: Tue, 11 May 2021 15:08:13 +0200
 Subject: [PATCH 06/11] Fix crosscompiling LLVM tools
@@ -8,7 +8,7 @@ Subject: [PATCH 06/11] Fix crosscompiling LLVM tools
  1 file changed, 10 insertions(+)
 
 diff --git a/clang/CMakeLists.txt b/clang/CMakeLists.txt
-index 27e8095534a6..192079e0ad6a 100644
+index b79e570667b2..d51f81e806bc 100644
 --- a/clang/CMakeLists.txt
 +++ b/clang/CMakeLists.txt
 @@ -69,6 +69,16 @@ if(CLANG_BUILT_STANDALONE)

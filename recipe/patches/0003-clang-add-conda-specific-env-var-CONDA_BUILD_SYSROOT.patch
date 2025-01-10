@@ -1,4 +1,4 @@
-From 6bc1b3c2895cfab347843940948c823818c20cd0 Mon Sep 17 00:00:00 2001
+From af5b9dfa190e25a2c51633ad2a6c6b7f3353a55c Mon Sep 17 00:00:00 2001
 From: Nehal J Wani <nehaljw.kkd1@gmail.com>
 Date: Sat, 25 Aug 2018 09:20:04 -0500
 Subject: [PATCH 03/11] clang: add conda specific env var CONDA_BUILD_SYSROOT
@@ -15,10 +15,10 @@ Co-authored-by: Isuru Fernando <isuruf@gmail.com>
  3 files changed, 84 insertions(+), 3 deletions(-)
 
 diff --git a/clang/lib/Driver/Driver.cpp b/clang/lib/Driver/Driver.cpp
-index 93e85f7dffe3..c5871373f561 100644
+index bc5ce9f14ab6..bb0acdee77b4 100644
 --- a/clang/lib/Driver/Driver.cpp
 +++ b/clang/lib/Driver/Driver.cpp
-@@ -1400,6 +1400,11 @@ Compilation *Driver::BuildCompilation(ArrayRef<const char *> ArgList) {
+@@ -1442,6 +1442,11 @@ Compilation *Driver::BuildCompilation(ArrayRef<const char *> ArgList) {
        CompilerPath = Split.second;
      }
    }
@@ -31,7 +31,7 @@ index 93e85f7dffe3..c5871373f561 100644
      SysRoot = A->getValue();
    if (const Arg *A = Args.getLastArg(options::OPT__dyld_prefix_EQ))
 diff --git a/clang/lib/Driver/ToolChains/Darwin.cpp b/clang/lib/Driver/ToolChains/Darwin.cpp
-index 87380869f6fd..c561e9ab6c83 100644
+index 4105d38d15d7..bdbcba1ebfa4 100644
 --- a/clang/lib/Driver/ToolChains/Darwin.cpp
 +++ b/clang/lib/Driver/ToolChains/Darwin.cpp
 @@ -29,6 +29,18 @@
@@ -53,7 +53,7 @@ index 87380869f6fd..c561e9ab6c83 100644
  using namespace clang::driver;
  using namespace clang::driver::tools;
  using namespace clang::driver::toolchains;
-@@ -2258,15 +2270,75 @@ void Darwin::AddDeploymentTarget(DerivedArgList &Args) const {
+@@ -2264,15 +2276,75 @@ void Darwin::AddDeploymentTarget(DerivedArgList &Args) const {
      if (!getVFS().exists(A->getValue()))
        getDriver().Diag(clang::diag::warn_missing_sysroot) << A->getValue();
    } else {
@@ -132,10 +132,10 @@ index 87380869f6fd..c561e9ab6c83 100644
  
    // Read the SDKSettings.json file for more information, like the SDK version
 diff --git a/clang/lib/Lex/InitHeaderSearch.cpp b/clang/lib/Lex/InitHeaderSearch.cpp
-index 86c2ecdf9e36..684d68ecd2a8 100644
+index 67c9d92b849e..a5cf5696898e 100644
 --- a/clang/lib/Lex/InitHeaderSearch.cpp
 +++ b/clang/lib/Lex/InitHeaderSearch.cpp
-@@ -24,6 +24,7 @@
+@@ -21,6 +21,7 @@
  #include "llvm/ADT/Twine.h"
  #include "llvm/Support/ErrorHandling.h"
  #include "llvm/Support/Path.h"
@@ -143,7 +143,7 @@ index 86c2ecdf9e36..684d68ecd2a8 100644
  #include "llvm/Support/raw_ostream.h"
  #include "llvm/TargetParser/Triple.h"
  #include <optional>
-@@ -209,7 +210,10 @@ void InitHeaderSearch::AddDefaultCIncludePaths(const llvm::Triple &triple,
+@@ -206,7 +207,10 @@ void InitHeaderSearch::AddDefaultCIncludePaths(const llvm::Triple &triple,
        [[fallthrough]];
      default:
        // FIXME: temporary hack: hard-coded paths.

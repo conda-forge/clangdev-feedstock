@@ -1,4 +1,4 @@
-From 25caddeab3946a71f76ea86673159cbbf63ef2ee Mon Sep 17 00:00:00 2001
+From c62aafc81ad05441a7916cb820cb5f433f094f1e Mon Sep 17 00:00:00 2001
 From: Michael Kruse <llvm-project@meinersbur.de>
 Date: Fri, 27 Sep 2024 09:18:49 +0200
 Subject: [PATCH 11/11] [clang] LLVM_ENABLE_RUNTIMES=flang-rt
@@ -6,15 +6,29 @@ Subject: [PATCH 11/11] [clang] LLVM_ENABLE_RUNTIMES=flang-rt
 Extract Flang's runtime library to use the LLVM_ENABLE_RUNTIME
 mechanism.
 ---
+ clang/lib/Driver/ToolChain.cpp             |  2 +-
  clang/lib/Driver/ToolChains/CommonArgs.cpp |  5 ++---
  clang/lib/Driver/ToolChains/Flang.cpp      | 26 +++++++++++-----------
- 2 files changed, 15 insertions(+), 16 deletions(-)
+ 3 files changed, 16 insertions(+), 17 deletions(-)
 
+diff --git a/clang/lib/Driver/ToolChain.cpp b/clang/lib/Driver/ToolChain.cpp
+index e81bafcb2084..9d4ac4000c38 100644
+--- a/clang/lib/Driver/ToolChain.cpp
++++ b/clang/lib/Driver/ToolChain.cpp
+@@ -794,7 +794,7 @@ std::string ToolChain::getCompilerRT(const ArgList &Args, StringRef Component,
+       buildCompilerRTBasename(Args, Component, Type, /*AddArch=*/true);
+   SmallString<128> OldPath(getCompilerRTPath());
+   llvm::sys::path::append(OldPath, CRTBasename);
+-  if (Path.empty() || getVFS().exists(OldPath))
++  if (Path.empty() || getVFS().exists(OldPath) || getTriple().isWindowsMSVCEnvironment())
+     return std::string(OldPath);
+ 
+   // If none is found, use a file name from the new layout, which may get
 diff --git a/clang/lib/Driver/ToolChains/CommonArgs.cpp b/clang/lib/Driver/ToolChains/CommonArgs.cpp
-index cbba4289eb94..42be2091f73e 100644
+index 60214c4d59ce..4c6b9f29f362 100644
 --- a/clang/lib/Driver/ToolChains/CommonArgs.cpp
 +++ b/clang/lib/Driver/ToolChains/CommonArgs.cpp
-@@ -1275,7 +1275,7 @@ void tools::addOpenMPHostOffloadingArgs(const Compilation &C,
+@@ -1317,7 +1317,7 @@ void tools::addOpenMPHostOffloadingArgs(const Compilation &C,
  /// Add Fortran runtime libs
  void tools::addFortranRuntimeLibs(const ToolChain &TC, const ArgList &Args,
                                    llvm::opt::ArgStringList &CmdArgs) {
@@ -23,7 +37,7 @@ index cbba4289eb94..42be2091f73e 100644
    // These are handled earlier on Windows by telling the frontend driver to
    // add the correct libraries to link against as dependents in the object
    // file.
-@@ -1291,8 +1291,7 @@ void tools::addFortranRuntimeLibs(const ToolChain &TC, const ArgList &Args,
+@@ -1333,8 +1333,7 @@ void tools::addFortranRuntimeLibs(const ToolChain &TC, const ArgList &Args,
        if (AsNeeded)
          addAsNeededOption(TC, Args, CmdArgs, /*as_needed=*/false);
      }
@@ -34,10 +48,10 @@ index cbba4289eb94..42be2091f73e 100644
    }
  
 diff --git a/clang/lib/Driver/ToolChains/Flang.cpp b/clang/lib/Driver/ToolChains/Flang.cpp
-index 11070c23c75f..856eda1f74b8 100644
+index 7034e5b475c1..dbf20bd1f5a9 100644
 --- a/clang/lib/Driver/ToolChains/Flang.cpp
 +++ b/clang/lib/Driver/ToolChains/Flang.cpp
-@@ -316,11 +316,15 @@ static void processVSRuntimeLibrary(const ToolChain &TC, const ArgList &Args,
+@@ -338,11 +338,15 @@ static void processVSRuntimeLibrary(const ToolChain &TC, const ArgList &Args,
                                      ArgStringList &CmdArgs) {
    assert(TC.getTriple().isKnownWindowsMSVCEnvironment() &&
           "can only add VS runtime library on Windows!");
@@ -58,7 +72,7 @@ index 11070c23c75f..856eda1f74b8 100644
    unsigned RTOptionID = options::OPT__SLASH_MT;
    if (auto *rtl = Args.getLastArg(options::OPT_fms_runtime_lib_EQ)) {
      RTOptionID = llvm::StringSwitch<unsigned>(rtl->getValue())
-@@ -334,30 +338,26 @@ static void processVSRuntimeLibrary(const ToolChain &TC, const ArgList &Args,
+@@ -356,30 +360,26 @@ static void processVSRuntimeLibrary(const ToolChain &TC, const ArgList &Args,
    case options::OPT__SLASH_MT:
      CmdArgs.push_back("-D_MT");
      CmdArgs.push_back("--dependent-lib=libcmt");
