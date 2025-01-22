@@ -641,11 +641,13 @@ outputs:
     script: build_python_bindings.sh
     requirements:
       host:
-        - python >=3.7
+        - python {{ python_min }}
       run:
-        - python >=3.7
+        - python >={{ python_min }}
         - libclang =={{ version }}
     test:
+      requires:
+        - python {{ python_min }}
       source_files:
         - clang/bindings/python/tests
         - clang/bindings/python/examples/cindex
