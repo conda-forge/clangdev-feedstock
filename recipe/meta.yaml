@@ -1,6 +1,6 @@
 {% set version = "16.0.6" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 13 %}
+{% set build_number = 14 %}
 
 {% set minor_aware_ext = major_version %}
 {% if version.split(".")[1] | int > 0 %}
@@ -709,11 +709,13 @@ outputs:
     script: build_python_bindings.sh
     requirements:
       host:
-        - python >=3.7
+        - python {{ python_min }}
       run:
-        - python >=3.7
+        - python >={{ python_min }}
         - libclang =={{ version }}
     test:
+      requires:
+        - python {{ python_min }}
       source_files:
         - clang/bindings/python/tests
         - clang/bindings/python/examples/cindex
