@@ -1,0 +1,135 @@
+From 51ac1b5f6407cbb0a629e1080f99e2418df7c383 Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Mon, 26 Aug 2013 15:08:12 +0200
+Subject: [PATCH 13/52] More RAIIs for autoloading.
+
+---
+ clang/include/clang/Lex/Preprocessor.h | 68 ++++++++++++++++++++++++++
+ clang/include/clang/Sema/Sema.h        | 35 +++++++++++++
+ 2 files changed, 103 insertions(+)
+
+diff --git a/clang/include/clang/Lex/Preprocessor.h b/clang/include/clang/Lex/Preprocessor.h
+index 45179508276b..3dac1df83848 100644
+--- a/clang/include/clang/Lex/Preprocessor.h
++++ b/clang/include/clang/Lex/Preprocessor.h
+@@ -1687,6 +1687,74 @@ public:
+                      IsReinject);
+   }
+ 
++  /// A RAII object to temporarily reset PP's state and restore it.
++  class CleanupAndRestoreCacheRAII {
++  private:
++    Preprocessor &PP;
++    CachedTokensTy::size_type SavedCachedLexPos;
++    CachedTokensTy SavedCachedTokens;
++    std::vector<IncludeStackInfo> SavedStack;
++    Lexer *SavedCurLexer;
++    PreprocessorLexer *SavedCurPPLexer;
++    TokenLexer* SavedCurTokenLexer;
++    ConstSearchDirIterator SavedCurDirLookup;
++    LexerCallback SavedCurLexerCallback;
++    unsigned SavedLexLevel;
++
++  public:
++    CleanupAndRestoreCacheRAII(Preprocessor &PP)
++      : PP(PP), SavedCachedLexPos(PP.CachedLexPos),
++        SavedCachedTokens(PP.CachedTokens),
++        SavedStack(std::move(PP.IncludeMacroStack)),
++        SavedCurLexer(PP.CurLexer.release()),
++        SavedCurPPLexer(PP.CurPPLexer),
++        SavedCurTokenLexer(PP.CurTokenLexer.release()),
++        SavedCurDirLookup(PP.CurDirLookup),
++        SavedCurLexerCallback(PP.CurLexerCallback),
++        SavedLexLevel(PP.LexLevel)
++    {
++      PP.CachedLexPos = 0;
++      PP.CachedTokens.clear();
++      PP.IncludeMacroStack.clear();
++      PP.CurLexer.reset(0);
++      PP.CurPPLexer = 0;
++      PP.CurTokenLexer.reset(0);
++      PP.CurDirLookup = 0;
++      PP.CurLexerCallback = CLK_CachingLexer;
++      PP.LexLevel = 0;
++    }
++
++    void pop() {
++      if (SavedCurLexerCallback == nullptr)
++        return;
++
++      //ExitCachingLexMode();
++      PP.CachedLexPos = SavedCachedLexPos;
++      PP.CachedTokens = SavedCachedTokens;
++      PP.IncludeMacroStack = std::move(SavedStack);
++      PP.CurLexer.reset(SavedCurLexer);
++      PP.CurPPLexer = SavedCurPPLexer;
++      PP.CurTokenLexer.reset(SavedCurTokenLexer);
++      PP.CurDirLookup = SavedCurDirLookup;
++      PP.CurLexerCallback = SavedCurLexerCallback;
++      PP.LexLevel = SavedLexLevel;
++
++      SavedCachedLexPos = 0;
++      SavedCachedTokens.clear();
++      SavedStack.clear();
++      SavedCurLexer = 0;
++      SavedCurPPLexer = 0;
++      SavedCurTokenLexer = 0;
++      SavedCurDirLookup = 0;
++      SavedCurLexerCallback = nullptr;
++      SavedLexLevel = ~0U;
++    }
++
++    ~CleanupAndRestoreCacheRAII() {
++      pop();
++    }
++  };
++
+   /// Pop the current lexer/macro exp off the top of the lexer stack.
+   ///
+   /// This should only be used in situations where the current state of the
+diff --git a/clang/include/clang/Sema/Sema.h b/clang/include/clang/Sema/Sema.h
+index 4dafd61967a3..e7ed553ec52f 100644
+--- a/clang/include/clang/Sema/Sema.h
++++ b/clang/include/clang/Sema/Sema.h
+@@ -1071,6 +1071,41 @@ public:
+     }
+   };
+ 
++  /// A RAII object to temporarily push a decl context and scope.
++  class ContextAndScopeRAII {
++  private:
++    Sema &S;
++    DeclContext *SavedContext;
++    Scope *SavedScope;
++    ProcessingContextState SavedContextState;
++    QualType SavedCXXThisTypeOverride;
++
++  public:
++    ContextAndScopeRAII(Sema &S, DeclContext *ContextToPush, Scope *ScopeToPush)
++      : S(S), SavedContext(S.CurContext), SavedScope(S.CurScope),
++        SavedContextState(S.DelayedDiagnostics.pushUndelayed()),
++        SavedCXXThisTypeOverride(S.CXXThisTypeOverride)
++    {
++      assert(ContextToPush && "pushing null context");
++      S.CurContext = ContextToPush;
++      S.CurScope = ScopeToPush;
++    }
++
++    void pop() {
++      if (!SavedContext) return;
++      S.CurContext = SavedContext;
++      S.CurScope = SavedScope;
++      S.DelayedDiagnostics.popUndelayed(SavedContextState);
++      S.CXXThisTypeOverride = SavedCXXThisTypeOverride;
++      SavedContext = 0;
++      SavedScope = 0;
++    }
++
++    ~ContextAndScopeRAII() {
++      pop();
++    }
++  };
++
+   /// RAII object to handle the state changes required to synthesize
+   /// a function body.
+   class SynthesizedFunctionScope {

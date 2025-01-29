@@ -1,0 +1,180 @@
+From 4f2a49b41b55cc99d245bb9eafda8750a530f4c0 Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Mon, 26 Aug 2013 14:29:24 +0200
+Subject: [PATCH 01/52] Temporary parsers should not manipulate global parser
+ state.
+
+---
+ clang/include/clang/Parse/Parser.h | 37 ++++++++++++++++++++++++++++--
+ clang/lib/Parse/ParsePragma.cpp    |  8 +++++++
+ clang/lib/Parse/Parser.cpp         | 34 ++++++++++++++++-----------
+ 3 files changed, 64 insertions(+), 15 deletions(-)
+
+diff --git a/clang/include/clang/Parse/Parser.h b/clang/include/clang/Parse/Parser.h
+index ffbde370e8f9..378adbb72892 100644
+--- a/clang/include/clang/Parse/Parser.h
++++ b/clang/include/clang/Parse/Parser.h
+@@ -46,6 +46,7 @@ namespace clang {
+   struct OMPTraitSelector;
+   struct OMPTraitSet;
+   class OMPTraitInfo;
++  class DestroyTemplateIdAnnotationsRAIIObj;
+ 
+ /// Parser - This implements a parser for the C family of languages.  After
+ /// parsing units of the grammar, productions are invoked to handle whatever has
+@@ -61,6 +62,7 @@ class Parser : public CodeCompletionHandler {
+   friend class ObjCDeclContextSwitch;
+   friend class ParenBraceBracketBalancer;
+   friend class BalancedDelimiterTracker;
++  friend class DestroyTemplateIdAnnotationsRAIIObj;
+ 
+   Preprocessor &PP;
+ 
+@@ -454,8 +456,11 @@ class Parser : public CodeCompletionHandler {
+   /// a statement expression and builds a suitable expression statement.
+   StmtResult handleExprStmt(ExprResult E, ParsedStmtContext StmtCtx);
+ 
++  bool IsTemporary;
++
+ public:
+-  Parser(Preprocessor &PP, Sema &Actions, bool SkipFunctionBodies);
++  Parser(Preprocessor &PP, Sema &Actions, bool SkipFunctionBodies, 
++         bool isTemp = false);
+   ~Parser() override;
+ 
+   const LangOptions &getLangOpts() const { return PP.getLangOpts(); }
+@@ -465,6 +470,34 @@ public:
+   AttributeFactory &getAttrFactory() { return AttrFactory; }
+ 
+   const Token &getCurToken() const { return Tok; }
++
++  /// A RAII object to temporarily reset PP's state and restore it.
++  class ParserCurTokRestoreRAII {
++  private:
++    Parser &P;
++    Token SavedTok;
++
++  public:
++    ParserCurTokRestoreRAII(Parser &P)
++      : P(P), SavedTok(P.Tok) 
++    {
++    }
++
++    void pop() {
++      if (SavedTok.is(tok::unknown))
++        return;
++
++      P.Tok = SavedTok;
++      
++      SavedTok.startToken();
++    }
++
++    ~ParserCurTokRestoreRAII() {
++      pop();
++    }
++  };
++
++
+   Scope *getCurScope() const { return Actions.getCurScope(); }
+   void incrementMSManglingNumber() const {
+     return Actions.incrementMSManglingNumber();
+@@ -1225,7 +1258,7 @@ public:
+     return Diag(Tok, DiagID);
+   }
+ 
+-private:
++protected:
+   void SuggestParentheses(SourceLocation Loc, unsigned DK,
+                           SourceRange ParenRange);
+   void CheckNestedObjCContexts(SourceLocation AtLoc);
+diff --git a/clang/lib/Parse/ParsePragma.cpp b/clang/lib/Parse/ParsePragma.cpp
+index 730ac1a0fee5..9c917f3d68b1 100644
+--- a/clang/lib/Parse/ParsePragma.cpp
++++ b/clang/lib/Parse/ParsePragma.cpp
+@@ -415,6 +415,10 @@ void markAsReinjectedForRelexing(llvm::MutableArrayRef<clang::Token> Toks) {
+ }  // end namespace
+ 
+ void Parser::initializePragmaHandlers() {
++  // No pragma parsing for temporary parsers.
++  if (IsTemporary)
++    return;
++
+   AlignHandler = std::make_unique<PragmaAlignHandler>();
+   PP.AddPragmaHandler(AlignHandler.get());
+ 
+@@ -568,6 +572,10 @@ void Parser::initializePragmaHandlers() {
+ }
+ 
+ void Parser::resetPragmaHandlers() {
++  // No pragma parsing for temporary parsers.
++  if (IsTemporary)
++    return;
++
+   // Remove the pragma handlers we installed.
+   PP.RemovePragmaHandler(AlignHandler.get());
+   AlignHandler.reset();
+diff --git a/clang/lib/Parse/Parser.cpp b/clang/lib/Parse/Parser.cpp
+index 0b092181bca7..40904d177a95 100644
+--- a/clang/lib/Parse/Parser.cpp
++++ b/clang/lib/Parse/Parser.cpp
+@@ -50,15 +50,18 @@ IdentifierInfo *Parser::getSEHExceptKeyword() {
+   return Ident__except;
+ }
+ 
+-Parser::Parser(Preprocessor &pp, Sema &actions, bool skipFunctionBodies)
++Parser::Parser(Preprocessor &pp, Sema &actions, bool skipFunctionBodies,
++               bool isTemporary /*=false*/)
+     : PP(pp), PreferredType(pp.isCodeCompletionEnabled()), Actions(actions),
+       Diags(PP.getDiagnostics()), GreaterThanIsOperator(true),
+       ColonIsSacred(false), InMessageExpression(false),
+-      TemplateParameterDepth(0), ParsingInObjCContainer(false) {
++      TemplateParameterDepth(0), ParsingInObjCContainer(false),
++      IsTemporary(isTemporary) {
+   SkipFunctionBodies = pp.isCodeCompletionEnabled() || skipFunctionBodies;
+   Tok.startToken();
+   Tok.setKind(tok::eof);
+-  Actions.CurScope = nullptr;
++  if (!IsTemporary)
++    Actions.CurScope = nullptr;
+   NumCachedScopes = 0;
+   CurParsedObjCImpl = nullptr;
+ 
+@@ -67,14 +70,17 @@ Parser::Parser(Preprocessor &pp, Sema &actions, bool skipFunctionBodies)
+   initializePragmaHandlers();
+ 
+   CommentSemaHandler.reset(new ActionCommentHandler(actions));
+-  PP.addCommentHandler(CommentSemaHandler.get());
+-
+-  PP.setCodeCompletionHandler(*this);
+-
+-  Actions.ParseTypeFromStringCallback =
+-      [this](StringRef TypeStr, StringRef Context, SourceLocation IncludeLoc) {
+-        return this->ParseTypeFromString(TypeStr, Context, IncludeLoc);
+-      };
++  if (!IsTemporary)
++    PP.addCommentHandler(CommentSemaHandler.get());
++
++  if (!IsTemporary) {
++    PP.setCodeCompletionHandler(*this);
++    Actions.ParseTypeFromStringCallback = [this](StringRef TypeStr,
++                                                 StringRef Context,
++                                                 SourceLocation IncludeLoc) {
++      return this->ParseTypeFromString(TypeStr, Context, IncludeLoc);
++    };
++  }
+ }
+ 
+ DiagnosticBuilder Parser::Diag(SourceLocation Loc, unsigned DiagID) {
+@@ -468,8 +474,10 @@ Parser::ParseScopeFlags::~ParseScopeFlags() {
+ 
+ Parser::~Parser() {
+   // If we still have scopes active, delete the scope tree.
+-  delete getCurScope();
+-  Actions.CurScope = nullptr;
++  if (!IsTemporary) {
++    delete getCurScope();
++    Actions.CurScope = nullptr;
++  }
+ 
+   // Free the scope cache.
+   for (unsigned i = 0, e = NumCachedScopes; i != e; ++i)
