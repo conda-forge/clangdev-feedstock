@@ -1,0 +1,22 @@
+From 66c43b6e0498dd23a5bfec61f4d1152692248425 Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Mon, 20 Oct 2014 14:15:26 +0200
+Subject: [PATCH 15/52] Accessor to "is file opened"; this is crucial info for
+ us.
+
+---
+ clang/include/clang/Basic/FileEntry.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/clang/include/clang/Basic/FileEntry.h b/clang/include/clang/Basic/FileEntry.h
+index 35efa147950f..a9a05256dda5 100644
+--- a/clang/include/clang/Basic/FileEntry.h
++++ b/clang/include/clang/Basic/FileEntry.h
+@@ -332,6 +332,7 @@ public:
+   StringRef getName() const { return LastRef->getName(); }
+ 
+   StringRef tryGetRealPathName() const { return RealPathName; }
++  bool isOpen() const { return (bool)File; }
+   off_t getSize() const { return Size; }
+   unsigned getUID() const { return UID; }
+   const llvm::sys::fs::UniqueID &getUniqueID() const { return UniqueID; }

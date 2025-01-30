@@ -1,0 +1,58 @@
+From 7a9549505de385bd14dd3e15b8aa037cfdc960cf Mon Sep 17 00:00:00 2001
+From: Jonas Hahnfeld <jonas.hahnfeld@cern.ch>
+Date: Wed, 21 Aug 2024 09:09:06 +0200
+Subject: [PATCH 29/52] UPSTREAM: [clang-repl] Fix printing preprocessed tokens
+ and macros (#104964)
+
+(cherry picked from commit 947b9f55b5f327e14368a48fb6ce10242ea29bf3)
+---
+ clang/lib/Frontend/PrintPreprocessedOutput.cpp | 10 ++++------
+ clang/test/Interpreter/preprocessor.cpp        |  4 ++++
+ 2 files changed, 8 insertions(+), 6 deletions(-)
+ create mode 100644 clang/test/Interpreter/preprocessor.cpp
+
+diff --git a/clang/lib/Frontend/PrintPreprocessedOutput.cpp b/clang/lib/Frontend/PrintPreprocessedOutput.cpp
+index 7f5f66906823..ddb468f457b0 100644
+--- a/clang/lib/Frontend/PrintPreprocessedOutput.cpp
++++ b/clang/lib/Frontend/PrintPreprocessedOutput.cpp
+@@ -833,8 +833,7 @@ static void PrintPreprocessedTokens(Preprocessor &PP, Token &Tok,
+       PP.Lex(Tok);
+       continue;
+     } else if (Tok.is(tok::annot_repl_input_end)) {
+-      PP.Lex(Tok);
+-      continue;
++      // Fall through to exit the loop.
+     } else if (Tok.is(tok::eod)) {
+       // Don't print end of directive tokens, since they are typically newlines
+       // that mess up our line tracking. These come from unknown pre-processor
+@@ -922,7 +921,8 @@ static void PrintPreprocessedTokens(Preprocessor &PP, Token &Tok,
+     Callbacks->setEmittedTokensOnThisLine();
+     IsStartOfLine = false;
+ 
+-    if (Tok.is(tok::eof)) break;
++    if (Tok.is(tok::eof) || Tok.is(tok::annot_repl_input_end))
++      break;
+ 
+     PP.Lex(Tok);
+   }
+@@ -941,9 +941,7 @@ static void DoPrintMacros(Preprocessor &PP, raw_ostream *OS) {
+   // the macro table at the end.
+   PP.EnterMainSourceFile();
+ 
+-  Token Tok;
+-  do PP.Lex(Tok);
+-  while (Tok.isNot(tok::eof));
++  PP.LexTokensUntilEOF();
+ 
+   SmallVector<id_macro_pair, 128> MacrosByID;
+   for (Preprocessor::macro_iterator I = PP.macro_begin(), E = PP.macro_end();
+diff --git a/clang/test/Interpreter/preprocessor.cpp b/clang/test/Interpreter/preprocessor.cpp
+new file mode 100644
+index 000000000000..8239fd45e661
+--- /dev/null
++++ b/clang/test/Interpreter/preprocessor.cpp
+@@ -0,0 +1,4 @@
++// RUN: %clang_cc1 -fincremental-extensions -E %s
++// RUN: %clang_cc1 -fincremental-extensions -E -dD %s
++// RUN: %clang_cc1 -fincremental-extensions -E -dI %s
++// RUN: %clang_cc1 -fincremental-extensions -E -dM %s

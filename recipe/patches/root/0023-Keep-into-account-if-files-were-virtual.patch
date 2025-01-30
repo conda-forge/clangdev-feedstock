@@ -1,0 +1,41 @@
+From 6ec8d75c7650790c41fd7e2a4cc4ceb67ae158a1 Mon Sep 17 00:00:00 2001
+From: Vassil Vassilev <v.g.vassilev@gmail.com>
+Date: Wed, 17 May 2017 15:22:25 +0200
+Subject: [PATCH 23/52] Keep into account if files were virtual.
+
+In some cases we do not have files on disk. They are only available in the
+FileManager as virtual files and the SourceManager overrides their content.
+---
+ clang/lib/AST/ASTImporter.cpp                   | 2 +-
+ clang/lib/Frontend/VerifyDiagnosticConsumer.cpp | 5 +++++
+ 2 files changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/clang/lib/AST/ASTImporter.cpp b/clang/lib/AST/ASTImporter.cpp
+index 12734d62ed9f..591dd0b9bb16 100644
+--- a/clang/lib/AST/ASTImporter.cpp
++++ b/clang/lib/AST/ASTImporter.cpp
+@@ -9906,7 +9906,7 @@ Expected<FileID> ASTImporter::Import(FileID FromID, bool IsBuiltin) {
+       // FIXME: We want to re-use the existing MemoryBuffer!
+       std::optional<llvm::MemoryBufferRef> FromBuf =
+           Cache->getBufferOrNone(FromContext.getDiagnostics(),
+-                                 FromSM.getFileManager(), SourceLocation{});
++                                 FromFileManager, SourceLocation{});
+       if (!FromBuf)
+         return llvm::make_error<ASTImportError>(ASTImportError::Unknown);
+ 
+diff --git a/clang/lib/Frontend/VerifyDiagnosticConsumer.cpp b/clang/lib/Frontend/VerifyDiagnosticConsumer.cpp
+index f508408ba706..3019493aa886 100644
+--- a/clang/lib/Frontend/VerifyDiagnosticConsumer.cpp
++++ b/clang/lib/Frontend/VerifyDiagnosticConsumer.cpp
+@@ -543,6 +543,11 @@ static bool ParseDirective(StringRef S, ExpectedData *ED, SourceManager &SM,
+           OptionalFileEntryRef File =
+               PP->LookupFile(Pos, Filename, false, nullptr, nullptr, nullptr,
+                              nullptr, nullptr, nullptr, nullptr, nullptr);
++
++          // Check if the file was virtual
++          if (!File)
++            File = SM.getFileManager().getOptionalFileRef(Filename);
++
+           if (!File) {
+             Diags.Report(Pos.getLocWithOffset(PH.C - PH.Begin),
+                          diag::err_verify_missing_file)
