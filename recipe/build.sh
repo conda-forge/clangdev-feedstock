@@ -17,7 +17,7 @@ cd clang
 IFS='.' read -r -a PKG_VER_ARRAY <<< "${PKG_VERSION}"
 # default SOVER for tagged releases is major.minor since LLVM 18
 SOVER_EXT="${PKG_VER_ARRAY[0]}.${PKG_VER_ARRAY[1]}"
-if [[ "${PKG_VERSION}" == *dev0 ]]; then
+if [[ "${PKG_VERSION}" == *dev* ]]; then
     # otherwise with git suffix
     SOVER_EXT="${SOVER_EXT}git"
 fi
@@ -26,12 +26,6 @@ fi
 # libclang<sover> depends on), as the unversioned symlink is only present
 # in llvmdev, which may not be present when using clang.
 sed -i.bak "s/libLTO.dylib/libLTO.${SOVER_EXT}.dylib/g" lib/Driver/ToolChains/Darwin.cpp
-
-if [[ "$variant" == "hcc" ]]; then
-  CMAKE_ARGS="$CMAKE_ARGS -DKALMAR_BACKEND=HCC_BACKEND_AMDGPU -DHCC_VERSION_STRING=2.7-19365-24e69cd8-24e69cd8-24e69cd8"
-  CMAKE_ARGS="$CMAKE_ARGS -DHCC_VERSION_MAJOR=2 -DHCC_VERSION_MINOR=7 -DHCC_VERSION_PATCH=19365"
-  CMAKE_ARGS="$CMAKE_ARGS -DKALMAR_SDK_COMMIT=24e69cd8 -DKALMAR_FRONTEND_COMMIT=24e69cd8 -DKALMAR_BACKEND_COMMIT=24e69cd8"
-fi
 
 if [[ "$CONDA_BUILD_CROSS_COMPILATION" == "1" ]]; then
   NATIVE_FLAGS="-DCMAKE_C_COMPILER=$CC_FOR_BUILD;-DCMAKE_CXX_COMPILER=$CXX_FOR_BUILD;-DCMAKE_C_FLAGS=-O2;-DCMAKE_CXX_FLAGS=-O2"

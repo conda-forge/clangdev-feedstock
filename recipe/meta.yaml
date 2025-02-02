@@ -1,18 +1,16 @@
-{% set version = "19.1.0.rc4" %}
+{% set version = "19.1.7" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 0 %}
+{% set tail_version = version.split(".")[-1] %}
+{% set build_number = 1 %}
 
 # always includes minor as of v18, see https://github.com/llvm/llvm-project/issues/76273
-{% set minor_aware_ext = major_version ~ "." ~ version.split(".")[1] %}
+{% set maj_min = major_version ~ "." ~ version.split(".")[1] %}
 
 # construct full sover, which contains extra suffixes for rc/dev builds
-{% set sover = minor_aware_ext %}
-{% if version.split(".")[-1].startswith("rc") %}
 # as of LLVM 19, we expect an "-rcX" suffix for the release candidates
-{% set sover = minor_aware_ext ~ "-" ~ version.split(".")[-1] %}
-{% elif version.split(".")[-1] == "dev0" %}
-{% set sover = minor_aware_ext ~ "git" %}
-{% endif %}
+{% set extra = "-" ~ tail_version if tail_version not in "0123456789" else "" %}
+{% set extra = "git" if tail_version|trim("0123456789") == "dev" else extra %}
+{% set sover = maj_min ~ extra %}
 
 {% if libclang_soversion is not defined %}
 # see https://github.com/llvm/llvm-project/blob/release/18.x/clang/tools/libclang/CMakeLists.txt
@@ -25,7 +23,7 @@ package:
 
 source:
   - url: https://github.com/llvm/llvm-project/archive/refs/tags/llvmorg-{{ version.replace(".rc", "-rc") }}.tar.gz
-    sha256: 570ea538eae9939e1b008c4e8055227dae3ab58054c74707ad1d5a8cb51536c3
+    sha256: 59abea1c22e64933fad4de1671a61cdb934098793c7a31b333ff58dc41bff36c
     patches:
       - patches/0001-Find-conda-gcc-installation.patch
       - patches/0002-Fix-sysroot-detection-for-linux.patch
@@ -36,6 +34,7 @@ source:
       - patches/0007-set-libclang-SOVERSION-unconditionally.patch
       - patches/0008-Make-PIE-default-on-macOS-too.patch
       - patches/0009-Find-ROCm-device-library-in-conda-layout.patch
+      - patches/0010-Add-conda-mingw-paths.patch
     # name folder for easier deletion; we do the equivalent of downloading
     # the subproject sources, so the work folder then has clang in it;
     # for details see build scripts
@@ -91,8 +90,9 @@ outputs:
         - {{ pin_subpackage("clang-tools", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
         - {{ pin_subpackage("libclang-cpp", exact=True) }}
-        # unpinned because we depend on clangxx here, which pins libcxx-devel
-        - libcxx-devel              # [osx]
+        # cannot pin to `cxx_compiler_version` here,
+        # because clangxx pins libcxx-devel to `maj_min`
+        - libcxx-devel =={{ maj_min }}  # [osx]
         - llvmdev =={{ version }}
         - libxml2
         - zlib
@@ -134,7 +134,7 @@ outputs:
         - $PREFIX/bin/clang -v -c mytest.c      # [unix]
         - '%LIBRARY_BIN%/clang -v -c mytest.c'  # [win]
 
-  - name: libclang-cpp{{ minor_aware_ext }}
+  - name: libclang-cpp{{ maj_min }}
     script: install_libclang_cpp.sh  # [unix]
     files:
       - lib/libclang-cpp.so.{{ sover }}     # [linux]
@@ -145,7 +145,7 @@ outputs:
         - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:
-        - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, max_pin="x.x") }}   # [unix]
+        - {{ pin_subpackage("libclang-cpp" ~ maj_min, max_pin="x.x") }}   # [unix]
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
         - zlib     # [unix]
@@ -191,7 +191,7 @@ outputs:
         - root         # [variant and variant.startswith("root_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:   # [unix]
-        - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, max_pin="x.x") }}   # [unix]
+        - {{ pin_subpackage("libclang-cpp" ~ maj_min, max_pin="x.x") }}   # [unix]
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
         - zlib     # [unix]
@@ -207,7 +207,7 @@ outputs:
         - llvmdev =={{ version }}    # [build_platform != target_platform]
       host:
         - llvm =={{ version }}
-        - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, exact=True) }}  # [unix]
+        - {{ pin_subpackage("libclang-cpp" ~ maj_min, exact=True) }}  # [unix]
         # Use the same requirements as the top-level requirements
         - libcxx-devel {{ cxx_compiler_version }}   # [osx]
         - llvmdev =={{ version }}
@@ -215,7 +215,7 @@ outputs:
         - zlib
         - zstd
       run:
-        - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, exact=True) }}  # [unix]
+        - {{ pin_subpackage("libclang-cpp" ~ maj_min, exact=True) }}  # [unix]
         # we need to do this manually because clang_bootstrap has no run-export
         - libcxx >={{ version }}    # [osx]
     test:
@@ -367,7 +367,7 @@ outputs:
         - llvmdev =={{ version }}            # [build_platform != target_platform]
       host:
         - llvm =={{ version }}
-        - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, exact=True) }}  # [unix]
+        - {{ pin_subpackage("libclang-cpp" ~ maj_min, exact=True) }}  # [unix]
         # Use the same requirements as the top-level requirements
         - libcxx-devel {{ cxx_compiler_version }}  # [osx]
         - llvmdev =={{ version }}
@@ -375,7 +375,7 @@ outputs:
         - zlib
         - zstd
       run:
-        - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, exact=True) }}  # [unix]
+        - {{ pin_subpackage("libclang-cpp" ~ maj_min, exact=True) }}  # [unix]
         # we need to do this manually because clang_bootstrap has no run-export
         - libcxx >={{ version }}    # [osx]
     test:
@@ -438,13 +438,6 @@ outputs:
         - clang --version
         - clang-cl --version
         - clang-cpp --version
-        # on linux, $TRIPLE-clang{,-cpp} are in this package
-        - x86_64-conda-linux-gnu-clang --version            # [linux64]
-        - x86_64-conda-linux-gnu-clang-cpp --version        # [linux64]
-        - aarch64-conda-linux-gnu-clang --version           # [aarch64]
-        - aarch64-conda-linux-gnu-clang-cpp --version       # [aarch64]
-        - powerpc64le-conda-linux-gnu-clang --version       # [ppc64le]
-        - powerpc64le-conda-linux-gnu-clang-cpp --version   # [ppc64le]
 
   - name: clangxx
     script: install_clangxx.sh  # [unix]
@@ -473,11 +466,13 @@ outputs:
         - zstd
       run:
         - libstdcxx-devel_{{ target_platform }}  # [linux]
-        - libcxx-devel {{ version }}             # [osx]
+        # only minor-pin to avoid issues when building new libcxx versions
+        - libcxx-devel {{ maj_min }}             # [osx]
         - {{ pin_subpackage("clang", exact=True) }}
     test:
       requires:
         - {{ compiler("cxx") }}
+        - gxx_impl_{{ target_platform }}  # [win64]
       files:
         - mytest.cxx
       commands:
@@ -486,10 +481,7 @@ outputs:
         - unset CONDA_BUILD_SYSROOT   # [unix]
         - set "CONDA_BUILD_SYSROOT="  # [win]
         - clang++ -v -c mytest.cxx
-        # on linux, $TRIPLE-clang++ is in this package
-        - x86_64-conda-linux-gnu-clang++ --version          # [linux64]
-        - aarch64-conda-linux-gnu-clang++ --version         # [aarch64]
-        - powerpc64le-conda-linux-gnu-clang++ --version     # [ppc64le]
+        - clang++ -v mytest.cxx --target=x86_64-w64-mingw32  # [win64]
 
   - name: clang-format-{{ major_version }}
     script: install_clang_format.sh  # [unix]
@@ -520,15 +512,16 @@ outputs:
         - {{ pin_subpackage("clangxx", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
         - {{ pin_subpackage("libclang-cpp", exact=True) }}
+        # cannot pin to `cxx_compiler_version` here,
+        # because clangxx pins libcxx-devel to `maj_min`
+        - libcxx-devel =={{ maj_min }}  # [osx]
         - llvm =={{ version }}
-        # unpinned because we depend on clangxx here, which pins libcxx-devel
-        - libcxx-devel              # [osx]
         - llvmdev =={{ version }}
         - libxml2
         - zlib
         - zstd
       run:
-        - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, max_pin="x.x") }}   # [unix]
+        - {{ pin_subpackage("libclang-cpp" ~ maj_min, max_pin="x.x") }}   # [unix]
         # we need to do this manually because clang_bootstrap has no run-export
         - libcxx >={{ version }}    # [osx]
     test:
@@ -568,15 +561,16 @@ outputs:
         - {{ pin_subpackage("libclang", exact=True) }}
         - {{ pin_subpackage("libclang-cpp", exact=True) }}
         - {{ pin_subpackage("clang-format-" ~ major_version, exact=True) }}      # [unix]
+        # cannot pin to `cxx_compiler_version` here,
+        # because clangxx pins libcxx-devel to `maj_min`
+        - libcxx-devel =={{ maj_min }}  # [osx]
         - llvm =={{ version }}
-        # unpinned because we depend on clangxx here, which pins libcxx-devel
-        - libcxx-devel              # [osx]
         - llvmdev =={{ version }}
         - libxml2
         - zlib
         - zstd
       run:
-        - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, max_pin="x.x") }}  # [unix]
+        - {{ pin_subpackage("libclang-cpp" ~ maj_min, max_pin="x.x") }}          # [unix]
         - {{ pin_subpackage("clang-format-" ~ major_version, exact=True) }}      # [unix]
         # we need to do this manually because clang_bootstrap has no run-export
         - libcxx >={{ version }}    # [osx]
@@ -613,9 +607,10 @@ outputs:
         - {{ pin_subpackage("libclang", exact=True) }}
         - {{ pin_subpackage("libclang-cpp", exact=True) }}
         - {{ pin_subpackage("clang-format", exact=True) }}
+        # cannot pin to `cxx_compiler_version` here,
+        # because clangxx pins libcxx-devel to `maj_min`
+        - libcxx-devel =={{ maj_min }}  # [osx]
         - llvm =={{ version }}
-        # unpinned because we depend on clangxx here, which pins libcxx-devel
-        - libcxx-devel              # [osx]
         - llvmdev =={{ version }}
         - libxml2
         - zlib
@@ -624,7 +619,7 @@ outputs:
         - ucrt                                          # [win]
         - {{ pin_subpackage("clang-format", exact=True) }}
         - {{ pin_subpackage("libclang" ~ libclang_soversion, max_pin=None) }}
-        - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, max_pin="x.x") }}   # [unix]
+        - {{ pin_subpackage("libclang-cpp" ~ maj_min, max_pin="x.x") }}   # [unix]
         # we need to do this manually because clang_bootstrap has no run-export
         - libcxx >={{ version }}    # [osx]
       run_constrained:
@@ -644,11 +639,13 @@ outputs:
     script: build_python_bindings.sh
     requirements:
       host:
-        - python >=3.7
+        - python {{ python_min }}
       run:
-        - python >=3.7
+        - python >={{ python_min }}
         - libclang =={{ version }}
     test:
+      requires:
+        - python {{ python_min }}
       source_files:
         - clang/bindings/python/tests
         - clang/bindings/python/examples/cindex
