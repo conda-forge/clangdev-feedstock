@@ -1,0 +1,35 @@
+From cd42fda024f15f25bfc707215b32d9ecffc28d69 Mon Sep 17 00:00:00 2001
+From: Isuru Fernando <isuruf@gmail.com>
+Date: Fri, 18 Oct 2024 10:28:09 -0400
+Subject: [PATCH 10/10] Add conda mingw paths
+
+---
+ clang/lib/Driver/ToolChains/MinGW.cpp | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/clang/lib/Driver/ToolChains/MinGW.cpp b/clang/lib/Driver/ToolChains/MinGW.cpp
+index 9f0c6160a309..3be61eb6c995 100644
+--- a/clang/lib/Driver/ToolChains/MinGW.cpp
++++ b/clang/lib/Driver/ToolChains/MinGW.cpp
+@@ -540,6 +540,10 @@ toolchains::MinGW::MinGW(const Driver &D, const llvm::Triple &Triple,
+   getFilePaths().push_back(
+       (Base + SubdirName + llvm::sys::path::get_separator() + "mingw/lib").str());
+ 
++  // Conda
++  getFilePaths().push_back(
++      (Base + SubdirName + llvm::sys::path::get_separator() + "sysroot/usr/lib").str());
++
+   // Only include <base>/lib if we're not cross compiling (not even for
+   // windows->windows to a different arch), or if the sysroot has been set
+   // (where we presume the user has pointed it at an arch specific
+@@ -706,6 +710,10 @@ void toolchains::MinGW::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
+   addSystemInclude(DriverArgs, CC1Args,
+                    Base + SubdirName + llvm::sys::path::get_separator() + "usr/include");
+ 
++  // Conda
++  addSystemInclude(DriverArgs, CC1Args,
++                   Base + SubdirName + llvm::sys::path::get_separator() + "sysroot/usr/include");
++
+   // Only include <base>/include if we're not cross compiling (but do allow it
+   // if we're on Windows and building for Windows on another architecture),
+   // or if the sysroot has been set (where we presume the user has pointed it

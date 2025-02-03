@@ -1,8 +1,8 @@
-From a7097ec7f616126b8869ce68375efd3d75493b78 Mon Sep 17 00:00:00 2001
+From d7a13159da8477381af28a8cb4752df65c7d7729 Mon Sep 17 00:00:00 2001
 From: Ray Donnelly <mingw.android@gmail.com>
 Date: Wed, 30 Aug 2017 20:01:49 +0100
-Subject: [PATCH 4/9] Fix normalizeProgramName()'s handling of dots outside of
- .exe
+Subject: [PATCH 04/10] Fix normalizeProgramName()'s handling of dots outside
+ of .exe
 
 It used to strip everything after the last dot, turning:
 
@@ -18,10 +18,10 @@ x86_64-apple-darwin13.4
  1 file changed, 22 insertions(+), 1 deletion(-)
 
 diff --git a/clang/lib/Driver/ToolChain.cpp b/clang/lib/Driver/ToolChain.cpp
-index 20a555afb809..f074bfcbd8aa 100644
+index acf9d264d631..67670b83f21b 100644
 --- a/clang/lib/Driver/ToolChain.cpp
 +++ b/clang/lib/Driver/ToolChain.cpp
-@@ -55,6 +55,7 @@ using namespace driver;
+@@ -56,6 +56,7 @@ using namespace driver;
  using namespace tools;
  using namespace llvm;
  using namespace llvm::opt;
@@ -29,7 +29,7 @@ index 20a555afb809..f074bfcbd8aa 100644
  
  static llvm::opt::Arg *GetRTTIArgument(const ArgList &Args) {
    return Args.getLastArg(options::OPT_mkernel, options::OPT_fapple_kext,
-@@ -353,10 +354,30 @@ static const DriverSuffix *FindDriverSuffix(StringRef ProgName, size_t &Pos) {
+@@ -442,10 +443,30 @@ static const DriverSuffix *FindDriverSuffix(StringRef ProgName, size_t &Pos) {
    return nullptr;
  }
  
