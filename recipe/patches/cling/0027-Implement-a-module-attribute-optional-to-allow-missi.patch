@@ -1,0 +1,129 @@
+From fbbdfd75095a3d591fbf49d723194f752b90707c Mon Sep 17 00:00:00 2001
+From: Vassil Vassilev <v.g.vassilev@gmail.com>
+Date: Mon, 27 Mar 2023 19:43:33 +0000
+Subject: [PATCH 27/30] Implement a module attribute 'optional' to allow
+ missing headers.
+
+This deals with the fact that our modulemaps include headers which can vary
+across library versions and that attribute is a way to express this.
+---
+ clang/include/clang/Basic/Module.h  |  3 +++
+ clang/include/clang/Lex/ModuleMap.h |  5 ++++-
+ clang/lib/Basic/Module.cpp          |  3 ++-
+ clang/lib/Lex/ModuleMap.cpp         | 15 ++++++++++++++-
+ 4 files changed, 23 insertions(+), 3 deletions(-)
+
+diff --git a/clang/include/clang/Basic/Module.h b/clang/include/clang/Basic/Module.h
+index 62786e3ac865..a1324fd5a700 100644
+--- a/clang/include/clang/Basic/Module.h
++++ b/clang/include/clang/Basic/Module.h
+@@ -371,6 +371,9 @@ public:
+   LLVM_PREFERRED_TYPE(bool)
+   unsigned NoUndeclaredIncludes : 1;
+ 
++  /// Whether the submodule is allowed to have missing headers.
++  unsigned IsOptional: 1;
++
+   /// Whether this module came from a "private" module map, found next
+   /// to a regular (public) module map.
+   LLVM_PREFERRED_TYPE(bool)
+diff --git a/clang/include/clang/Lex/ModuleMap.h b/clang/include/clang/Lex/ModuleMap.h
+index 867cb6eab42f..33ab10889f3a 100644
+--- a/clang/include/clang/Lex/ModuleMap.h
++++ b/clang/include/clang/Lex/ModuleMap.h
+@@ -248,9 +248,12 @@ private:
+     LLVM_PREFERRED_TYPE(bool)
+     unsigned NoUndeclaredIncludes : 1;
+ 
++    /// Whether we can have a submodule with missing header files.
++    unsigned IsOptional : 1;
++
+     Attributes()
+         : IsSystem(false), IsExternC(false), IsExhaustive(false),
+-          NoUndeclaredIncludes(false) {}
++          NoUndeclaredIncludes(false), IsOptional(false) {}
+   };
+ 
+   /// A directory for which framework modules can be inferred.
+diff --git a/clang/lib/Basic/Module.cpp b/clang/lib/Basic/Module.cpp
+index 0dac8748a98a..aec175e11db8 100644
+--- a/clang/lib/Basic/Module.cpp
++++ b/clang/lib/Basic/Module.cpp
+@@ -43,7 +43,7 @@ Module::Module(StringRef Name, SourceLocation DefinitionLoc, Module *Parent,
+       IsSystem(false), IsExternC(false), IsInferred(false),
+       InferSubmodules(false), InferExplicitSubmodules(false),
+       InferExportWildcard(false), ConfigMacrosExhaustive(false),
+-      NoUndeclaredIncludes(false), ModuleMapIsPrivate(false),
++      NoUndeclaredIncludes(false), IsOptional(false), ModuleMapIsPrivate(false),
+       NamedModuleHasInit(true), NameVisibility(Hidden) {
+   if (Parent) {
+     IsAvailable = Parent->isAvailable();
+@@ -51,6 +51,7 @@ Module::Module(StringRef Name, SourceLocation DefinitionLoc, Module *Parent,
+     IsSystem = Parent->IsSystem;
+     IsExternC = Parent->IsExternC;
+     NoUndeclaredIncludes = Parent->NoUndeclaredIncludes;
++    IsOptional = Parent->IsOptional;
+     ModuleMapIsPrivate = Parent->ModuleMapIsPrivate;
+ 
+     Parent->SubModuleIndex[Name] = Parent->SubModules.size();
+diff --git a/clang/lib/Lex/ModuleMap.cpp b/clang/lib/Lex/ModuleMap.cpp
+index 10c475f617d4..737a493fa2aa 100644
+--- a/clang/lib/Lex/ModuleMap.cpp
++++ b/clang/lib/Lex/ModuleMap.cpp
+@@ -317,6 +317,8 @@ void ModuleMap::resolveHeader(Module *Mod,
+     // this was supposed to modularize the builtin header alone.
+   } else if (Header.Kind == Module::HK_Excluded) {
+     // Ignore missing excluded header files. They're optional anyway.
++  } else if (Mod->IsOptional) {
++     // Optional submodules can have missing headers.
+   } else {
+     // If we find a module that has a missing header, we mark this module as
+     // unavailable and store the header directive for displaying diagnostics.
+@@ -1099,6 +1101,7 @@ Module *ModuleMap::inferFrameworkModule(DirectoryEntryRef FrameworkDir,
+   Result->IsExternC |= Attrs.IsExternC;
+   Result->ConfigMacrosExhaustive |= Attrs.IsExhaustive;
+   Result->NoUndeclaredIncludes |= Attrs.NoUndeclaredIncludes;
++  Result->IsOptional |= Attrs.IsOptional;
+   Result->Directory = FrameworkDir;
+ 
+   // Chop off the first framework bit, as that is implied.
+@@ -1841,7 +1844,10 @@ namespace {
+     AT_exhaustive,
+ 
+     /// The 'no_undeclared_includes' attribute.
+-    AT_no_undeclared_includes
++    AT_no_undeclared_includes,
++
++    /// The 'optional' attribute.
++    AT_optional
+   };
+ 
+ } // namespace
+@@ -2118,6 +2124,8 @@ void ModuleMapParser::parseModuleDecl() {
+     ActiveModule->IsExternC = true;
+   if (Attrs.NoUndeclaredIncludes)
+     ActiveModule->NoUndeclaredIncludes = true;
++  if (Attrs.IsOptional)
++    ActiveModule->IsOptional = true;
+   ActiveModule->Directory = Directory;
+ 
+   StringRef MapFileName(ModuleMapFile.getName());
+@@ -3020,6 +3028,7 @@ bool ModuleMapParser::parseOptionalAttributes(Attributes &Attrs) {
+           .Case("exhaustive", AT_exhaustive)
+           .Case("extern_c", AT_extern_c)
+           .Case("no_undeclared_includes", AT_no_undeclared_includes)
++          .Case("optional", AT_optional)
+           .Case("system", AT_system)
+           .Default(AT_unknown);
+     switch (Attribute) {
+@@ -3043,6 +3052,10 @@ bool ModuleMapParser::parseOptionalAttributes(Attributes &Attrs) {
+     case AT_no_undeclared_includes:
+       Attrs.NoUndeclaredIncludes = true;
+       break;
++
++    case AT_optional:
++      Attrs.IsOptional = true;
++      break;
+     }
+     consumeToken();
+ 

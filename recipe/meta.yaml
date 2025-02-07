@@ -85,6 +85,37 @@ source:
       - patches/root/0050-Disable-validation-of-transent-files.patch
       - patches/root/0051-Import-various-changes-to-the-global-module-index.patch
       - patches/root/0052-Do-not-install-Clang-Cling-Config.cmake-in-the-proje.patch
+{% elif variant and variant.startswith("cling_") %}
+      - patches/cling/0001-UPSTREAM-ORC-Preserve-order-of-constructors-with-sam.patch
+      - patches/cling/0002-UPSTREAM-clang-repl-Fix-printing-preprocessed-tokens.patch
+      - patches/cling/0003-UPSTREAM-MLGO-Only-configure-tests-with-LLVM_INCLUDE.patch
+      - patches/cling/0004-UPSTREAM-ADT-Add-cstdint-to-SmallVector-101761.patch
+      - patches/cling/0005-UPSTREAM-Add-missing-include-to-X86MCTargetDesc.h-12.patch
+      - patches/cling/0006-Temporary-parsers-should-not-manipulate-global-parse.patch
+      - patches/cling/0007-Only-reset-extra-parsers-if-not-temporary.patch
+      - patches/cling/0008-Let-autoload-act-on-fwd-declares.patch
+      - patches/cling/0009-Remove-macro-and-print-macro.patch
+      - patches/cling/0010-Add-debug-printout-of-ModuleBuilder-data-structures.patch
+      - patches/cling/0011-Cleanup-cached-constant-.str-from-codegen.patch
+      - patches/cling/0012-Implement-FileManager-uncaching.patch
+      - patches/cling/0013-In-cases-of-nested-parsing-at-execution-time-sometim.patch
+      - patches/cling/0014-Access-sema-internals-and-revert-the-list-of-unused-.patch
+      - patches/cling/0015-Make-sure-the-inode-did-not-get-updated-since-we-rea.patch
+      - patches/cling/0016-More-RAIIs-for-autoloading.patch
+      - patches/cling/0017-Use-raw-string-literals-to-correctly-stringify-and-i.patch
+      - patches/cling/0018-Accessor-to-is-file-opened-this-is-crucial-info-for-.patch
+      - patches/cling/0019-Buffer-the-pending-instantiations-in-case-or-recursi.patch
+      - patches/cling/0020-Also-store-Parser-paren-numbers-likely-fixes-ROOT-69.patch
+      - patches/cling/0021-Provide-possibly-updated-CodegenOpts-to-StartModule.patch
+      - patches/cling/0022-Clear-pending-decls-from-Builder-in-case-of-errors-R.patch
+      - patches/cling/0023-Do-not-load-the-source-file-just-to-get-an-irrelevan.patch
+      - patches/cling/0024-Do-not-collect-DeleteExprs-over-incremental-end-of-T.patch
+      - patches/cling/0025-Keep-into-account-if-files-were-virtual.patch
+      - patches/cling/0026-cxxmodules-Don-t-complain-when-modulemap-for-implici.patch
+      - patches/cling/0027-Implement-a-module-attribute-optional-to-allow-missi.patch
+      - patches/cling/0028-survive-Inon-accessible-directory.patch
+      - patches/cling/0029-D154328-AST-Add-API-to-iterate-already-loaded-specia.patch
+      - patches/cling/0030-Add-method-to-forget-generated-declarations.patch
 {% endif %}
     # name folder for easier deletion; we do the equivalent of downloading
     # the subproject sources, so the work folder then has clang in it;
@@ -121,6 +152,7 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
+        - cling        # [variant and variant.startswith("cling_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
@@ -194,6 +226,7 @@ outputs:
       skip: true  # [win]
       track_features:
         - root         # [variant and variant.startswith("root_")]
+        - cling        # [variant and variant.startswith("cling_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:
         - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, max_pin="x.x") }}   # [unix]
@@ -240,6 +273,7 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
+        - cling        # [variant and variant.startswith("cling_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:   # [unix]
         - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, max_pin="x.x") }}   # [unix]
@@ -288,6 +322,7 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
+        - cling        # [variant and variant.startswith("cling_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:
         # note that the name (e.g. libclang13) does not necessarily
@@ -353,6 +388,7 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
+        - cling        # [variant and variant.startswith("cling_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:
         # note that the name (e.g. libclang13) does not necessarily
@@ -402,6 +438,7 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
+        - cling        # [variant and variant.startswith("cling_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
@@ -460,6 +497,7 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
+        - cling        # [variant and variant.startswith("cling_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
@@ -499,6 +537,7 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
+        - cling        # [variant and variant.startswith("cling_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
@@ -541,6 +580,7 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
+        - cling        # [variant and variant.startswith("cling_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       # for windows, use the clang-format package.
       skip: true  # [win]
@@ -590,6 +630,7 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
+        - cling        # [variant and variant.startswith("cling_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
@@ -637,6 +678,7 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
+        - cling        # [variant and variant.startswith("cling_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
