@@ -8,6 +8,10 @@ jobs:
     vmImage: ubuntu-latest
   strategy:
     matrix:
+      linux_64_variantcling_1.2:
+        CONFIG: linux_64_variantcling_1.2
+        UPLOAD_PACKAGES: 'True'
+        DOCKER_IMAGE: quay.io/condaforge/linux-anvil-x86_64:alma9
       linux_64_variantdefault:
         CONFIG: linux_64_variantdefault
         UPLOAD_PACKAGES: 'True'
@@ -16,12 +20,20 @@ jobs:
         CONFIG: linux_64_variantroot_63402
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-x86_64:alma9
+      linux_aarch64_variantcling_1.2:
+        CONFIG: linux_aarch64_variantcling_1.2
+        UPLOAD_PACKAGES: 'True'
+        DOCKER_IMAGE: quay.io/condaforge/linux-anvil-x86_64:alma9
       linux_aarch64_variantdefault:
         CONFIG: linux_aarch64_variantdefault
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-x86_64:alma9
       linux_aarch64_variantroot_63402:
         CONFIG: linux_aarch64_variantroot_63402
+        UPLOAD_PACKAGES: 'True'
+        DOCKER_IMAGE: quay.io/condaforge/linux-anvil-x86_64:alma9
+      linux_ppc64le_variantcling_1.2:
+        CONFIG: linux_ppc64le_variantcling_1.2
         UPLOAD_PACKAGES: 'True'
         DOCKER_IMAGE: quay.io/condaforge/linux-anvil-x86_64:alma9
       linux_ppc64le_variantdefault:
