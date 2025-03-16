@@ -245,8 +245,8 @@ outputs:
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
         - libxml2  # [unix]
-        - zlib     # [unix and not variant.startswith("root_")]
-        - zstd     # [unix and not variant.startswith("root_")]
+        - zlib     # [unix and not (variant or "").startswith("root_")]
+        - zstd     # [unix and not (variant or "").startswith("root_")]
     requirements:
       build:
         - {{ compiler('cxx') }}
@@ -343,8 +343,8 @@ outputs:
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
         - libxml2
-        - zlib     # [unix and not variant.startswith("root_")]
-        - zstd     # [unix and not variant.startswith("root_")]
+        - zlib     # [unix and not (variant or "").startswith("root_")]
+        - zstd     # [unix and not (variant or "").startswith("root_")]
     requirements:
       build:
         - {{ compiler('cxx') }}
@@ -455,8 +455,8 @@ outputs:
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
         - libxml2
-        - zlib     # [unix and not variant.startswith("root_")]
-        - zstd     # [unix and not variant.startswith("root_")]
+        - zlib     # [unix and not (variant or "").startswith("root_")]
+        - zstd     # [unix and not (variant or "").startswith("root_")]
     requirements:
       build:
         - {{ compiler('cxx') }}
@@ -703,8 +703,8 @@ outputs:
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
-        - zlib     # [unix and not variant.startswith("root_")]
-        - zstd     # [unix and not variant.startswith("root_")]
+        - zlib     # [unix and not (variant or "").startswith("root_")]
+        - zstd     # [unix and not (variant or "").startswith("root_")]
     requirements:
       build:
         # "compiling .pyc files" fails without this
