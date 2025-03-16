@@ -1,0 +1,106 @@
+From 790f7a1ca3d7da7a5a4a0793833b089ae931c260 Mon Sep 17 00:00:00 2001
+From: Jonas Hahnfeld <jonas.hahnfeld@cern.ch>
+Date: Sat, 14 Oct 2023 20:10:28 +0200
+Subject: [PATCH 60/89] PR69076: Fix crash with modules and constexpr
+ destructor
+
+Closes https://github.com/llvm/llvm-project/issues/68702
+---
+ clang/lib/AST/ExprConstant.cpp | 11 +++---
+ clang/test/Modules/pr68702.cpp | 65 ++++++++++++++++++++++++++++++++++
+ 2 files changed, 72 insertions(+), 4 deletions(-)
+ create mode 100644 clang/test/Modules/pr68702.cpp
+
+diff --git a/clang/lib/AST/ExprConstant.cpp b/clang/lib/AST/ExprConstant.cpp
+index 8fe0061a9025..ae50420f8adf 100644
+--- a/clang/lib/AST/ExprConstant.cpp
++++ b/clang/lib/AST/ExprConstant.cpp
+@@ -14932,10 +14932,13 @@ bool Expr::EvaluateAsInitializer(APValue &Value, const ASTContext &Ctx,
+     LValue LVal;
+     LVal.set(VD);
+ 
+-    if (!EvaluateInPlace(Value, Info, LVal, this,
+-                         /*AllowNonLiteralTypes=*/true) ||
+-        EStatus.HasSideEffects)
+-      return false;
++    {
++      FullExpressionRAII Scope(Info);
++      if (!EvaluateInPlace(Value, Info, LVal, this,
++                           /*AllowNonLiteralTypes=*/true) ||
++          EStatus.HasSideEffects)
++        return false;
++    }
+ 
+     // At this point, any lifetime-extended temporaries are completely
+     // initialized.
+diff --git a/clang/test/Modules/pr68702.cpp b/clang/test/Modules/pr68702.cpp
+new file mode 100644
+index 000000000000..3f91a1001d1e
+--- /dev/null
++++ b/clang/test/Modules/pr68702.cpp
+@@ -0,0 +1,65 @@
++// RUN: rm -rf %t
++// RUN: mkdir %t
++// RUN: split-file %s %t
++
++// RUN: %clang_cc1 -std=c++20 -emit-obj -fmodules -fimplicit-module-maps -fmodules-cache-path=%t %t/main.cpp -o %t/main.o
++
++//--- V.h
++#ifndef V_H
++#define V_H
++
++class A {
++public:
++  constexpr A() { }
++  constexpr ~A() { }
++};
++
++template <typename T>
++class V {
++public:
++  V() = default;
++
++  constexpr V(int n, const A& a = A()) {}
++};
++
++#endif
++
++//--- inst1.h
++#include "V.h"
++
++static void inst1() {
++  V<int> v;
++}
++
++//--- inst2.h
++#include "V.h"
++
++static void inst2() {
++  V<int> v(100);
++}
++
++//--- module.modulemap
++module "M" {
++  export *
++  module "V.h" {
++    export *
++    header "V.h"
++  }
++  module "inst1.h" {
++    export *
++    header "inst1.h"
++  }
++}
++
++module "inst2.h" {
++  export *
++  header "inst2.h"
++}
++
++//--- main.cpp
++#include "V.h"
++#include "inst2.h"
++
++static void m() {
++  static V<int> v(100);
++}

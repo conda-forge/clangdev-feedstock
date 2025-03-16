@@ -13,4 +13,5 @@ cxx_compiler_version:   # [osx]
 
 variant:
   - default
-  - root_63004  # [linux or osx]
+  - root_63008  # [linux or osx]
+  - cling_1.0

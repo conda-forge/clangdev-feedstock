@@ -1,0 +1,62 @@
+From 72fbde8e3a7f47371e70f597d545fffbf06bf5b2 Mon Sep 17 00:00:00 2001
+From: Jonas Hahnfeld <jonas.hahnfeld@cern.ch>
+Date: Thu, 7 Apr 2022 16:19:11 +0200
+Subject: [PATCH 58/89] [ORC] Fix sorting of contructors by priority
+
+The code was incorrectly sorting by the function address.
+
+Differential Revision: https://reviews.llvm.org/D123311
+
+(cherry picked from commit e451d552348bc714614d294e32dfbe7ec2cd4005)
+---
+ llvm/lib/ExecutionEngine/Orc/LLJIT.cpp                 |  2 +-
+ .../ExecutionEngine/OrcLazy/global-ctors-and-dtors.ll  | 10 +++++++++-
+ 2 files changed, 10 insertions(+), 2 deletions(-)
+
+diff --git a/llvm/lib/ExecutionEngine/Orc/LLJIT.cpp b/llvm/lib/ExecutionEngine/Orc/LLJIT.cpp
+index 6c52998dc633..4d304f7bca7b 100644
+--- a/llvm/lib/ExecutionEngine/Orc/LLJIT.cpp
++++ b/llvm/lib/ExecutionEngine/Orc/LLJIT.cpp
+@@ -483,7 +483,7 @@ GlobalCtorDtorScraper::operator()(ThreadSafeModule TSM,
+       Inits.push_back(std::make_pair(E.Func, E.Priority));
+     llvm::sort(Inits, [](const std::pair<Function *, unsigned> &LHS,
+                          const std::pair<Function *, unsigned> &RHS) {
+-      return LHS.first < RHS.first;
++      return LHS.second < RHS.second;
+     });
+     auto *EntryBlock = BasicBlock::Create(Ctx, "entry", InitFunc);
+     IRBuilder<> IB(EntryBlock);
+diff --git a/llvm/test/ExecutionEngine/OrcLazy/global-ctors-and-dtors.ll b/llvm/test/ExecutionEngine/OrcLazy/global-ctors-and-dtors.ll
+index 67d392e71456..000b19e31537 100644
+--- a/llvm/test/ExecutionEngine/OrcLazy/global-ctors-and-dtors.ll
++++ b/llvm/test/ExecutionEngine/OrcLazy/global-ctors-and-dtors.ll
+@@ -8,6 +8,7 @@
+ ; RUN: lli -jit-kind=orc-lazy -orc-lazy-debug=funcs-to-stdout \
+ ; RUN:   -jd extra -extra-module %s -jd main %S/Inputs/noop-main.ll | FileCheck %s
+ ;
++; CHECK: Hello from constructor
+ ; CHECK: Hello
+ ; CHECK: [ {{.*}}main{{.*}} ]
+ ; CHECK: Goodbye
+@@ -16,9 +17,10 @@
+ 
+ @f = global %class.Foo zeroinitializer, align 1
+ @__dso_handle = external global i8
+-@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @_GLOBAL__sub_I_hello.cpp, i8* null }]
++@llvm.global_ctors = appending global [2 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @_GLOBAL__sub_I_hello.cpp, i8* null }, { i32, void ()*, i8* } { i32 1024, void ()* @constructor, i8* null }]
+ @str = private unnamed_addr constant [6 x i8] c"Hello\00"
+ @str2 = private unnamed_addr constant [8 x i8] c"Goodbye\00"
++@str4 = private unnamed_addr constant [23 x i8] c"Hello from constructor\00"
+ 
+ define linkonce_odr void @_ZN3FooD1Ev(%class.Foo* nocapture readnone %this) unnamed_addr align 2 {
+ entry:
+@@ -36,3 +38,9 @@ entry:
+ }
+ 
+ declare i32 @puts(i8* nocapture readonly)
++
++define void @constructor() {
++entry:
++  %0 = tail call i32 @puts(i8* getelementptr inbounds ([23 x i8], [23 x i8]* @str4, i64 0, i64 0))
++  ret void
++}

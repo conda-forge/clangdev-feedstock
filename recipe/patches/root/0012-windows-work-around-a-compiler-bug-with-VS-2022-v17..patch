@@ -1,0 +1,33 @@
+From 55a60c38cd35573e328777caaa2c2fbb5f3679a0 Mon Sep 17 00:00:00 2001
+From: Bertrand Bellenot <Bertrand.Bellenot@cern.ch>
+Date: Thu, 22 Jun 2023 16:59:38 +0200
+Subject: [PATCH 12/89] [windows] work-around a compiler bug with VS 2022
+ v17.6.0
+
+Fix a crash in root.exe due to a compiler bug with Visual Studio 2022
+v17.6.0. The fix works the same way than it is supposed to do, since
+the (never reached) `default: break;` statement make the function
+returns `HasREX` anyway.
+To be reviewed and removed as soon as VS works again.
+---
+ llvm/lib/Target/X86/MCTargetDesc/X86MCCodeEmitter.cpp | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/llvm/lib/Target/X86/MCTargetDesc/X86MCCodeEmitter.cpp b/llvm/lib/Target/X86/MCTargetDesc/X86MCCodeEmitter.cpp
+index 714d2d839054..c66ae29c7ae1 100644
+--- a/llvm/lib/Target/X86/MCTargetDesc/X86MCCodeEmitter.cpp
++++ b/llvm/lib/Target/X86/MCTargetDesc/X86MCCodeEmitter.cpp
+@@ -703,6 +703,13 @@ bool X86MCCodeEmitter::emitPrefixImpl(unsigned &CurOp, const MCInst &MI,
+     HasREX = emitOpcodePrefix(MemoryOperand, MI, STI, OS);
+ 
+   uint64_t Form = TSFlags & X86II::FormMask;
++  // FIXME (bellenot): Visual Studio v17.6.0 makes root.exe crash
++  // at the switch statement with Form being 0x002 or 0x001, values
++  // normally going to the 'default' switch branch, so the behavior
++  // doesn't change.
++  // To be reviewed and removed as soon as VS works again
++  if (Form <= 0x002)
++    return HasREX;
+   switch (Form) {
+   default:
+     break;

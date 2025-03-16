@@ -1,0 +1,61 @@
+From 9c04ed9f93c2a1fe84205556663e3828f90f8e11 Mon Sep 17 00:00:00 2001
+From: Jonas Hahnfeld <jonas.hahnfeld@cern.ch>
+Date: Tue, 24 Jan 2023 10:54:55 +0100
+Subject: [PATCH 05/89] D142443: [ORC] Drop Comdat when discarding IR symbol
+
+According to the IR verifier, "Declaration[s] may not be in a Comdat!"
+---
+ llvm/lib/ExecutionEngine/Orc/Layer.cpp             |  4 ++++
+ .../ExecutionEngine/Orc/Inputs/weak-comdat-def.ll  |  6 ++++++
+ llvm/test/ExecutionEngine/Orc/weak-comdat.ll       | 14 ++++++++++++++
+ 3 files changed, 24 insertions(+)
+ create mode 100644 llvm/test/ExecutionEngine/Orc/Inputs/weak-comdat-def.ll
+ create mode 100644 llvm/test/ExecutionEngine/Orc/weak-comdat.ll
+
+diff --git a/llvm/lib/ExecutionEngine/Orc/Layer.cpp b/llvm/lib/ExecutionEngine/Orc/Layer.cpp
+index a8973f5ed9df..55ab29504df9 100644
+--- a/llvm/lib/ExecutionEngine/Orc/Layer.cpp
++++ b/llvm/lib/ExecutionEngine/Orc/Layer.cpp
+@@ -126,6 +126,10 @@ void IRMaterializationUnit::discard(const JITDylib &JD,
+   assert(!I->second->isDeclaration() &&
+          "Discard should only apply to definitions");
+   I->second->setLinkage(GlobalValue::AvailableExternallyLinkage);
++  // According to the IR verifier, "Declaration[s] may not be in a Comdat!"
++  // Remove it, if this is a GlobalObject.
++  if (auto *GO = dyn_cast<GlobalObject>(I->second))
++    GO->setComdat(nullptr);
+   SymbolToDefinition.erase(I);
+ }
+ 
+diff --git a/llvm/test/ExecutionEngine/Orc/Inputs/weak-comdat-def.ll b/llvm/test/ExecutionEngine/Orc/Inputs/weak-comdat-def.ll
+new file mode 100644
+index 000000000000..9c308a3c9a1a
+--- /dev/null
++++ b/llvm/test/ExecutionEngine/Orc/Inputs/weak-comdat-def.ll
+@@ -0,0 +1,6 @@
++$c = comdat any
++
++define i32 @f() comdat($c) {
++entry:
++  ret i32 0
++}
+diff --git a/llvm/test/ExecutionEngine/Orc/weak-comdat.ll b/llvm/test/ExecutionEngine/Orc/weak-comdat.ll
+new file mode 100644
+index 000000000000..d11e46246f6a
+--- /dev/null
++++ b/llvm/test/ExecutionEngine/Orc/weak-comdat.ll
+@@ -0,0 +1,14 @@
++; RUN: lli -extra-module %p/Inputs/weak-comdat-def.ll %s
++
++$c = comdat any
++
++define weak i32 @f() comdat($c) {
++entry:
++  ret i32 0
++}
++
++define i32 @main() {
++entry:
++  %0 = call i32 @f()
++  ret i32 %0
++}

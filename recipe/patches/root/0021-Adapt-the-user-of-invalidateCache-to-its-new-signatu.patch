@@ -1,0 +1,41 @@
+From 575f983b261703a12da41cb7c163a33d12c5ca35 Mon Sep 17 00:00:00 2001
+From: Vassil Vassilev <vvasilev@cern.ch>
+Date: Tue, 8 Apr 2014 18:00:07 +0200
+Subject: [PATCH 21/89] Adapt the user of invalidateCache to its new signature.
+ Note: this might be change of behavior, because the new implementation
+ doesn't erase the entry from the ADT.
+
+---
+ clang/lib/Serialization/ModuleManager.cpp | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/clang/lib/Serialization/ModuleManager.cpp b/clang/lib/Serialization/ModuleManager.cpp
+index 40ffa6cfee8f..869578f3e4ab 100644
+--- a/clang/lib/Serialization/ModuleManager.cpp
++++ b/clang/lib/Serialization/ModuleManager.cpp
+@@ -232,8 +232,15 @@ ModuleManager::addModule(StringRef FileName, ModuleKind Type,
+   // Read the signature eagerly now so that we can check it.  Avoid calling
+   // ReadSignature unless there's something to check though.
+   if (ExpectedSignature && checkSignature(ReadSignature(NewModule->Data),
+-                                          ExpectedSignature, ErrorStr))
++                                          ExpectedSignature, ErrorStr)) {
++    // Try to remove the buffer.  If it can't be removed, then it was already
++    // validated by this process.
++    if (!getModuleCache().tryToDropPCM(NewModule->FileName)) {
++      const FileEntry *FE = NewModule->File;
++      FileMgr.invalidateCache(const_cast<FileEntry*>(FE));
++    }
+     return OutOfDate;
++  }
+ 
+   // We're keeping this module.  Store it everywhere.
+   Module = Modules[Entry] = NewModule.get();
+@@ -285,6 +292,8 @@ void ModuleManager::removeModules(ModuleIterator First, ModuleMap *modMap) {
+   for (ModuleIterator victim = First; victim != Last; ++victim) {
+     Modules.erase(victim->File);
+ 
++    const FileEntry *FE = victim->File;
++    FileMgr.invalidateCache(const_cast<FileEntry*>(FE));
+     if (modMap) {
+       StringRef ModuleName = victim->ModuleName;
+       if (Module *mod = modMap->findModule(ModuleName)) {
