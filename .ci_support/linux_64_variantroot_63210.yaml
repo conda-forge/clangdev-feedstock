@@ -23,7 +23,7 @@ python_min:
 target_platform:
 - linux-64
 variant:
-- default
+- root_63210
 zlib:
 - '1'
 zstd:

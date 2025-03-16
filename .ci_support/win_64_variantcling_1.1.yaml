@@ -10,10 +10,12 @@ libclang_soversion:
 - '13'
 libxml2:
 - '2'
+python_min:
+- '3.9'
 target_platform:
 - win-64
 variant:
-- default
+- cling_1.1
 zlib:
 - '1'
 zstd:

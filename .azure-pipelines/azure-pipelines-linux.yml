@@ -8,30 +8,42 @@ jobs:
     vmImage: ubuntu-latest
   strategy:
     matrix:
+      linux_64_variantcling_1.1:
+        CONFIG: linux_64_variantcling_1.1
+        UPLOAD_PACKAGES: 'True'
+        DOCKER_IMAGE: quay.io/condaforge/linux-anvil-x86_64:alma9
       linux_64_variantdefault:
         CONFIG: linux_64_variantdefault
         UPLOAD_PACKAGES: 'True'
-        DOCKER_IMAGE: quay.io/condaforge/linux-anvil-cos7-x86_64
-      linux_64_variantroot_63202:
-        CONFIG: linux_64_variantroot_63202
+        DOCKER_IMAGE: quay.io/condaforge/linux-anvil-x86_64:alma9
+      linux_64_variantroot_63210:
+        CONFIG: linux_64_variantroot_63210
         UPLOAD_PACKAGES: 'True'
-        DOCKER_IMAGE: quay.io/condaforge/linux-anvil-cos7-x86_64
+        DOCKER_IMAGE: quay.io/condaforge/linux-anvil-x86_64:alma9
+      linux_aarch64_variantcling_1.1:
+        CONFIG: linux_aarch64_variantcling_1.1
+        UPLOAD_PACKAGES: 'True'
+        DOCKER_IMAGE: quay.io/condaforge/linux-anvil-x86_64:alma9
       linux_aarch64_variantdefault:
         CONFIG: linux_aarch64_variantdefault
         UPLOAD_PACKAGES: 'True'
-        DOCKER_IMAGE: quay.io/condaforge/linux-anvil-cos7-x86_64
-      linux_aarch64_variantroot_63202:
-        CONFIG: linux_aarch64_variantroot_63202
+        DOCKER_IMAGE: quay.io/condaforge/linux-anvil-x86_64:alma9
+      linux_aarch64_variantroot_63210:
+        CONFIG: linux_aarch64_variantroot_63210
         UPLOAD_PACKAGES: 'True'
-        DOCKER_IMAGE: quay.io/condaforge/linux-anvil-cos7-x86_64
+        DOCKER_IMAGE: quay.io/condaforge/linux-anvil-x86_64:alma9
+      linux_ppc64le_variantcling_1.1:
+        CONFIG: linux_ppc64le_variantcling_1.1
+        UPLOAD_PACKAGES: 'True'
+        DOCKER_IMAGE: quay.io/condaforge/linux-anvil-x86_64:alma9
       linux_ppc64le_variantdefault:
         CONFIG: linux_ppc64le_variantdefault
         UPLOAD_PACKAGES: 'True'
-        DOCKER_IMAGE: quay.io/condaforge/linux-anvil-cos7-x86_64
-      linux_ppc64le_variantroot_63202:
-        CONFIG: linux_ppc64le_variantroot_63202
+        DOCKER_IMAGE: quay.io/condaforge/linux-anvil-x86_64:alma9
+      linux_ppc64le_variantroot_63210:
+        CONFIG: linux_ppc64le_variantroot_63210
         UPLOAD_PACKAGES: 'True'
-        DOCKER_IMAGE: quay.io/condaforge/linux-anvil-cos7-x86_64
+        DOCKER_IMAGE: quay.io/condaforge/linux-anvil-x86_64:alma9
   timeoutInMinutes: 360
   variables: {}
 

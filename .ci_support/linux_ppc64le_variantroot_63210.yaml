@@ -21,9 +21,9 @@ libxml2:
 python_min:
 - '3.9'
 target_platform:
-- linux-64
+- linux-ppc64le
 variant:
-- default
+- root_63210
 zlib:
 - '1'
 zstd:
