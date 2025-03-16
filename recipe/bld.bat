@@ -9,9 +9,8 @@ robocopy llvm-project\clang-tools-extra llvm-project\clang\tools\extra /E >nul
 
 :: using subproject sources has been effectively broken in LLVM 14,
 :: so we use the entire project, but make sure we don't pick up
-:: anything in-tree other than clang & the shared cmake folder
+:: anything in-tree other than clang
 robocopy llvm-project\clang .\clang /E >nul
-robocopy llvm-project\cmake .\cmake /E >nul
 del /f /q llvm-project
 cd clang
 

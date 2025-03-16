@@ -8,9 +8,8 @@ mv llvm-project/clang-tools-extra/* llvm-project/clang/tools/extra/
 
 # using subproject sources has been effectively broken in LLVM 14,
 # so we use the entire project, but make sure we don't pick up
-# anything in-tree other than clang & the shared cmake folder
+# anything in-tree other than clang
 mv llvm-project/clang ./clang
-mv llvm-project/cmake ./cmake
 rm -rf llvm-project
 cd clang
 
