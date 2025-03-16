@@ -226,7 +226,7 @@ outputs:
         - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, max_pin="x.x") }}   # [unix]
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
-        - zlib     # [unix]
+        - zlib     # [unix and not (variant or "").startswith("root_")]
         - libxml2  # [unix]
         - zstd     # [unix]
     requirements:
@@ -322,7 +322,7 @@ outputs:
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
         - libxml2
-        - zlib     # [unix]
+        - zlib     # [unix and not (variant or "").startswith("root_")]
         - zstd     # [unix]
     requirements:
       build:
@@ -373,7 +373,7 @@ outputs:
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
         - libxml2
-        - zlib     # [unix]
+        - zlib     # [unix and not (variant or "").startswith("root_")]
         - zstd     # [unix]
     requirements:
       build:
@@ -599,7 +599,7 @@ outputs:
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
-        - zlib     # [unix]
+        - zlib     # [unix and not (variant or "").startswith("root_")]
         - libxml2  # [unix]
         - zstd     # [unix]
     requirements:
