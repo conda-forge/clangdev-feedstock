@@ -444,6 +444,8 @@ outputs:
         - binutils_impl_{{ target_platform }}  # [linux]
         - sysroot_{{ target_platform }}        # [linux]
         - libgcc-devel_{{ target_platform }}   # [linux]
+        - vc14_runtime                         # [win]
+        - ucrt                                 # [win]
         - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
     test:
       commands:
@@ -475,6 +477,8 @@ outputs:
       run:
         - libstdcxx-devel_{{ target_platform }}  # [linux]
         - libcxx-devel <={{ libcxx_bound }}      # [osx]
+        - vc14_runtime                           # [win]
+        - ucrt                                   # [win]
         - {{ pin_subpackage("clang", exact=True) }}
     test:
       requires:
