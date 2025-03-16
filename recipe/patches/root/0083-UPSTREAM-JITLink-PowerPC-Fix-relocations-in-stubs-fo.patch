@@ -1,0 +1,54 @@
+From f9d869e4d42760348bd1da71d81b1be96f0d3def Mon Sep 17 00:00:00 2001
+From: Kai Luo <lkail@cn.ibm.com>
+Date: Wed, 9 Aug 2023 01:57:50 +0000
+Subject: [PATCH 83/87] UPSTREAM: [JITLink][PowerPC] Fix relocations in stubs
+ for ppc64 big-endian target
+
+Offset and addend are fixed for big-endian stubs.
+
+Reviewed By: lhames
+
+Differential Revision: https://reviews.llvm.org/D157257
+
+(cherry picked from commit d6791fb77402e8d3719ee991a20187cec15dcfde)
+---
+ llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h b/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h
+index 4d08fd04c5a5..411e2bf3ab7d 100644
+--- a/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h
++++ b/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h
+@@ -80,25 +80,29 @@ inline PLTCallStubInfo pickStub(PLTCallStubKind StubKind) {
+         isLE ? PointerJumpStubContent_little : PointerJumpStubContent_big;
+     // Skip save r2.
+     Content = Content.slice(4);
++    size_t Offset = isLE ? 0 : 2;
+     return PLTCallStubInfo{
+         Content,
+-        {{TOCDelta16HA, 0, 0}, {TOCDelta16LO, 4, 0}},
++        {{TOCDelta16HA, Offset, 0}, {TOCDelta16LO, Offset + 4, 0}},
+     };
+   }
+   case LongBranchSaveR2: {
+     ArrayRef<char> Content =
+         isLE ? PointerJumpStubContent_little : PointerJumpStubContent_big;
++    size_t Offset = isLE ? 4 : 6;
+     return PLTCallStubInfo{
+         Content,
+-        {{TOCDelta16HA, 4, 0}, {TOCDelta16LO, 8, 0}},
++        {{TOCDelta16HA, Offset, 0}, {TOCDelta16LO, Offset + 4, 0}},
+     };
+   }
+   case LongBranchNoTOC: {
+     ArrayRef<char> Content = isLE ? PointerJumpStubNoTOCContent_little
+                                   : PointerJumpStubNoTOCContent_big;
++    size_t Offset = isLE ? 16 : 18;
++    Edge::AddendT Addend = isLE ? 8 : 10;
+     return PLTCallStubInfo{
+         Content,
+-        {{Delta16HA, 16, 8}, {Delta16LO, 20, 12}},
++        {{Delta16HA, Offset, Addend}, {Delta16LO, Offset + 4, Addend + 4}},
+     };
+   }
+   }

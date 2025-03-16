@@ -1,0 +1,52 @@
+From 96afc5bc7e70c54b5479ce0dd24b1a006048bd21 Mon Sep 17 00:00:00 2001
+From: Aaron Ballman <aaron@aaronballman.com>
+Date: Tue, 23 May 2023 09:28:05 -0400
+Subject: [PATCH 73/87] UPSTREAM: Silence switch statement contains 'default'
+ but no 'case' labels warning; NFC
+
+These are showing up in MSVC builds.
+
+(cherry picked from commit 846bde483d63b2abbb8dd45ceba2dab538446432)
+---
+ llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h | 11 +++--------
+ llvm/lib/ExecutionEngine/JITLink/ppc64.cpp        |  5 +----
+ 2 files changed, 4 insertions(+), 12 deletions(-)
+
+diff --git a/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h b/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h
+index 699e656eb38e..bb9f5f158ff0 100644
+--- a/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h
++++ b/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h
+@@ -29,14 +29,9 @@ const char *getEdgeKindName(Edge::Kind K);
+ /// TOOD: Add fixups as we add edges.
+ inline Error applyFixup(LinkGraph &G, Block &B, const Edge &E,
+                         const Symbol *GOTSymbol) {
+-  switch (E.getKind()) {
+-  default:
+-    return make_error<JITLinkError>(
+-        "In graph " + G.getName() + ", section " + B.getSection().getName() +
+-        " unsupported edge kind " + getEdgeKindName(E.getKind()));
+-  }
+-
+-  return Error::success();
++  return make_error<JITLinkError>(
++      "In graph " + G.getName() + ", section " + B.getSection().getName() +
++      " unsupported edge kind " + getEdgeKindName(E.getKind()));
+ }
+ 
+ } // end namespace llvm::jitlink::ppc64
+diff --git a/llvm/lib/ExecutionEngine/JITLink/ppc64.cpp b/llvm/lib/ExecutionEngine/JITLink/ppc64.cpp
+index ca862b0f89ce..d138b0a6f8ae 100644
+--- a/llvm/lib/ExecutionEngine/JITLink/ppc64.cpp
++++ b/llvm/lib/ExecutionEngine/JITLink/ppc64.cpp
+@@ -18,10 +18,7 @@ namespace llvm::jitlink::ppc64 {
+ 
+ const char *getEdgeKindName(Edge::Kind K) {
+   // TODO: Add edge names.
+-  switch (K) {
+-  default:
+-    return getGenericEdgeKindName(static_cast<Edge::Kind>(K));
+-  }
++  return getGenericEdgeKindName(static_cast<Edge::Kind>(K));
+ }
+ 
+ } // end namespace llvm::jitlink::ppc64

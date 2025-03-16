@@ -1,0 +1,57 @@
+From a3871e0c3fa9cff6e38449e43eb76798ae911bd0 Mon Sep 17 00:00:00 2001
+From: Kai Luo <lkail@cn.ibm.com>
+Date: Thu, 14 Sep 2023 01:49:17 +0000
+Subject: [PATCH 85/87] UPSTREAM: [JITLink][PowerPC] Fix incorrect assertion of
+ addend for R_PPC64_REL24
+
+There is case that R_PPC64_REL24 with non-zero addend. The assertion is incorrectly triggered in such situation.
+
+Reviewed By: lhames
+
+Differential Revision: https://reviews.llvm.org/D158708
+
+(cherry picked from commit 1dae4dd0d80fd453d60564b60a70f1b3814ef5a5)
+---
+ llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h |  6 ++++--
+ llvm/lib/ExecutionEngine/JITLink/ELF_ppc64.cpp    | 10 +++++++---
+ 2 files changed, 11 insertions(+), 5 deletions(-)
+
+diff --git a/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h b/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h
+index 42ab9ddd8765..88af15d61e71 100644
+--- a/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h
++++ b/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h
+@@ -204,9 +204,11 @@ public:
+       if (isExternal) {
+         E.setKind(ppc64::CallBranchDeltaRestoreTOC);
+         this->StubKind = LongBranchSaveR2;
++        // FIXME: We assume the addend to the external target is zero. It's
++        // quite unusual that the addend of an external target to be non-zero as
++        // if we have known the layout of the external object.
+         E.setTarget(this->getEntryForTarget(G, E.getTarget()));
+-        // We previously set branching to local entry. Now reverse that
+-        // operation.
++        // Addend to the stub is zero.
+         E.setAddend(0);
+       } else
+         // TODO: There are cases a local function call need a call stub.
+diff --git a/llvm/lib/ExecutionEngine/JITLink/ELF_ppc64.cpp b/llvm/lib/ExecutionEngine/JITLink/ELF_ppc64.cpp
+index ac30bc3eff53..630343f8c61b 100644
+--- a/llvm/lib/ExecutionEngine/JITLink/ELF_ppc64.cpp
++++ b/llvm/lib/ExecutionEngine/JITLink/ELF_ppc64.cpp
+@@ -346,9 +346,13 @@ private:
+       break;
+     case ELF::R_PPC64_REL24:
+       Kind = ppc64::RequestCall;
+-      assert(Addend == 0 && "Addend is expected to be 0 for a function call");
+-      // We assume branching to local entry, will reverse the addend if not.
+-      Addend = ELF::decodePPC64LocalEntryOffset((*ObjSymbol)->st_other);
++      // Determining a target is external or not is deferred in PostPrunePass.
++      // We assume branching to local entry by default, since in PostPrunePass,
++      // we don't have any context to determine LocalEntryOffset. If it finally
++      // turns out to be an external call, we'll have a stub for the external
++      // target, the target of this edge will be the stub and its addend will be
++      // set 0.
++      Addend += ELF::decodePPC64LocalEntryOffset((*ObjSymbol)->st_other);
+       break;
+     case ELF::R_PPC64_REL64:
+       Kind = ppc64::Delta64;

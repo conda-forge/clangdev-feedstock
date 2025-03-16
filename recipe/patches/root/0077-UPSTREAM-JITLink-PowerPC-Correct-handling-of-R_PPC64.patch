@@ -1,0 +1,280 @@
+From bd137abf581c6320f86c0bd65203ef12f275a1b1 Mon Sep 17 00:00:00 2001
+From: Kai Luo <lkail@cn.ibm.com>
+Date: Mon, 24 Jul 2023 14:00:20 +0800
+Subject: [PATCH 77/87] UPSTREAM: [JITLink][PowerPC] Correct handling of
+ R_PPC64_REL24_NOTOC
+
+According to the ELFv2 ABI
+
+> This relocation type is used to specify a function call where the TOC pointer is not initialized. It is similar to R_PPC64_REL24 in that it specifies a symbol to be resolved. If the symbol resolves to a function that requires a TOC pointer (as determined by st_other bits) then a link editor must arrange for the call to be via the global entry point of the called function. Any stub code must not rely on a valid TOC base address in r2.
+
+This patch fixes handling of `R_PPC64_REL24_NOTOC` by using the same stub code sequence as lld.
+
+Reviewed By: lhames
+
+Differential Revision: https://reviews.llvm.org/D155672
+
+(cherry picked from commit 995f199f0a7645bac81f1786a623d66ca44dd415)
+---
+ .../llvm/ExecutionEngine/JITLink/ppc64.h      | 104 ++++++++++++------
+ .../lib/ExecutionEngine/JITLink/ELF_ppc64.cpp |   2 +-
+ llvm/lib/ExecutionEngine/JITLink/ppc64.cpp    |  25 +++++
+ .../JITLink/ppc64/ELF_ppc64le_relocations.s   |  21 ++++
+ 4 files changed, 118 insertions(+), 34 deletions(-)
+
+diff --git a/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h b/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h
+index d4b7256e563a..6d6a5a1a9345 100644
+--- a/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h
++++ b/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h
+@@ -36,15 +36,69 @@ enum EdgeKind_ppc64 : Edge::Kind {
+   CallBranchDelta,
+   // Need to restore r2 after the bl, suggesting the bl is followed by a nop.
+   CallBranchDeltaRestoreTOC,
+-  // Need PLT call stub.
++  // Need PLT call stub using TOC, TOC pointer is not saved before branching.
+   RequestPLTCallStub,
+-  // Need PLT call stub following a save of r2.
++  // Need PLT call stub using TOC, TOC pointer is saved before branching.
+   RequestPLTCallStubSaveTOC,
++  // Need PLT call stub without using TOC.
++  RequestPLTCallStubNoTOC,
++};
++
++enum PLTCallStubKind {
++  LongBranch,
++  LongBranchSaveR2,
++  LongBranchNoTOC,
+ };
+ 
+ extern const char NullPointerContent[8];
+ extern const char PointerJumpStubContent_big[20];
+ extern const char PointerJumpStubContent_little[20];
++extern const char PointerJumpStubNoTOCContent_big[32];
++extern const char PointerJumpStubNoTOCContent_little[32];
++
++struct PLTCallStubReloc {
++  Edge::Kind K;
++  size_t Offset;
++  Edge::AddendT A;
++};
++
++struct PLTCallStubInfo {
++  ArrayRef<char> Content;
++  SmallVector<PLTCallStubReloc, 2> Relocs;
++};
++
++template <support::endianness Endianness>
++inline PLTCallStubInfo pickStub(PLTCallStubKind StubKind) {
++  constexpr bool isLE = Endianness == support::endianness::little;
++  switch (StubKind) {
++  case LongBranch: {
++    ArrayRef<char> Content =
++        isLE ? PointerJumpStubContent_little : PointerJumpStubContent_big;
++    // Skip save r2.
++    Content = Content.slice(4);
++    return PLTCallStubInfo{
++        Content,
++        {{TOCDelta16HA, 0, 0}, {TOCDelta16LO, 4, 0}},
++    };
++  }
++  case LongBranchSaveR2: {
++    ArrayRef<char> Content =
++        isLE ? PointerJumpStubContent_little : PointerJumpStubContent_big;
++    return PLTCallStubInfo{
++        Content,
++        {{TOCDelta16HA, 4, 0}, {TOCDelta16LO, 8, 0}},
++    };
++  }
++  case LongBranchNoTOC: {
++    ArrayRef<char> Content = isLE ? PointerJumpStubNoTOCContent_little
++                                  : PointerJumpStubNoTOCContent_big;
++    return PLTCallStubInfo{
++        Content,
++        {{Delta16HA, 16, 8}, {Delta16LO, 20, 12}},
++    };
++  }
++  }
++}
+ 
+ inline Symbol &createAnonymousPointer(LinkGraph &G, Section &PointerSection,
+                                       Symbol *InitialTarget = nullptr,
+@@ -60,32 +114,16 @@ inline Symbol &createAnonymousPointer(LinkGraph &G, Section &PointerSection,
+ }
+ 
+ template <support::endianness Endianness>
+-inline Block &createPointerJumpStubBlock(LinkGraph &G, Section &StubSection,
+-                                         Symbol &PointerSymbol, bool SaveR2) {
+-  constexpr bool isLE = Endianness == support::endianness::little;
+-  ArrayRef<char> C =
+-      isLE ? PointerJumpStubContent_little : PointerJumpStubContent_big;
+-  if (!SaveR2)
+-    // Skip storing r2.
+-    C = C.slice(4);
+-  Block &B = G.createContentBlock(StubSection, C, orc::ExecutorAddr(), 4, 0);
+-  size_t Offset = SaveR2 ? 4 : 0;
+-  B.addEdge(TOCDelta16HA, Offset, PointerSymbol, 0);
+-  B.addEdge(TOCDelta16LO, Offset + 4, PointerSymbol, 0);
+-  return B;
+-}
+-
+-template <support::endianness Endianness>
+-inline Symbol &
+-createAnonymousPointerJumpStub(LinkGraph &G, Section &StubSection,
+-                               Symbol &PointerSymbol, bool SaveR2) {
+-  constexpr bool isLE = Endianness == support::endianness::little;
+-  constexpr ArrayRef<char> Stub =
+-      isLE ? PointerJumpStubContent_little : PointerJumpStubContent_big;
+-  return G.addAnonymousSymbol(createPointerJumpStubBlock<Endianness>(
+-                                  G, StubSection, PointerSymbol, SaveR2),
+-                              0, SaveR2 ? sizeof(Stub) : sizeof(Stub) - 4, true,
+-                              false);
++inline Symbol &createAnonymousPointerJumpStub(LinkGraph &G,
++                                              Section &StubSection,
++                                              Symbol &PointerSymbol,
++                                              PLTCallStubKind StubKind) {
++  PLTCallStubInfo StubInfo = pickStub<Endianness>(StubKind);
++  Block &B = G.createContentBlock(StubSection, StubInfo.Content,
++                                  orc::ExecutorAddr(), 4, 0);
++  for (auto const &Reloc : StubInfo.Relocs)
++    B.addEdge(Reloc.K, Reloc.Offset, PointerSymbol, Reloc.A);
++  return G.addAnonymousSymbol(B, 0, StubInfo.Content.size(), true, false);
+ }
+ 
+ template <support::endianness Endianness>
+@@ -138,13 +176,13 @@ public:
+     Edge::Kind K = E.getKind();
+     if (K == ppc64::RequestPLTCallStubSaveTOC && E.getTarget().isExternal()) {
+       E.setKind(ppc64::CallBranchDeltaRestoreTOC);
+-      this->SaveR2InStub = true;
++      this->StubKind = LongBranchSaveR2;
+       E.setTarget(this->getEntryForTarget(G, E.getTarget()));
+       return true;
+     }
+-    if (K == ppc64::RequestPLTCallStub && E.getTarget().isExternal()) {
++    if (K == ppc64::RequestPLTCallStubNoTOC && E.getTarget().isExternal()) {
+       E.setKind(ppc64::CallBranchDelta);
+-      this->SaveR2InStub = false;
++      this->StubKind = LongBranchNoTOC;
+       E.setTarget(this->getEntryForTarget(G, E.getTarget()));
+       return true;
+     }
+@@ -154,7 +192,7 @@ public:
+   Symbol &createEntry(LinkGraph &G, Symbol &Target) {
+     return createAnonymousPointerJumpStub<Endianness>(
+         G, getOrCreateStubsSection(G), TOC.getEntryForTarget(G, Target),
+-        this->SaveR2InStub);
++        this->StubKind);
+   }
+ 
+ private:
+@@ -168,7 +206,7 @@ private:
+ 
+   TOCTableManager<Endianness> &TOC;
+   Section *PLTSection = nullptr;
+-  bool SaveR2InStub = false;
++  PLTCallStubKind StubKind;
+ };
+ 
+ /// Returns a string name for the given ppc64 edge. For debugging purposes
+diff --git a/llvm/lib/ExecutionEngine/JITLink/ELF_ppc64.cpp b/llvm/lib/ExecutionEngine/JITLink/ELF_ppc64.cpp
+index aec14b43d31a..a6eb4316aec9 100644
+--- a/llvm/lib/ExecutionEngine/JITLink/ELF_ppc64.cpp
++++ b/llvm/lib/ExecutionEngine/JITLink/ELF_ppc64.cpp
+@@ -230,7 +230,7 @@ private:
+         Addend += ELF::decodePPC64LocalEntryOffset((*ObjSymbol)->st_other);
+       } else {
+         Kind = ELFReloc == ELF::R_PPC64_REL24 ? ppc64::RequestPLTCallStubSaveTOC
+-                                              : ppc64::RequestPLTCallStub;
++                                              : ppc64::RequestPLTCallStubNoTOC;
+       }
+       break;
+     }
+diff --git a/llvm/lib/ExecutionEngine/JITLink/ppc64.cpp b/llvm/lib/ExecutionEngine/JITLink/ppc64.cpp
+index 3ad959107a22..4e21eace21d0 100644
+--- a/llvm/lib/ExecutionEngine/JITLink/ppc64.cpp
++++ b/llvm/lib/ExecutionEngine/JITLink/ppc64.cpp
+@@ -35,6 +35,29 @@ const char PointerJumpStubContent_big[20] = {
+     0x4e,       (char)0x80, 0x04, 0x20,       // bctr
+ };
+ 
++// TODO: We can use prefixed instructions if LLJIT is running on power10.
++const char PointerJumpStubNoTOCContent_little[32] = {
++    (char)0xa6, 0x02,       (char)0x88, 0x7d,       // mflr 12
++    0x05,       (char)0x00, (char)0x9f, 0x42,       // bcl 20,31,.+4
++    (char)0xa6, 0x02,       0x68,       0x7d,       // mflr 11
++    (char)0xa6, 0x03,       (char)0x88, 0x7d,       // mtlr 12
++    0x00,       0x00,       (char)0x8b, 0x3d,       // addis 12,11,OffHa
++    0x00,       0x00,       (char)0x8c, (char)0xe9, // ld 12, OffLo(12)
++    (char)0xa6, 0x03,       (char)0x89, 0x7d,       // mtctr 12
++    0x20,       0x04,       (char)0x80, 0x4e,       // bctr
++};
++
++const char PointerJumpStubNoTOCContent_big[32] = {
++    0x7d,       (char)0x88, 0x02, (char)0xa6, // mflr 12
++    0x42,       (char)0x9f, 0x00, 0x05,       // bcl 20,31,.+4
++    0x7d,       0x68,       0x02, (char)0xa6, // mflr 11
++    0x7d,       (char)0x88, 0x03, (char)0xa6, // mtlr 12
++    0x3d,       (char)0x8b, 0x00, 0x00,       // addis 12,11,OffHa
++    (char)0xe9, (char)0x8c, 0x00, 0x00,       // ld 12, OffLo(12)
++    0x7d,       (char)0x89, 0x03, (char)0xa6, // mtctr 12
++    0x4e,       (char)0x80, 0x04, 0x20,       // bctr
++};
++
+ const char *getEdgeKindName(Edge::Kind K) {
+   switch (K) {
+   case Pointer64:
+@@ -69,6 +92,8 @@ const char *getEdgeKindName(Edge::Kind K) {
+     return "RequestPLTCallStub";
+   case RequestPLTCallStubSaveTOC:
+     return "RequestPLTCallStubSaveTOC";
++  case RequestPLTCallStubNoTOC:
++    return "RequestPLTCallStubNoTOC";
+   default:
+     return getGenericEdgeKindName(static_cast<Edge::Kind>(K));
+   }
+diff --git a/llvm/test/ExecutionEngine/JITLink/ppc64/ELF_ppc64le_relocations.s b/llvm/test/ExecutionEngine/JITLink/ppc64/ELF_ppc64le_relocations.s
+index 230a106ce813..0890525622d3 100644
+--- a/llvm/test/ExecutionEngine/JITLink/ppc64/ELF_ppc64le_relocations.s
++++ b/llvm/test/ExecutionEngine/JITLink/ppc64/ELF_ppc64le_relocations.s
+@@ -4,6 +4,7 @@
+ # RUN: llvm-jitlink --noexec \
+ # RUN:              --abs external_data=0xdeadbeef \
+ # RUN:              --abs external_func=0xcafef00d \
++# RUN:              --abs external_func_notoc=0x88880000 \
+ # RUN:              --check %s %t/elf_reloc.o
+ 
+ # jitlink-check: section_addr(elf_reloc.o, $__GOT) + 0x8000 = __TOC__
+@@ -52,6 +53,8 @@ test_tocrel16:
+ # jitlink-check: *{8}(got_addr(elf_reloc.o, external_func)) = external_func
+ # jitlink-check: decode_operand(test_external_call, 0) = \
+ # jitlink-check:   (stub_addr(elf_reloc.o, external_func) - test_external_call) >> 2
++# Check r2 is saved.
++# jitlink-check: *{4}(stub_addr(elf_reloc.o, external_func)) = 0xf8410018
+   .global test_external_call
+   .p2align 4
+   .type test_external_call,@function
+@@ -61,6 +64,24 @@ test_external_call:
+   blr
+   .size test_external_call, .-test_external_call
+ 
++# FIXME: Current implementation allows only one plt call stub for a target function,
++# so we can't re-use `external_func` as target here.
++# Check R_PPC64_REL24_NOTOC
++# jitlink-check: *{8}(got_addr(elf_reloc.o, external_func_notoc)) = external_func_notoc
++# jitlink-check: decode_operand(test_external_call_notoc, 0) = \
++# jitlink-check:   (stub_addr(elf_reloc.o, external_func_notoc) - test_external_call_notoc) >> 2
++# jitlink-check: (*{4}(stub_addr(elf_reloc.o, external_func_notoc) + 16)) & 0xffff = \
++# jitlink-check:   ((((got_addr(elf_reloc.o, external_func_notoc) - stub_addr(elf_reloc.o, external_func_notoc)) - 8) + 0x8000) >> 16) & 0xffff
++# jitlink-check: (*{4}(stub_addr(elf_reloc.o, external_func_notoc) + 20)) & 0xffff = \
++# jitlink-check:   ((got_addr(elf_reloc.o, external_func_notoc) - stub_addr(elf_reloc.o, external_func_notoc)) - 8) & 0xffff
++  .global test_external_call_notoc
++  .p2align 4
++  .type test_external_call_notoc,@function
++test_external_call_notoc:
++  bl external_func_notoc@notoc
++  blr
++  .size test_external_call_notoc, .-test_external_call_notoc
++
+  .section .toc,"aw",@progbits
+ .LC0:
+   .tc external_data[TC],external_data

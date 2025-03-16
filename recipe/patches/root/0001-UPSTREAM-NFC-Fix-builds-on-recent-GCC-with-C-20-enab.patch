@@ -1,0 +1,43 @@
+From 873ca929c778252b5f16b3939ed170fc46f2e0f3 Mon Sep 17 00:00:00 2001
+From: Alexander Batashev <alexbatashev@gmail.com>
+Date: Tue, 18 Jul 2023 19:43:36 +0300
+Subject: [PATCH 01/87] UPSTREAM: [NFC] Fix builds on recent GCC with C++20
+ enabled
+
+The following pattern fails on recent GCC versions with -std=c++20 flag passed
+and succeeds with -std=c++17. Such behavior is not observed on Clang 16.0.
+
+```c++
+template <typename T>
+struct Foo {
+    Foo<T>(int a) {}
+};
+```
+
+This patch removes template parameter from constructor in two occurences to
+make the following command complete successfully:
+bazel build -c fastbuild --cxxopt=-std=c++20 --host_cxxopt=-std=c++20 @llvm-project//llvm/...
+
+Reviewed By: arsenm
+
+Differential Revision: https://reviews.llvm.org/D154782
+
+(cherry picked from commit 17508cbcc628ad45012660362bd1ace81da85f3b)
+---
+ llvm/lib/Transforms/IPO/AttributorAttributes.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/llvm/lib/Transforms/IPO/AttributorAttributes.cpp b/llvm/lib/Transforms/IPO/AttributorAttributes.cpp
+index 42158e4e05dd..e8de5a82e4e4 100644
+--- a/llvm/lib/Transforms/IPO/AttributorAttributes.cpp
++++ b/llvm/lib/Transforms/IPO/AttributorAttributes.cpp
+@@ -3494,8 +3494,7 @@ template <typename BaseTy, typename ToTy>
+ struct CachedReachabilityAA : public BaseTy {
+   using RQITy = ReachabilityQueryInfo<ToTy>;
+ 
+-  CachedReachabilityAA<BaseTy, ToTy>(const IRPosition &IRP, Attributor &A)
+-      : BaseTy(IRP, A) {}
++  CachedReachabilityAA(const IRPosition &IRP, Attributor &A) : BaseTy(IRP, A) {}
+ 
+   /// See AbstractAttribute::isQueryAA.
+   bool isQueryAA() const override { return true; }

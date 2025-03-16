@@ -1,0 +1,23 @@
+From ea6fbf81f66f5f0664cc60fbbfdc496d51b8b829 Mon Sep 17 00:00:00 2001
+From: Simon Pilgrim <llvm-dev@redking.me.uk>
+Date: Mon, 24 Jul 2023 10:33:28 +0100
+Subject: [PATCH 78/87] UPSTREAM: [JITLink] ppc64.h - fix MSVC "not all control
+ paths return a value" warning. NFC.
+
+(cherry picked from commit 7bf9c5bbb7d109752b31457cbf2c86012f50d4a4)
+---
+ llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h b/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h
+index 6d6a5a1a9345..0b2d562b71c4 100644
+--- a/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h
++++ b/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h
+@@ -98,6 +98,7 @@ inline PLTCallStubInfo pickStub(PLTCallStubKind StubKind) {
+     };
+   }
+   }
++  llvm_unreachable("Unknown PLTCallStubKind enum");
+ }
+ 
+ inline Symbol &createAnonymousPointer(LinkGraph &G, Section &PointerSection,

@@ -1,0 +1,1079 @@
+From c4644f30435885d5066fc1719027e34980eb6d24 Mon Sep 17 00:00:00 2001
+From: Kai Luo <lkail@cn.ibm.com>
+Date: Mon, 10 Jul 2023 11:25:41 +0800
+Subject: [PATCH 74/87] UPSTREAM: [JITLink][PowerPC] Add TOC and relocations
+ for ppc64
+
+This patch builds TOC and adds common relocations for ppc64.
+
+To build TOC, sections belong to TOC are merged into one section, serves as GOT and small data accessing.
+
+Relocations commonly seen in local function call, external function call and global variable reference are added.
+
+References
+- https://youtu.be/i-inxFudrgI
+- https://maskray.me/blog/2023-02-26-linker-notes-on-power-isa
+- https://openpowerfoundation.org/specifications/64bitelfabi/
+
+Reviewed By: lhames
+
+Differential Revision: https://reviews.llvm.org/D154198
+
+(cherry picked from commit 61358d4fbeb3db1c1f7be278ae599ae3d79499d7)
+---
+ .../ExecutionEngine/JITLink/TableManager.h    |   9 +
+ .../llvm/ExecutionEngine/JITLink/ppc64.h      | 268 +++++++++++++++++-
+ .../lib/ExecutionEngine/JITLink/ELF_ppc64.cpp | 250 +++++++++++++++-
+ llvm/lib/ExecutionEngine/JITLink/ppc64.cpp    |  57 +++-
+ .../JITLink/ppc64/ELF_ppc64le_ehframe.s       |  74 +++++
+ .../JITLink/ppc64/ELF_ppc64le_relocations.s   |  66 +++++
+ .../JITLink/ppc64/ppc64le-relocs.s            | 204 +++++++++++++
+ 7 files changed, 913 insertions(+), 15 deletions(-)
+ create mode 100644 llvm/test/ExecutionEngine/JITLink/ppc64/ELF_ppc64le_ehframe.s
+ create mode 100644 llvm/test/ExecutionEngine/JITLink/ppc64/ELF_ppc64le_relocations.s
+ create mode 100644 llvm/test/ExecutionEngine/JITLink/ppc64/ppc64le-relocs.s
+
+diff --git a/llvm/include/llvm/ExecutionEngine/JITLink/TableManager.h b/llvm/include/llvm/ExecutionEngine/JITLink/TableManager.h
+index 28996cbea35b..8953a9fa9730 100644
+--- a/llvm/include/llvm/ExecutionEngine/JITLink/TableManager.h
++++ b/llvm/include/llvm/ExecutionEngine/JITLink/TableManager.h
+@@ -52,6 +52,15 @@ public:
+     return *EntryI->second;
+   }
+ 
++  bool appendEntry(Symbol &Target, Symbol &Entry) {
++    assert(Target.hasName() && "Edge cannot point to anonymous target");
++    auto Res = Entries.insert({
++        Target.getName(),
++        &Entry,
++    });
++    return Res.second;
++  }
++
+ private:
+   TableManagerImplT &impl() { return static_cast<TableManagerImplT &>(*this); }
+   DenseMap<StringRef, Symbol *> Entries;
+diff --git a/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h b/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h
+index bb9f5f158ff0..333adbe6a9b0 100644
+--- a/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h
++++ b/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h
+@@ -14,24 +14,278 @@
+ #define LLVM_EXECUTIONENGINE_JITLINK_PPC64_H
+ 
+ #include "llvm/ExecutionEngine/JITLink/JITLink.h"
++#include "llvm/ExecutionEngine/JITLink/TableManager.h"
++#include "llvm/Support/Endian.h"
+ 
+ namespace llvm::jitlink::ppc64 {
+ 
+ /// Represents ppc64 fixups and other ppc64-specific edge kinds.
+-/// TODO: Add edge kinds.
+-enum EdgeKind_ppc64 : Edge::Kind {};
++enum EdgeKind_ppc64 : Edge::Kind {
++  Pointer64 = Edge::FirstRelocation,
++  Pointer32,
++  Delta64,
++  Delta32,
++  NegDelta32,
++  Delta16,
++  Delta16HA,
++  Delta16LO,
++  TOCDelta16HA,
++  TOCDelta16LO,
++  TOCDelta16DS,
++  TOCDelta16LODS,
++  CallBranchDelta,
++  // Need to restore r2 after the bl, suggesting the bl is followed by a nop.
++  CallBranchDeltaRestoreTOC,
++  // Need PLT call stub.
++  RequestPLTCallStub,
++  // Need PLT call stub following a save of r2.
++  RequestPLTCallStubSaveTOC,
++};
++
++extern const char NullPointerContent[8];
++extern const char PointerJumpStubContent_big[20];
++extern const char PointerJumpStubContent_little[20];
++
++inline Symbol &createAnonymousPointer(LinkGraph &G, Section &PointerSection,
++                                      Symbol *InitialTarget = nullptr,
++                                      uint64_t InitialAddend = 0) {
++  assert(G.getPointerSize() == sizeof(NullPointerContent) &&
++         "LinkGraph's pointer size should be consistent with size of "
++         "NullPointerContent");
++  Block &B = G.createContentBlock(PointerSection, NullPointerContent,
++                                  orc::ExecutorAddr(), G.getPointerSize(), 0);
++  if (InitialTarget)
++    B.addEdge(Pointer64, 0, *InitialTarget, InitialAddend);
++  return G.addAnonymousSymbol(B, 0, G.getPointerSize(), false, false);
++}
++
++template <support::endianness Endianness>
++inline Block &createPointerJumpStubBlock(LinkGraph &G, Section &StubSection,
++                                         Symbol &PointerSymbol, bool SaveR2) {
++  constexpr bool isLE = Endianness == support::endianness::little;
++  ArrayRef<char> C =
++      isLE ? PointerJumpStubContent_little : PointerJumpStubContent_big;
++  if (!SaveR2)
++    // Skip storing r2.
++    C = C.slice(4);
++  Block &B = G.createContentBlock(StubSection, C, orc::ExecutorAddr(), 4, 0);
++  size_t Offset = SaveR2 ? 4 : 0;
++  B.addEdge(TOCDelta16HA, Offset, PointerSymbol, 0);
++  B.addEdge(TOCDelta16LO, Offset + 4, PointerSymbol, 0);
++  return B;
++}
++
++template <support::endianness Endianness>
++inline Symbol &
++createAnonymousPointerJumpStub(LinkGraph &G, Section &StubSection,
++                               Symbol &PointerSymbol, bool SaveR2) {
++  constexpr bool isLE = Endianness == support::endianness::little;
++  constexpr ArrayRef<char> Stub =
++      isLE ? PointerJumpStubContent_little : PointerJumpStubContent_big;
++  return G.addAnonymousSymbol(createPointerJumpStubBlock<Endianness>(
++                                  G, StubSection, PointerSymbol, SaveR2),
++                              0, SaveR2 ? sizeof(Stub) : sizeof(Stub) - 4, true,
++                              false);
++}
++
++template <support::endianness Endianness>
++class TOCTableManager : public TableManager<TOCTableManager<Endianness>> {
++public:
++  // FIXME: `llvm-jitlink -check` relies this name to be $__GOT.
++  static StringRef getSectionName() { return "$__GOT"; }
++
++  bool visitEdge(LinkGraph &G, Block *B, Edge &E) {
++    Edge::Kind K = E.getKind();
++    switch (K) {
++    case TOCDelta16HA:
++    case TOCDelta16LO:
++    case TOCDelta16DS:
++    case TOCDelta16LODS:
++    case CallBranchDeltaRestoreTOC:
++    case RequestPLTCallStub:
++    case RequestPLTCallStubSaveTOC:
++      // Create TOC section if TOC relocation, PLT or GOT is used.
++      getOrCreateTOCSection(G);
++      return false;
++    default:
++      return false;
++    }
++  }
++
++  Symbol &createEntry(LinkGraph &G, Symbol &Target) {
++    return createAnonymousPointer(G, getOrCreateTOCSection(G), &Target);
++  }
++
++private:
++  Section &getOrCreateTOCSection(LinkGraph &G) {
++    TOCSection = G.findSectionByName(getSectionName());
++    if (!TOCSection)
++      TOCSection = &G.createSection(getSectionName(), orc::MemProt::Read);
++    return *TOCSection;
++  }
++
++  Section *TOCSection = nullptr;
++};
++
++template <support::endianness Endianness>
++class PLTTableManager : public TableManager<PLTTableManager<Endianness>> {
++public:
++  PLTTableManager(TOCTableManager<Endianness> &TOC) : TOC(TOC) {}
++
++  static StringRef getSectionName() { return "$__STUBS"; }
++
++  bool visitEdge(LinkGraph &G, Block *B, Edge &E) {
++    Edge::Kind K = E.getKind();
++    if (K == ppc64::RequestPLTCallStubSaveTOC && E.getTarget().isExternal()) {
++      E.setKind(ppc64::CallBranchDeltaRestoreTOC);
++      this->SaveR2InStub = true;
++      E.setTarget(this->getEntryForTarget(G, E.getTarget()));
++      return true;
++    }
++    if (K == ppc64::RequestPLTCallStub && E.getTarget().isExternal()) {
++      E.setKind(ppc64::CallBranchDelta);
++      this->SaveR2InStub = false;
++      E.setTarget(this->getEntryForTarget(G, E.getTarget()));
++      return true;
++    }
++    return false;
++  }
++
++  Symbol &createEntry(LinkGraph &G, Symbol &Target) {
++    return createAnonymousPointerJumpStub<Endianness>(
++        G, getOrCreateStubsSection(G), TOC.getEntryForTarget(G, Target),
++        this->SaveR2InStub);
++  }
++
++private:
++  Section &getOrCreateStubsSection(LinkGraph &G) {
++    PLTSection = G.findSectionByName(getSectionName());
++    if (!PLTSection)
++      PLTSection = &G.createSection(getSectionName(),
++                                    orc::MemProt::Read | orc::MemProt::Exec);
++    return *PLTSection;
++  }
++
++  TOCTableManager<Endianness> &TOC;
++  Section *PLTSection = nullptr;
++  bool SaveR2InStub = false;
++};
+ 
+ /// Returns a string name for the given ppc64 edge. For debugging purposes
+ /// only.
+ const char *getEdgeKindName(Edge::Kind K);
+ 
++inline static uint16_t ha16(uint64_t x) { return (x + 0x8000) >> 16; }
++
++inline static uint16_t lo16(uint64_t x) { return x & 0xffff; }
++
+ /// Apply fixup expression for edge to block content.
+-/// TOOD: Add fixups as we add edges.
++template <support::endianness Endianness>
+ inline Error applyFixup(LinkGraph &G, Block &B, const Edge &E,
+-                        const Symbol *GOTSymbol) {
+-  return make_error<JITLinkError>(
+-      "In graph " + G.getName() + ", section " + B.getSection().getName() +
+-      " unsupported edge kind " + getEdgeKindName(E.getKind()));
++                        const Symbol *TOCSymbol) {
++  char *BlockWorkingMem = B.getAlreadyMutableContent().data();
++  char *FixupPtr = BlockWorkingMem + E.getOffset();
++  orc::ExecutorAddr FixupAddress = B.getAddress() + E.getOffset();
++  int64_t S = E.getTarget().getAddress().getValue();
++  int64_t A = E.getAddend();
++  int64_t P = FixupAddress.getValue();
++  int64_t TOCBase = TOCSymbol ? TOCSymbol->getAddress().getValue() : 0;
++  Edge::Kind K = E.getKind();
++
++  DEBUG_WITH_TYPE("jitlink", {
++    dbgs() << "    Applying fixup on " << G.getEdgeKindName(K)
++           << " edge, (S, A, P, .TOC.) = (" << formatv("{0:x}", S) << ", "
++           << formatv("{0:x}", A) << ", " << formatv("{0:x}", P) << ", "
++           << formatv("{0:x}", TOCBase) << ")\n";
++  });
++
++  switch (K) {
++  case Pointer64: {
++    uint64_t Value = S + A;
++    support::endian::write64<Endianness>(FixupPtr, Value);
++    break;
++  }
++  case Delta16HA:
++  case Delta16LO: {
++    int64_t Value = S + A - P;
++    if (LLVM_UNLIKELY(!isInt<32>(Value))) {
++      return makeTargetOutOfRangeError(G, B, E);
++    }
++    if (K == Delta16LO)
++      support::endian::write16<Endianness>(FixupPtr, lo16(Value));
++    else
++      support::endian::write16<Endianness>(FixupPtr, ha16(Value));
++    break;
++  }
++  case TOCDelta16HA:
++  case TOCDelta16LO: {
++    int64_t Value = S + A - TOCBase;
++    if (LLVM_UNLIKELY(!isInt<32>(Value))) {
++      return makeTargetOutOfRangeError(G, B, E);
++    }
++    if (K == TOCDelta16LO)
++      support::endian::write16<Endianness>(FixupPtr, lo16(Value));
++    else
++      support::endian::write16<Endianness>(FixupPtr, ha16(Value));
++    break;
++  }
++  case TOCDelta16DS:
++  case TOCDelta16LODS: {
++    int64_t Value = S + A - TOCBase;
++    if (LLVM_UNLIKELY(!isInt<32>(Value))) {
++      return makeTargetOutOfRangeError(G, B, E);
++    }
++    if (K == TOCDelta16LODS)
++      support::endian::write16<Endianness>(FixupPtr, lo16(Value) & ~3);
++    else
++      support::endian::write16<Endianness>(FixupPtr, Value & ~3);
++    break;
++  }
++  case CallBranchDeltaRestoreTOC:
++  case CallBranchDelta: {
++    int64_t Value = S + A - P;
++    if (LLVM_UNLIKELY(!isInt<26>(Value))) {
++      return makeTargetOutOfRangeError(G, B, E);
++    }
++    uint32_t Inst = support::endian::read32<Endianness>(FixupPtr);
++    support::endian::write32<Endianness>(FixupPtr, (Inst & 0xfc000003) |
++                                                       (Value & 0x03fffffc));
++    if (K == CallBranchDeltaRestoreTOC) {
++      uint32_t NopInst = support::endian::read32<Endianness>(FixupPtr + 4);
++      assert(NopInst == 0x60000000 &&
++             "NOP should be placed here for restoring r2");
++      // Restore r2 by instruction 0xe8410018 which is `ld r2, 24(r1)`.
++      support::endian::write32<Endianness>(FixupPtr + 4, 0xe8410018);
++    }
++    break;
++  }
++  case Delta64: {
++    int64_t Value = S + A - P;
++    support::endian::write64<Endianness>(FixupPtr, Value);
++    break;
++  }
++  case Delta32: {
++    int64_t Value = S + A - P;
++    if (LLVM_UNLIKELY(!isInt<32>(Value))) {
++      return makeTargetOutOfRangeError(G, B, E);
++    }
++    support::endian::write32<Endianness>(FixupPtr, Value);
++    break;
++  }
++  case NegDelta32: {
++    int64_t Value = P - S + A;
++    if (LLVM_UNLIKELY(!isInt<32>(Value))) {
++      return makeTargetOutOfRangeError(G, B, E);
++    }
++    support::endian::write32<Endianness>(FixupPtr, Value);
++    break;
++  }
++  default:
++    return make_error<JITLinkError>(
++        "In graph " + G.getName() + ", section " + B.getSection().getName() +
++        " unsupported edge kind " + getEdgeKindName(E.getKind()));
++  }
++  return Error::success();
+ }
+ 
+ } // end namespace llvm::jitlink::ppc64
+diff --git a/llvm/lib/ExecutionEngine/JITLink/ELF_ppc64.cpp b/llvm/lib/ExecutionEngine/JITLink/ELF_ppc64.cpp
+index 1f6aabe17354..44be2ee191e9 100644
+--- a/llvm/lib/ExecutionEngine/JITLink/ELF_ppc64.cpp
++++ b/llvm/lib/ExecutionEngine/JITLink/ELF_ppc64.cpp
+@@ -11,15 +11,117 @@
+ //===----------------------------------------------------------------------===//
+ 
+ #include "llvm/ExecutionEngine/JITLink/ELF_ppc64.h"
++#include "llvm/ExecutionEngine/JITLink/DWARFRecordSectionSplitter.h"
++#include "llvm/ExecutionEngine/JITLink/TableManager.h"
+ #include "llvm/ExecutionEngine/JITLink/ppc64.h"
+ #include "llvm/Object/ELFObjectFile.h"
+ #include "llvm/Support/Endian.h"
+ 
++#include "EHFrameSupportImpl.h"
+ #include "ELFLinkGraphBuilder.h"
+ #include "JITLinkGeneric.h"
+ 
+ #define DEBUG_TYPE "jitlink"
+ 
++namespace {
++
++using namespace llvm;
++using namespace llvm::jitlink;
++
++constexpr StringRef ELFTOCSymbolName = ".TOC.";
++constexpr StringRef TOCSymbolAliasIdent = "__TOC__";
++constexpr uint64_t ELFTOCBaseOffset = 0x8000;
++
++template <support::endianness Endianness>
++Symbol &createELFGOTHeader(LinkGraph &G,
++                           ppc64::TOCTableManager<Endianness> &TOC) {
++  Symbol *TOCSymbol = nullptr;
++
++  for (Symbol *Sym : G.defined_symbols())
++    if (LLVM_UNLIKELY(Sym->getName() == ELFTOCSymbolName)) {
++      TOCSymbol = Sym;
++      break;
++    }
++
++  if (LLVM_LIKELY(TOCSymbol == nullptr)) {
++    for (Symbol *Sym : G.external_symbols())
++      if (Sym->getName() == ELFTOCSymbolName) {
++        TOCSymbol = Sym;
++        break;
++      }
++  }
++
++  if (!TOCSymbol)
++    TOCSymbol = &G.addExternalSymbol(ELFTOCSymbolName, 0, false);
++
++  return TOC.getEntryForTarget(G, *TOCSymbol);
++}
++
++// Register preexisting GOT entries with TOC table manager.
++template <support::endianness Endianness>
++inline void
++registerExistingGOTEntries(LinkGraph &G,
++                           ppc64::TOCTableManager<Endianness> &TOC) {
++  auto isGOTEntry = [](const Edge &E) {
++    return E.getKind() == ppc64::Pointer64 && E.getTarget().isExternal();
++  };
++  if (Section *dotTOCSection = G.findSectionByName(".toc")) {
++    for (Block *B : dotTOCSection->blocks())
++      for (Edge &E : B->edges())
++        if (isGOTEntry(E))
++          TOC.appendEntry(E.getTarget(), G.addAnonymousSymbol(
++                                             *B, E.getOffset(),
++                                             G.getPointerSize(), false, false));
++  }
++}
++
++template <support::endianness Endianness>
++Error buildTables_ELF_ppc64(LinkGraph &G) {
++  LLVM_DEBUG(dbgs() << "Visiting edges in graph:\n");
++  ppc64::TOCTableManager<Endianness> TOC;
++  // Before visiting edges, we create a header containing the address of TOC
++  // base as ELFABIv2 suggests:
++  //  > The GOT consists of an 8-byte header that contains the TOC base (the
++  //  first TOC base when multiple TOCs are present), followed by an array of
++  //  8-byte addresses.
++  createELFGOTHeader(G, TOC);
++
++  // There might be compiler-generated GOT entries in ELF relocatable file.
++  registerExistingGOTEntries(G, TOC);
++
++  ppc64::PLTTableManager<Endianness> PLT(TOC);
++  visitExistingEdges(G, TOC, PLT);
++  // TODO: Add TLS support.
++
++  // After visiting edges in LinkGraph, we have GOT entries built in the
++  // synthesized section.
++  // Merge sections included in TOC into synthesized TOC section,
++  // thus TOC is compact and reducing chances of relocation
++  // overflow.
++  if (Section *TOCSection = G.findSectionByName(TOC.getSectionName())) {
++    // .got and .plt are not normally present in a relocatable object file
++    // because they are linker generated.
++    if (Section *gotSection = G.findSectionByName(".got"))
++      G.mergeSections(*TOCSection, *gotSection);
++    if (Section *tocSection = G.findSectionByName(".toc"))
++      G.mergeSections(*TOCSection, *tocSection);
++    if (Section *sdataSection = G.findSectionByName(".sdata"))
++      G.mergeSections(*TOCSection, *sdataSection);
++    if (Section *sbssSection = G.findSectionByName(".sbss"))
++      G.mergeSections(*TOCSection, *sbssSection);
++    // .tocbss no longer appears in ELFABIv2. Leave it here to be compatible
++    // with rtdyld.
++    if (Section *tocbssSection = G.findSectionByName(".tocbss"))
++      G.mergeSections(*TOCSection, *tocbssSection);
++    if (Section *pltSection = G.findSectionByName(".plt"))
++      G.mergeSections(*TOCSection, *pltSection);
++  }
++
++  return Error::success();
++}
++
++} // namespace
++
+ namespace llvm::jitlink {
+ 
+ template <support::endianness Endianness>
+@@ -54,10 +156,91 @@ private:
+   Error addSingleRelocation(const typename ELFT::Rela &Rel,
+                             const typename ELFT::Shdr &FixupSection,
+                             Block &BlockToFix) {
++    using Base = ELFLinkGraphBuilder<ELFT>;
+     auto ELFReloc = Rel.getType(false);
+-    return make_error<JITLinkError>(
+-        "In " + G->getName() + ": Unsupported ppc64 relocation type " +
+-        object::getELFRelocationTypeName(ELF::EM_PPC64, ELFReloc));
++
++    // R_PPC64_NONE is a no-op.
++    if (LLVM_UNLIKELY(ELFReloc == ELF::R_PPC64_NONE))
++      return Error::success();
++
++    auto ObjSymbol = Base::Obj.getRelocationSymbol(Rel, Base::SymTabSec);
++    if (!ObjSymbol)
++      return ObjSymbol.takeError();
++
++    uint32_t SymbolIndex = Rel.getSymbol(false);
++    Symbol *GraphSymbol = Base::getGraphSymbol(SymbolIndex);
++    if (!GraphSymbol)
++      return make_error<StringError>(
++          formatv("Could not find symbol at given index, did you add it to "
++                  "JITSymbolTable? index: {0}, shndx: {1} Size of table: {2}",
++                  SymbolIndex, (*ObjSymbol)->st_shndx,
++                  Base::GraphSymbols.size()),
++          inconvertibleErrorCode());
++
++    int64_t Addend = Rel.r_addend;
++    orc::ExecutorAddr FixupAddress =
++        orc::ExecutorAddr(FixupSection.sh_addr) + Rel.r_offset;
++    Edge::OffsetT Offset = FixupAddress - BlockToFix.getAddress();
++    Edge::Kind Kind = Edge::Invalid;
++
++    switch (ELFReloc) {
++    default:
++      return make_error<JITLinkError>(
++          "In " + G->getName() + ": Unsupported ppc64 relocation type " +
++          object::getELFRelocationTypeName(ELF::EM_PPC64, ELFReloc));
++    case ELF::R_PPC64_ADDR64:
++      Kind = ppc64::Pointer64;
++      break;
++    case ELF::R_PPC64_TOC16_HA:
++      Kind = ppc64::TOCDelta16HA;
++      break;
++    case ELF::R_PPC64_TOC16_DS:
++      Kind = ppc64::TOCDelta16DS;
++      break;
++    case ELF::R_PPC64_TOC16_LO:
++      Kind = ppc64::TOCDelta16LO;
++      break;
++    case ELF::R_PPC64_TOC16_LO_DS:
++      Kind = ppc64::TOCDelta16LODS;
++      break;
++    case ELF::R_PPC64_REL16:
++      Kind = ppc64::Delta16;
++      break;
++    case ELF::R_PPC64_REL16_HA:
++      Kind = ppc64::Delta16HA;
++      break;
++    case ELF::R_PPC64_REL16_LO:
++      Kind = ppc64::Delta16LO;
++      break;
++    case ELF::R_PPC64_REL32:
++      Kind = ppc64::Delta32;
++      break;
++    case ELF::R_PPC64_REL24_NOTOC:
++    case ELF::R_PPC64_REL24: {
++      bool isLocal = !GraphSymbol->isExternal();
++      if (isLocal) {
++        // TODO: There are cases a local function call need a call stub.
++        // 1. Caller uses TOC, the callee doesn't, need a r2 save stub.
++        // 2. Caller doesn't use TOC, the callee does, need a r12 setup stub.
++        // FIXME: For a local call, we might need a thunk if branch target is
++        // out of range.
++        Kind = ppc64::CallBranchDelta;
++        // Branch to local entry.
++        Addend += ELF::decodePPC64LocalEntryOffset((*ObjSymbol)->st_other);
++      } else {
++        Kind = ELFReloc == ELF::R_PPC64_REL24 ? ppc64::RequestPLTCallStubSaveTOC
++                                              : ppc64::RequestPLTCallStub;
++      }
++      break;
++    }
++    case ELF::R_PPC64_REL64:
++      Kind = ppc64::Delta64;
++      break;
++    }
++
++    Edge GE(Kind, Offset, *GraphSymbol, Addend);
++    BlockToFix.addEdge(std::move(GE));
++    return Error::success();
+   }
+ 
+ public:
+@@ -75,13 +258,58 @@ class ELFJITLinker_ppc64 : public JITLinker<ELFJITLinker_ppc64<Endianness>> {
+ public:
+   ELFJITLinker_ppc64(std::unique_ptr<JITLinkContext> Ctx,
+                      std::unique_ptr<LinkGraph> G, PassConfiguration PassConfig)
+-      : JITLinkerBase(std::move(Ctx), std::move(G), std::move(PassConfig)) {}
++      : JITLinkerBase(std::move(Ctx), std::move(G), std::move(PassConfig)) {
++    JITLinkerBase::getPassConfig().PostAllocationPasses.push_back(
++        [this](LinkGraph &G) { return defineTOCBase(G); });
++  }
+ 
+ private:
+-  Symbol *GOTSymbol = nullptr;
++  Symbol *TOCSymbol = nullptr;
++
++  Error defineTOCBase(LinkGraph &G) {
++    for (Symbol *Sym : G.defined_symbols()) {
++      if (LLVM_UNLIKELY(Sym->getName() == ELFTOCSymbolName)) {
++        TOCSymbol = Sym;
++        return Error::success();
++      }
++    }
++
++    assert(TOCSymbol == nullptr &&
++           "TOCSymbol should not be defined at this point");
++
++    for (Symbol *Sym : G.external_symbols()) {
++      if (Sym->getName() == ELFTOCSymbolName) {
++        TOCSymbol = Sym;
++        break;
++      }
++    }
++
++    if (Section *TOCSection = G.findSectionByName(
++            ppc64::TOCTableManager<Endianness>::getSectionName())) {
++      assert(!TOCSection->blocks().empty() &&
++             "TOC section should have reserved an "
++             "entry for containing the TOC base");
++
++      SectionRange SR(*TOCSection);
++      orc::ExecutorAddr TOCBaseAddr(SR.getFirstBlock()->getAddress() +
++                                    ELFTOCBaseOffset);
++      assert(TOCSymbol && TOCSymbol->isExternal() &&
++             ".TOC. should be a external symbol at this point");
++      G.makeAbsolute(*TOCSymbol, TOCBaseAddr);
++      // Create an alias of .TOC. so that rtdyld checker can recognize.
++      G.addAbsoluteSymbol(TOCSymbolAliasIdent, TOCSymbol->getAddress(),
++                          TOCSymbol->getSize(), TOCSymbol->getLinkage(),
++                          TOCSymbol->getScope(), TOCSymbol->isLive());
++      return Error::success();
++    }
++
++    // If TOC section doesn't exist, which means no TOC relocation is found, we
++    // don't need a TOCSymbol.
++    return Error::success();
++  }
+ 
+   Error applyFixup(LinkGraph &G, Block &B, const Edge &E) const {
+-    return ppc64::applyFixup(G, B, E, GOTSymbol);
++    return ppc64::applyFixup<Endianness>(G, B, E, TOCSymbol);
+   }
+ };
+ 
+@@ -112,6 +340,14 @@ void link_ELF_ppc64(std::unique_ptr<LinkGraph> G,
+ 
+   if (Ctx->shouldAddDefaultTargetPasses(G->getTargetTriple())) {
+     // Construct a JITLinker and run the link function.
++
++    // Add eh-frame passses.
++    Config.PrePrunePasses.push_back(DWARFRecordSectionSplitter(".eh_frame"));
++    Config.PrePrunePasses.push_back(EHFrameEdgeFixer(
++        ".eh_frame", G->getPointerSize(), ppc64::Pointer32, ppc64::Pointer64,
++        ppc64::Delta32, ppc64::Delta64, ppc64::NegDelta32));
++    Config.PrePrunePasses.push_back(EHFrameNullTerminator(".eh_frame"));
++
+     // Add a mark-live pass.
+     if (auto MarkLive = Ctx->getMarkLivePass(G->getTargetTriple()))
+       Config.PrePrunePasses.push_back(std::move(MarkLive));
+@@ -119,6 +355,8 @@ void link_ELF_ppc64(std::unique_ptr<LinkGraph> G,
+       Config.PrePrunePasses.push_back(markAllSymbolsLive);
+   }
+ 
++  Config.PostPrunePasses.push_back(buildTables_ELF_ppc64<Endianness>);
++
+   if (auto Err = Ctx->modifyPassConfig(*G, Config))
+     return Ctx->notifyFailed(std::move(Err));
+ 
+diff --git a/llvm/lib/ExecutionEngine/JITLink/ppc64.cpp b/llvm/lib/ExecutionEngine/JITLink/ppc64.cpp
+index d138b0a6f8ae..3ad959107a22 100644
+--- a/llvm/lib/ExecutionEngine/JITLink/ppc64.cpp
++++ b/llvm/lib/ExecutionEngine/JITLink/ppc64.cpp
+@@ -16,9 +16,62 @@
+ 
+ namespace llvm::jitlink::ppc64 {
+ 
++const char NullPointerContent[8] = {0x00, 0x00, 0x00, 0x00,
++                                    0x00, 0x00, 0x00, 0x00};
++
++const char PointerJumpStubContent_little[20] = {
++    0x18,       0x00, 0x41,       (char)0xf8, // std r2, 24(r1)
++    0x00,       0x00, (char)0x82, 0x3d,       // addis r12, r2, OffHa
++    0x00,       0x00, (char)0x8c, (char)0xe9, // ld r12, OffLo(r12)
++    (char)0xa6, 0x03, (char)0x89, 0x7d,       // mtctr r12
++    0x20,       0x04, (char)0x80, 0x4e,       // bctr
++};
++
++const char PointerJumpStubContent_big[20] = {
++    (char)0xf8, 0x41,       0x00, 0x18,       // std r2, 24(r1)
++    0x3d,       (char)0x82, 0x00, 0x00,       // addis r12, r2, OffHa
++    (char)0xe9, (char)0x8c, 0x00, 0x00,       // ld r12, OffLo(r12)
++    0x7d,       (char)0x89, 0x03, (char)0xa6, // mtctr r12
++    0x4e,       (char)0x80, 0x04, 0x20,       // bctr
++};
++
+ const char *getEdgeKindName(Edge::Kind K) {
+-  // TODO: Add edge names.
+-  return getGenericEdgeKindName(static_cast<Edge::Kind>(K));
++  switch (K) {
++  case Pointer64:
++    return "Pointer64";
++  case Pointer32:
++    return "Pointer32";
++  case Delta64:
++    return "Delta64";
++  case Delta32:
++    return "Delta32";
++  case NegDelta32:
++    return "NegDelta32";
++  case Delta16:
++    return "Delta16";
++  case Delta16HA:
++    return "Delta16HA";
++  case Delta16LO:
++    return "Delta16LO";
++  case TOCDelta16HA:
++    return "TOCDelta16HA";
++  case TOCDelta16LO:
++    return "TOCDelta16LO";
++  case TOCDelta16DS:
++    return "TOCDelta16DS";
++  case TOCDelta16LODS:
++    return "TOCDelta16LODS";
++  case CallBranchDelta:
++    return "CallBranchDelta";
++  case CallBranchDeltaRestoreTOC:
++    return "CallBranchDeltaRestoreTOC";
++  case RequestPLTCallStub:
++    return "RequestPLTCallStub";
++  case RequestPLTCallStubSaveTOC:
++    return "RequestPLTCallStubSaveTOC";
++  default:
++    return getGenericEdgeKindName(static_cast<Edge::Kind>(K));
++  }
+ }
+ 
+ } // end namespace llvm::jitlink::ppc64
+diff --git a/llvm/test/ExecutionEngine/JITLink/ppc64/ELF_ppc64le_ehframe.s b/llvm/test/ExecutionEngine/JITLink/ppc64/ELF_ppc64le_ehframe.s
+new file mode 100644
+index 000000000000..4960bfc55f3e
+--- /dev/null
++++ b/llvm/test/ExecutionEngine/JITLink/ppc64/ELF_ppc64le_ehframe.s
+@@ -0,0 +1,74 @@
++# REQUIRES: asserts
++# RUN: llvm-mc -triple=powerpc64le-unknown-linux-gnu -filetype=obj -o %t %s
++# RUN: llvm-jitlink -noexec -phony-externals -debug-only=jitlink %t 2>&1 | \
++# RUN:   FileCheck %s
++#
++# Check that splitting of eh-frame sections works.
++#
++# CHECK: DWARFRecordSectionSplitter: Processing .eh_frame...
++# CHECK:   Processing block at
++# CHECK:     Processing CFI record at
++# CHECK:       Extracted {{.*}} section = .eh_frame
++# CHECK:     Processing CFI record at
++# CHECK:       Extracted {{.*}} section = .eh_frame
++# CHECK: EHFrameEdgeFixer: Processing .eh_frame in "{{.*}}"...
++# CHECK:   Processing block at
++# CHECK:     Processing CFI record at
++# CHECK:       Record is CIE
++# CHECK:   Processing block at
++# CHECK:     Processing CFI record at
++# CHECK:       Record is FDE
++# CHECK:         Adding edge at {{.*}} to CIE at: {{.*}}
++# CHECK:         Processing PC-begin at
++# CHECK:         Existing edge at {{.*}} to PC begin at {{.*}}
++# CHECK:         Adding keep-alive edge from target at {{.*}} to FDE at {{.*}}
++
++	.text
++	.abiversion 2
++	.file	"exception.cc"
++	.globl	main
++	.p2align	4
++	.type	main,@function
++main:
++.Lfunc_begin0:
++	.cfi_startproc
++.Lfunc_gep0:
++	addis 2, 12, .TOC.-.Lfunc_gep0@ha
++	addi 2, 2, .TOC.-.Lfunc_gep0@l
++.Lfunc_lep0:
++	.localentry	main, .Lfunc_lep0-.Lfunc_gep0
++	mflr 0
++	stdu 1, -32(1)
++	std 0, 48(1)
++	.cfi_def_cfa_offset 32
++	.cfi_offset lr, 16
++	li 3, 8
++	bl __cxa_allocate_exception
++	nop
++	addis 4, 2, .LC0@toc@ha
++	addis 5, 2, .LC1@toc@ha
++	addis 6, 2, .LC2@toc@ha
++	ld 4, .LC0@toc@l(4)
++	addi 4, 4, 16
++	std 4, 0(3)
++	ld 4, .LC1@toc@l(5)
++	ld 5, .LC2@toc@l(6)
++	bl __cxa_throw
++	nop
++	.long	0
++	.quad	0
++.Lfunc_end0:
++	.size	main, .Lfunc_end0-.Lfunc_begin0
++	.cfi_endproc
++
++	.ident	"clang version 17.0.0"
++	.section	".note.GNU-stack","",@progbits
++	.addrsig
++	.addrsig_sym _ZTISt9exception
++	.section	.toc,"aw",@progbits
++.LC0:
++	.tc _ZTVSt9exception[TC],_ZTVSt9exception
++.LC1:
++	.tc _ZTISt9exception[TC],_ZTISt9exception
++.LC2:
++	.tc _ZNSt9exceptionD1Ev[TC],_ZNSt9exceptionD1Ev
+diff --git a/llvm/test/ExecutionEngine/JITLink/ppc64/ELF_ppc64le_relocations.s b/llvm/test/ExecutionEngine/JITLink/ppc64/ELF_ppc64le_relocations.s
+new file mode 100644
+index 000000000000..230a106ce813
+--- /dev/null
++++ b/llvm/test/ExecutionEngine/JITLink/ppc64/ELF_ppc64le_relocations.s
+@@ -0,0 +1,66 @@
++# RUN: rm -rf %t && mkdir -p %t
++# RUN: llvm-mc --triple=powerpc64le-unknown-linux-gnu --filetype=obj -o \
++# RUN:   %t/elf_reloc.o %s
++# RUN: llvm-jitlink --noexec \
++# RUN:              --abs external_data=0xdeadbeef \
++# RUN:              --abs external_func=0xcafef00d \
++# RUN:              --check %s %t/elf_reloc.o
++
++# jitlink-check: section_addr(elf_reloc.o, $__GOT) + 0x8000 = __TOC__
++  .text
++  .abiversion 2
++  .global main
++  .p2align 4
++  .type main,@function
++main:
++  li 3, 0
++  blr
++  .size main, .-main
++
++# Check R_PPC64_REL16_HA and R_PPC64_REL16_LO
++# jitlink-check: decode_operand(test_rel16, 2) & 0xffff = \
++# jitlink-check:   (((__TOC__ - test_rel16) + 0x8000) >> 16) & 0xffff
++# jitlink-check: decode_operand(test_rel16 + 4, 2) & 0xffff = \
++# jitlink-check:   (__TOC__ - test_rel16) & 0xffff
++  .global test_rel16
++  .p2align 4
++  .type test_re16,@function
++test_rel16:
++  .Ltest_rel16_begin:
++  addis 2, 12, .TOC.-.Ltest_rel16_begin@ha
++  addi 2, 2, .TOC.-.Ltest_rel16_begin@l
++  li 3, 0
++  blr
++  .size test_rel16, .-test_rel16
++
++# Check R_PPC64_ADDR64, R_PPC64_TOC16_HA and R_PPC64_TOC16_LO
++# jitlink-check: *{8}(got_addr(elf_reloc.o, external_data)) = external_data
++# jitlink-check: decode_operand(test_tocrel16, 2) & 0xffff = \
++# jitlink-check:   (((got_addr(elf_reloc.o, external_data) - __TOC__) + 0x8000) >> 16) & 0xffff
++# jitlink-check: decode_operand(test_tocrel16 + 4, 1) & 0xffff = \
++# jitlink-check:   (got_addr(elf_reloc.o, external_data) - __TOC__) & 0xffff
++  .global test_tocrel16
++  .p2align 4
++  .type test_tocrel16,@function
++test_tocrel16:
++  addis 3, 2, .LC0@toc@ha
++  ld 3, .LC0@toc@l(3)
++  blr
++  .size test_tocrel16, .-test_tocrel16
++
++# Check R_PPC64_REL24
++# jitlink-check: *{8}(got_addr(elf_reloc.o, external_func)) = external_func
++# jitlink-check: decode_operand(test_external_call, 0) = \
++# jitlink-check:   (stub_addr(elf_reloc.o, external_func) - test_external_call) >> 2
++  .global test_external_call
++  .p2align 4
++  .type test_external_call,@function
++test_external_call:
++  bl external_func
++  nop
++  blr
++  .size test_external_call, .-test_external_call
++
++ .section .toc,"aw",@progbits
++.LC0:
++  .tc external_data[TC],external_data
+diff --git a/llvm/test/ExecutionEngine/JITLink/ppc64/ppc64le-relocs.s b/llvm/test/ExecutionEngine/JITLink/ppc64/ppc64le-relocs.s
+new file mode 100644
+index 000000000000..903e2331bc0d
+--- /dev/null
++++ b/llvm/test/ExecutionEngine/JITLink/ppc64/ppc64le-relocs.s
+@@ -0,0 +1,204 @@
++# RUN: llvm-mc -triple=powerpc64le-unknown-linux-gnu -filetype=obj -o %t %s
++# RUN: llvm-jitlink -abs external_var=0xffff0000 -abs puts=0xffff6400 -abs \
++# RUN:   foo=0xffff8800 -noexec %t
++#
++# Check typical relocations involving external function call, external variable
++# reference, local function call and referencing global variable defined in the
++# same CU. This test serves as smoke test, `llvm-jitlink -check` is not used.
++
++	.text
++	.abiversion 2
++	.file	"ppc64le-relocs.c"
++	.globl	main
++	.p2align	4
++	.type	main,@function
++main:
++.Lfunc_begin0:
++	li 3, 0
++	blr
++	.long	0
++	.quad	0
++.Lfunc_end0:
++	.size	main, .Lfunc_end0-.Lfunc_begin0
++
++	.globl	id
++	.p2align	4
++	.type	id,@function
++id:
++.Lfunc_begin1:
++.Lfunc_gep1:
++	addis 2, 12, .TOC.-.Lfunc_gep1@ha
++	addi 2, 2, .TOC.-.Lfunc_gep1@l
++.Lfunc_lep1:
++	.localentry	id, .Lfunc_lep1-.Lfunc_gep1
++	addis 4, 2, .LC0@toc@ha
++	ld 4, .LC0@toc@l(4)
++	lwz 4, 0(4)
++	sub	3, 4, 3
++	extsw 3, 3
++	blr
++	.long	0
++	.quad	0
++.Lfunc_end1:
++	.size	id, .Lfunc_end1-.Lfunc_begin1
++
++# Test referencing external data via R_PPC64_TOC16HA and R_PPC64_TOC16LO.
++	.globl	test_reference_external_data
++	.p2align	4
++	.type	test_reference_external_data,@function
++test_reference_external_data:
++.Lfunc_begin2:
++.Lfunc_gep2:
++	addis 2, 12, .TOC.-.Lfunc_gep2@ha
++	addi 2, 2, .TOC.-.Lfunc_gep2@l
++.Lfunc_lep2:
++	.localentry	test_reference_external_data, .Lfunc_lep2-.Lfunc_gep2
++	addis 3, 2, .LC0@toc@ha
++	ld 3, .LC0@toc@l(3)
++	blr
++	.long	0
++	.quad	0
++.Lfunc_end2:
++	.size	test_reference_external_data, .Lfunc_end2-.Lfunc_begin2
++
++# Test referencing global variable defined in the same CU.
++	.globl	test_reference_local_data
++	.p2align	4
++	.type	test_reference_local_data,@function
++test_reference_local_data:
++.Lfunc_begin3:
++.Lfunc_gep3:
++	addis 2, 12, .TOC.-.Lfunc_gep3@ha
++	addi 2, 2, .TOC.-.Lfunc_gep3@l
++.Lfunc_lep3:
++	.localentry	test_reference_local_data, .Lfunc_lep3-.Lfunc_gep3
++	addis 3, 2, .LC1@toc@ha
++	ld 3, .LC1@toc@l(3)
++	blr
++	.long	0
++	.quad	0
++.Lfunc_end3:
++	.size	test_reference_local_data, .Lfunc_end3-.Lfunc_begin3
++
++# Test external function call with R_PPC64_REL24, which requires PLT
++# call stub.
++	.globl	test_external_call
++	.p2align	4
++	.type	test_external_call,@function
++test_external_call:
++.Lfunc_begin4:
++.Lfunc_gep4:
++	addis 2, 12, .TOC.-.Lfunc_gep4@ha
++	addi 2, 2, .TOC.-.Lfunc_gep4@l
++.Lfunc_lep4:
++	.localentry	test_external_call, .Lfunc_lep4-.Lfunc_gep4
++	mflr 0
++	stdu 1, -32(1)
++	addis 3, 2, .L.str@toc@ha
++	std 0, 48(1)
++	addi 3, 3, .L.str@toc@l
++	bl puts
++	nop
++	addi 1, 1, 32
++	ld 0, 16(1)
++	mtlr 0
++	blr
++	.long	0
++	.quad	0
++.Lfunc_end4:
++	.size	test_external_call, .Lfunc_end4-.Lfunc_begin4
++
++# Test local calls with R_PPC64_REL24.
++# Calling to `id` has a nop followed, while there is no
++# nop after calling `id1`.
++	.globl	test_local_call
++	.p2align	4
++	.type	test_local_call,@function
++test_local_call:
++.Lfunc_begin5:
++.Lfunc_gep5:
++	addis 2, 12, .TOC.-.Lfunc_gep5@ha
++	addi 2, 2, .TOC.-.Lfunc_gep5@l
++.Lfunc_lep5:
++	.localentry	test_local_call, .Lfunc_lep5-.Lfunc_gep5
++	mflr 0
++	std 29, -24(1)
++	std 30, -16(1)
++	stdu 1, -64(1)
++	std 0, 80(1)
++	mr	30, 3
++# A local call, with a nop followed.
++	bl id
++	nop
++	mr	29, 3
++	mr	3, 30
++# A local call, without nop followed.
++	bl id1
++	add 3, 3, 29
++	extsw 3, 3
++	addi 1, 1, 64
++	ld 0, 16(1)
++	ld 30, -16(1)
++	ld 29, -24(1)
++	mtlr 0
++	blr
++	.long	0
++	.quad	0
++.Lfunc_end5:
++	.size	test_local_call, .Lfunc_end5-.Lfunc_begin5
++
++	.p2align	4
++	.type	id1,@function
++id1:
++.Lfunc_begin6:
++.Lfunc_gep6:
++	addis 2, 12, .TOC.-.Lfunc_gep6@ha
++	addi 2, 2, .TOC.-.Lfunc_gep6@l
++.Lfunc_lep6:
++	.localentry	id1, .Lfunc_lep6-.Lfunc_gep6
++	addis 4, 2, .LC1@toc@ha
++	ld 4, .LC1@toc@l(4)
++	lwz 4, 0(4)
++	sub	3, 4, 3
++	extsw 3, 3
++	blr
++	.long	0
++	.quad	0
++.Lfunc_end6:
++	.size	id1, .Lfunc_end6-.Lfunc_begin6
++
++# Test external function call with R_PPC64_REL24_NOTOC, which requires PLT
++# call stub, however no saving of r2 is required and there's no nop after
++# the branch instruction.
++	.globl	bar
++	.p2align	4
++	.type	bar,@function
++bar:
++.Lfunc_begin7:
++	.localentry	bar, 1
++	b foo@notoc
++	#TC_RETURNd8 foo@notoc 0
++	.long	0
++	.quad	0
++.Lfunc_end7:
++	.size	bar, .Lfunc_end7-.Lfunc_begin7
++
++	.type	local_var,@object
++	.section	.bss,"aw",@nobits
++	.globl	local_var
++	.p2align	2, 0x0
++local_var:
++	.long	0
++	.size	local_var, 4
++
++	.type	.L.str,@object
++	.section	.rodata.str1.1,"aMS",@progbits,1
++.L.str:
++	.asciz	"Hey!"
++	.size	.L.str, 5
++
++	.section	.toc,"aw",@progbits
++.LC0:
++	.tc external_var[TC],external_var
++.LC1:
++	.tc local_var[TC],local_var
