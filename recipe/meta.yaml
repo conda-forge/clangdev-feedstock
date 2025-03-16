@@ -30,8 +30,11 @@ source:
       - patches/0007-set-libclang-SOVERSION-unconditionally.patch
       - patches/0008-Make-PIE-default-on-macOS-too.patch
       - patches/0009-Find-conda-gcc-installation.patch
-{% if variant and variant.startswith("root_") %}
-      # ROOT patches to clang 16
+
+    {% if (variant or "").startswith("root_") or (variant or "").startswith("cling_") %}
+      # the following patches are 100% identical between
+      # https://github.com/root-project/llvm-project/tree/ROOT-llvm16-20250207-01 and
+      # https://github.com/root-project/llvm-project/tree/cling-llvm16-20250207-01
       - patches/root/0001-UPSTREAM-NFC-Fix-builds-on-recent-GCC-with-C-20-enab.patch
       - patches/root/0002-Remove-warning-about-CMake-3.20.0-in-LLVM-17.patch
       - patches/root/0003-UPSTREAM-Clang-Implement-CWG2518-static_assert-false.patch
@@ -79,6 +82,10 @@ source:
       - patches/root/0045-Add-method-to-forget-generated-declarations.patch
       - patches/root/0046-UPSTREAM-ADT-Add-cstdint-to-SmallVector-101761.patch
       - patches/root/0047-UPSTREAM-Add-missing-include-to-X86MCTargetDesc.h-12.patch
+    {% endif %}
+    # no other cling-specific patches for clang 16
+    {% if (variant or "").startswith("root_") %}
+      # ROOT-specific patches for clang 16
       - patches/root/0048-cxxmodules-Don-t-complain-when-modulemap-for-implici.patch
       - patches/root/0049-D41416-modules-pch-Do-not-deserialize-all-lazy-templ.patch
       - patches/root/0050-cxxmodules-Do-not-cache-the-file-lookup-failure.patch
@@ -119,7 +126,8 @@ source:
       - patches/root/0085-UPSTREAM-JITLink-PowerPC-Fix-incorrect-assertion-of-.patch
       - patches/root/0086-UPSTREAM-PowerPC-JITLink-Support-R_PPC64_GOT_PCREL34.patch
       - patches/root/0087-UPSTREAM-PowerPC-JITLink-Support-R_PPC64_GOT_TLSGD_P.patch
-{% endif %}
+    {% endif %}
+
     # name folder for easier deletion; we do the equivalent of downloading
     # the subproject sources, so the work folder then has clang in it;
     # for details see build scripts
@@ -157,6 +165,7 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
+        - cling        # [variant and variant.startswith("cling_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
@@ -229,6 +238,7 @@ outputs:
       skip: true  # [win]
       track_features:
         - root         # [variant and variant.startswith("root_")]
+        - cling        # [variant and variant.startswith("cling_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:
         - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, max_pin="x.x") }}   # [unix]
@@ -275,6 +285,7 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
+        - cling        # [variant and variant.startswith("cling_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:   # [unix]
         - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, max_pin="x.x") }}   # [unix]
@@ -323,6 +334,7 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
+        - cling        # [variant and variant.startswith("cling_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:
         # note that the name (e.g. libclang13) does not necessarily
@@ -388,6 +400,7 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
+        - cling        # [variant and variant.startswith("cling_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:
         # note that the name (e.g. libclang13) does not necessarily
@@ -437,6 +450,7 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
+        - cling        # [variant and variant.startswith("cling_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
@@ -500,6 +514,7 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
+        - cling        # [variant and variant.startswith("cling_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
@@ -539,6 +554,7 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
+        - cling        # [variant and variant.startswith("cling_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
@@ -583,6 +599,7 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
+        - cling        # [variant and variant.startswith("cling_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       # for windows, use the clang-format package.
       skip: true  # [win]
@@ -631,6 +648,7 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
+        - cling        # [variant and variant.startswith("cling_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
@@ -677,6 +695,7 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
+        - cling        # [variant and variant.startswith("cling_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
