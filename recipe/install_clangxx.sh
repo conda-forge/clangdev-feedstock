@@ -1,11 +1,6 @@
 #!/bin/bash
 
 ln -s $PREFIX/bin/clang  $PREFIX/bin/clang++
-ln -s $PREFIX/bin/clang  $PREFIX/bin/$HOST-clang++
-
-if [[ "$variant" == "hcc" ]]; then
-  ln -s $PREFIX/bin/clang++  $PREFIX/bin/hcc
-fi
 
 if [[ "$target_platform" == "linux-"* ]]; then
   source ${RECIPE_DIR}/get_cpu_triplet.sh

@@ -1,0 +1,436 @@
+From 0f58cac608559c261d35d190711c1e9210598b4a Mon Sep 17 00:00:00 2001
+From: Lang Hames <lhames@gmail.com>
+Date: Thu, 13 Apr 2023 18:43:37 +0000
+Subject: [PATCH 72/87] UPSTREAM: [JITLink][ELF][ppc64] Add skeleton ppc64
+ support and ELF/ppc64 JITLink backend.
+
+This patch introduces a skeleton JITLink ppc64 support header and ELF/ppc64
+backend. No relocations are supported in this initial version, but given a
+program requiring no relocations (e.g. one that just returns a constant value
+from main) the new backend is able to construct a LinkGraph from a ppc64 ELF
+relocatable object, and the llvm-jitlink tool is able to execute it.
+
+This commit should also serve as a good example of how to introduce a JITLink
+backend for a new architecture.
+
+Reviewed By: sgraenitz, v.g.vassilev, vchuravy, nemanjai, jain98, MaskRay
+
+Differential Revision: https://reviews.llvm.org/D148192
+
+(cherry picked from commit 8313507a7c3fd0603cd4cab1dc220235bd668ae1,
+removing the Features argument from ELFLinkGraphBuilder_ppc64)
+---
+ .../llvm/ExecutionEngine/JITLink/ELF_ppc64.h  |  50 ++++++
+ .../llvm/ExecutionEngine/JITLink/ppc64.h      |  44 +++++
+ .../ExecutionEngine/JITLink/CMakeLists.txt    |   2 +
+ llvm/lib/ExecutionEngine/JITLink/ELF.cpp      |  14 ++
+ .../lib/ExecutionEngine/JITLink/ELF_ppc64.cpp | 153 ++++++++++++++++++
+ llvm/lib/ExecutionEngine/JITLink/ppc64.cpp    |  27 ++++
+ .../JITLink/ppc64/lit.local.cfg               |   2 +
+ .../JITLink/ppc64/ppc64le-no-relocs.s         |  20 +++
+ 8 files changed, 312 insertions(+)
+ create mode 100644 llvm/include/llvm/ExecutionEngine/JITLink/ELF_ppc64.h
+ create mode 100644 llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h
+ create mode 100644 llvm/lib/ExecutionEngine/JITLink/ELF_ppc64.cpp
+ create mode 100644 llvm/lib/ExecutionEngine/JITLink/ppc64.cpp
+ create mode 100644 llvm/test/ExecutionEngine/JITLink/ppc64/lit.local.cfg
+ create mode 100644 llvm/test/ExecutionEngine/JITLink/ppc64/ppc64le-no-relocs.s
+
+diff --git a/llvm/include/llvm/ExecutionEngine/JITLink/ELF_ppc64.h b/llvm/include/llvm/ExecutionEngine/JITLink/ELF_ppc64.h
+new file mode 100644
+index 000000000000..8db986a4a9fa
+--- /dev/null
++++ b/llvm/include/llvm/ExecutionEngine/JITLink/ELF_ppc64.h
+@@ -0,0 +1,50 @@
++//===------ ELF_ppc64.h - JIT link functions for ELF/ppc64 ------*- C++ -*-===//
++//
++// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
++// See https://llvm.org/LICENSE.txt for license information.
++// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
++//
++//===----------------------------------------------------------------------===//
++//
++// jit-link functions for ELF/ppc64{le}.
++//
++//===----------------------------------------------------------------------===//
++
++#ifndef LLVM_EXECUTIONENGINE_JITLINK_ELF_PPC64_H
++#define LLVM_EXECUTIONENGINE_JITLINK_ELF_PPC64_H
++
++#include "llvm/ExecutionEngine/JITLink/JITLink.h"
++
++namespace llvm::jitlink {
++
++/// Create a LinkGraph from an ELF/ppc64 relocatable object.
++///
++/// Note: The graph does not take ownership of the underlying buffer, nor copy
++/// its contents. The caller is responsible for ensuring that the object buffer
++/// outlives the graph.
++///
++/// WARNING: The big-endian backend has not been tested yet.
++Expected<std::unique_ptr<LinkGraph>>
++createLinkGraphFromELFObject_ppc64(MemoryBufferRef ObjectBuffer);
++
++/// Create a LinkGraph from an ELF/ppc64le relocatable object.
++///
++/// Note: The graph does not take ownership of the underlying buffer, nor copy
++/// its contents. The caller is responsible for ensuring that the object buffer
++/// outlives the graph.
++Expected<std::unique_ptr<LinkGraph>>
++createLinkGraphFromELFObject_ppc64le(MemoryBufferRef ObjectBuffer);
++
++/// jit-link the given object buffer, which must be a ELF ppc64le object file.
++///
++/// WARNING: The big-endian backend has not been tested yet.
++void link_ELF_ppc64(std::unique_ptr<LinkGraph> G,
++                    std::unique_ptr<JITLinkContext> Ctx);
++
++/// jit-link the given object buffer, which must be a ELF ppc64le object file.
++void link_ELF_ppc64le(std::unique_ptr<LinkGraph> G,
++                      std::unique_ptr<JITLinkContext> Ctx);
++
++} // end namespace llvm::jitlink
++
++#endif // LLVM_EXECUTIONENGINE_JITLINK_ELF_PPC64_H
+diff --git a/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h b/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h
+new file mode 100644
+index 000000000000..699e656eb38e
+--- /dev/null
++++ b/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h
+@@ -0,0 +1,44 @@
++//===--- ppc64.h - Generic JITLink ppc64 edge kinds, utilities --*- C++ -*-===//
++//
++// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
++// See https://llvm.org/LICENSE.txt for license information.
++// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
++//
++//===----------------------------------------------------------------------===//
++//
++// Generic utilities for graphs representing 64-bit PowerPC objects.
++//
++//===----------------------------------------------------------------------===//
++
++#ifndef LLVM_EXECUTIONENGINE_JITLINK_PPC64_H
++#define LLVM_EXECUTIONENGINE_JITLINK_PPC64_H
++
++#include "llvm/ExecutionEngine/JITLink/JITLink.h"
++
++namespace llvm::jitlink::ppc64 {
++
++/// Represents ppc64 fixups and other ppc64-specific edge kinds.
++/// TODO: Add edge kinds.
++enum EdgeKind_ppc64 : Edge::Kind {};
++
++/// Returns a string name for the given ppc64 edge. For debugging purposes
++/// only.
++const char *getEdgeKindName(Edge::Kind K);
++
++/// Apply fixup expression for edge to block content.
++/// TOOD: Add fixups as we add edges.
++inline Error applyFixup(LinkGraph &G, Block &B, const Edge &E,
++                        const Symbol *GOTSymbol) {
++  switch (E.getKind()) {
++  default:
++    return make_error<JITLinkError>(
++        "In graph " + G.getName() + ", section " + B.getSection().getName() +
++        " unsupported edge kind " + getEdgeKindName(E.getKind()));
++  }
++
++  return Error::success();
++}
++
++} // end namespace llvm::jitlink::ppc64
++
++#endif // LLVM_EXECUTIONENGINE_JITLINK_PPC64_H
+diff --git a/llvm/lib/ExecutionEngine/JITLink/CMakeLists.txt b/llvm/lib/ExecutionEngine/JITLink/CMakeLists.txt
+index 52ff5e837003..9fb33b801fd2 100644
+--- a/llvm/lib/ExecutionEngine/JITLink/CMakeLists.txt
++++ b/llvm/lib/ExecutionEngine/JITLink/CMakeLists.txt
+@@ -23,6 +23,7 @@ add_llvm_component_library(LLVMJITLink
+   ELF_aarch64.cpp
+   ELF_i386.cpp
+   ELF_loongarch.cpp
++  ELF_ppc64.cpp
+   ELF_riscv.cpp
+   ELF_x86_64.cpp
+ 
+@@ -36,6 +37,7 @@ add_llvm_component_library(LLVMJITLink
+   aarch64.cpp
+   i386.cpp
+   loongarch.cpp
++  ppc64.cpp
+   riscv.cpp
+   x86_64.cpp
+ 
+diff --git a/llvm/lib/ExecutionEngine/JITLink/ELF.cpp b/llvm/lib/ExecutionEngine/JITLink/ELF.cpp
+index ef0f19a78571..b0bca4589ebd 100644
+--- a/llvm/lib/ExecutionEngine/JITLink/ELF.cpp
++++ b/llvm/lib/ExecutionEngine/JITLink/ELF.cpp
+@@ -16,6 +16,7 @@
+ #include "llvm/ExecutionEngine/JITLink/ELF_aarch64.h"
+ #include "llvm/ExecutionEngine/JITLink/ELF_i386.h"
+ #include "llvm/ExecutionEngine/JITLink/ELF_loongarch.h"
++#include "llvm/ExecutionEngine/JITLink/ELF_ppc64.h"
+ #include "llvm/ExecutionEngine/JITLink/ELF_riscv.h"
+ #include "llvm/ExecutionEngine/JITLink/ELF_x86_64.h"
+ #include "llvm/Object/ELF.h"
+@@ -62,6 +63,7 @@ createLinkGraphFromELFObject(MemoryBufferRef ObjectBuffer) {
+   if (memcmp(Buffer.data(), ELF::ElfMagic, strlen(ELF::ElfMagic)) != 0)
+     return make_error<JITLinkError>("ELF magic not valid");
+ 
++  uint8_t DataEncoding = Buffer.data()[ELF::EI_DATA];
+   Expected<uint16_t> TargetMachineArch = readTargetMachineArch(Buffer);
+   if (!TargetMachineArch)
+     return TargetMachineArch.takeError();
+@@ -71,6 +73,12 @@ createLinkGraphFromELFObject(MemoryBufferRef ObjectBuffer) {
+     return createLinkGraphFromELFObject_aarch64(ObjectBuffer);
+   case ELF::EM_LOONGARCH:
+     return createLinkGraphFromELFObject_loongarch(ObjectBuffer);
++  case ELF::EM_PPC64: {
++    if (DataEncoding == ELF::ELFDATA2LSB)
++      return createLinkGraphFromELFObject_ppc64le(ObjectBuffer);
++    else
++      return createLinkGraphFromELFObject_ppc64(ObjectBuffer);
++  }
+   case ELF::EM_RISCV:
+     return createLinkGraphFromELFObject_riscv(ObjectBuffer);
+   case ELF::EM_X86_64:
+@@ -94,6 +102,12 @@ void link_ELF(std::unique_ptr<LinkGraph> G,
+   case Triple::loongarch64:
+     link_ELF_loongarch(std::move(G), std::move(Ctx));
+     return;
++  case Triple::ppc64:
++    link_ELF_ppc64(std::move(G), std::move(Ctx));
++    return;
++  case Triple::ppc64le:
++    link_ELF_ppc64le(std::move(G), std::move(Ctx));
++    return;
+   case Triple::riscv32:
+   case Triple::riscv64:
+     link_ELF_riscv(std::move(G), std::move(Ctx));
+diff --git a/llvm/lib/ExecutionEngine/JITLink/ELF_ppc64.cpp b/llvm/lib/ExecutionEngine/JITLink/ELF_ppc64.cpp
+new file mode 100644
+index 000000000000..1f6aabe17354
+--- /dev/null
++++ b/llvm/lib/ExecutionEngine/JITLink/ELF_ppc64.cpp
+@@ -0,0 +1,153 @@
++//===------- ELF_ppc64.cpp -JIT linker implementation for ELF/ppc64 -------===//
++//
++// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
++// See https://llvm.org/LICENSE.txt for license information.
++// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
++//
++//===----------------------------------------------------------------------===//
++//
++// ELF/ppc64 jit-link implementation.
++//
++//===----------------------------------------------------------------------===//
++
++#include "llvm/ExecutionEngine/JITLink/ELF_ppc64.h"
++#include "llvm/ExecutionEngine/JITLink/ppc64.h"
++#include "llvm/Object/ELFObjectFile.h"
++#include "llvm/Support/Endian.h"
++
++#include "ELFLinkGraphBuilder.h"
++#include "JITLinkGeneric.h"
++
++#define DEBUG_TYPE "jitlink"
++
++namespace llvm::jitlink {
++
++template <support::endianness Endianness>
++class ELFLinkGraphBuilder_ppc64
++    : public ELFLinkGraphBuilder<object::ELFType<Endianness, true>> {
++private:
++  using ELFT = object::ELFType<Endianness, true>;
++  using Base = ELFLinkGraphBuilder<ELFT>;
++
++  using Base::G; // Use LinkGraph pointer from base class.
++
++  Error addRelocations() override {
++    LLVM_DEBUG(dbgs() << "Processing relocations:\n");
++
++    using Self = ELFLinkGraphBuilder_ppc64<Endianness>;
++    for (const auto &RelSect : Base::Sections) {
++      // Validate the section to read relocation entries from.
++      if (RelSect.sh_type == ELF::SHT_REL)
++        return make_error<StringError>("No SHT_REL in valid " +
++                                           G->getTargetTriple().getArchName() +
++                                           " ELF object files",
++                                       inconvertibleErrorCode());
++
++      if (Error Err = Base::forEachRelaRelocation(RelSect, this,
++                                                  &Self::addSingleRelocation))
++        return Err;
++    }
++
++    return Error::success();
++  }
++
++  Error addSingleRelocation(const typename ELFT::Rela &Rel,
++                            const typename ELFT::Shdr &FixupSection,
++                            Block &BlockToFix) {
++    auto ELFReloc = Rel.getType(false);
++    return make_error<JITLinkError>(
++        "In " + G->getName() + ": Unsupported ppc64 relocation type " +
++        object::getELFRelocationTypeName(ELF::EM_PPC64, ELFReloc));
++  }
++
++public:
++  ELFLinkGraphBuilder_ppc64(StringRef FileName,
++                            const object::ELFFile<ELFT> &Obj, Triple TT)
++      : ELFLinkGraphBuilder<ELFT>(Obj, std::move(TT), FileName,
++                                  ppc64::getEdgeKindName) {}
++};
++
++template <support::endianness Endianness>
++class ELFJITLinker_ppc64 : public JITLinker<ELFJITLinker_ppc64<Endianness>> {
++  using JITLinkerBase = JITLinker<ELFJITLinker_ppc64<Endianness>>;
++  friend JITLinkerBase;
++
++public:
++  ELFJITLinker_ppc64(std::unique_ptr<JITLinkContext> Ctx,
++                     std::unique_ptr<LinkGraph> G, PassConfiguration PassConfig)
++      : JITLinkerBase(std::move(Ctx), std::move(G), std::move(PassConfig)) {}
++
++private:
++  Symbol *GOTSymbol = nullptr;
++
++  Error applyFixup(LinkGraph &G, Block &B, const Edge &E) const {
++    return ppc64::applyFixup(G, B, E, GOTSymbol);
++  }
++};
++
++template <support::endianness Endianness>
++Expected<std::unique_ptr<LinkGraph>>
++createLinkGraphFromELFObject_ppc64(MemoryBufferRef ObjectBuffer) {
++  LLVM_DEBUG({
++    dbgs() << "Building jitlink graph for new input "
++           << ObjectBuffer.getBufferIdentifier() << "...\n";
++  });
++
++  auto ELFObj = object::ObjectFile::createELFObjectFile(ObjectBuffer);
++  if (!ELFObj)
++    return ELFObj.takeError();
++
++  using ELFT = object::ELFType<Endianness, true>;
++  auto &ELFObjFile = cast<object::ELFObjectFile<ELFT>>(**ELFObj);
++  return ELFLinkGraphBuilder_ppc64<Endianness>(
++             (*ELFObj)->getFileName(), ELFObjFile.getELFFile(),
++             (*ELFObj)->makeTriple())
++      .buildGraph();
++}
++
++template <support::endianness Endianness>
++void link_ELF_ppc64(std::unique_ptr<LinkGraph> G,
++                    std::unique_ptr<JITLinkContext> Ctx) {
++  PassConfiguration Config;
++
++  if (Ctx->shouldAddDefaultTargetPasses(G->getTargetTriple())) {
++    // Construct a JITLinker and run the link function.
++    // Add a mark-live pass.
++    if (auto MarkLive = Ctx->getMarkLivePass(G->getTargetTriple()))
++      Config.PrePrunePasses.push_back(std::move(MarkLive));
++    else
++      Config.PrePrunePasses.push_back(markAllSymbolsLive);
++  }
++
++  if (auto Err = Ctx->modifyPassConfig(*G, Config))
++    return Ctx->notifyFailed(std::move(Err));
++
++  ELFJITLinker_ppc64<Endianness>::link(std::move(Ctx), std::move(G),
++                                       std::move(Config));
++}
++
++Expected<std::unique_ptr<LinkGraph>>
++createLinkGraphFromELFObject_ppc64(MemoryBufferRef ObjectBuffer) {
++  return createLinkGraphFromELFObject_ppc64<support::big>(
++      std::move(ObjectBuffer));
++}
++
++Expected<std::unique_ptr<LinkGraph>>
++createLinkGraphFromELFObject_ppc64le(MemoryBufferRef ObjectBuffer) {
++  return createLinkGraphFromELFObject_ppc64<support::little>(
++      std::move(ObjectBuffer));
++}
++
++/// jit-link the given object buffer, which must be a ELF ppc64 object file.
++void link_ELF_ppc64(std::unique_ptr<LinkGraph> G,
++                    std::unique_ptr<JITLinkContext> Ctx) {
++  return link_ELF_ppc64<support::big>(std::move(G), std::move(Ctx));
++}
++
++/// jit-link the given object buffer, which must be a ELF ppc64le object file.
++void link_ELF_ppc64le(std::unique_ptr<LinkGraph> G,
++                      std::unique_ptr<JITLinkContext> Ctx) {
++  return link_ELF_ppc64<support::little>(std::move(G), std::move(Ctx));
++}
++
++} // end namespace llvm::jitlink
+diff --git a/llvm/lib/ExecutionEngine/JITLink/ppc64.cpp b/llvm/lib/ExecutionEngine/JITLink/ppc64.cpp
+new file mode 100644
+index 000000000000..ca862b0f89ce
+--- /dev/null
++++ b/llvm/lib/ExecutionEngine/JITLink/ppc64.cpp
+@@ -0,0 +1,27 @@
++//===----- ppc64.cpp - Generic JITLink ppc64 edge kinds, utilities ------===//
++//
++// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
++// See https://llvm.org/LICENSE.txt for license information.
++// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
++//
++//===----------------------------------------------------------------------===//
++//
++// Generic utilities for graphs representing 64-bit PowerPC objects.
++//
++//===----------------------------------------------------------------------===//
++
++#include "llvm/ExecutionEngine/JITLink/ppc64.h"
++
++#define DEBUG_TYPE "jitlink"
++
++namespace llvm::jitlink::ppc64 {
++
++const char *getEdgeKindName(Edge::Kind K) {
++  // TODO: Add edge names.
++  switch (K) {
++  default:
++    return getGenericEdgeKindName(static_cast<Edge::Kind>(K));
++  }
++}
++
++} // end namespace llvm::jitlink::ppc64
+diff --git a/llvm/test/ExecutionEngine/JITLink/ppc64/lit.local.cfg b/llvm/test/ExecutionEngine/JITLink/ppc64/lit.local.cfg
+new file mode 100644
+index 000000000000..a6bb58cf187c
+--- /dev/null
++++ b/llvm/test/ExecutionEngine/JITLink/ppc64/lit.local.cfg
+@@ -0,0 +1,2 @@
++if not 'PowerPC' in config.root.targets:
++  config.unsupported = True
+diff --git a/llvm/test/ExecutionEngine/JITLink/ppc64/ppc64le-no-relocs.s b/llvm/test/ExecutionEngine/JITLink/ppc64/ppc64le-no-relocs.s
+new file mode 100644
+index 000000000000..bffb2d0b1c88
+--- /dev/null
++++ b/llvm/test/ExecutionEngine/JITLink/ppc64/ppc64le-no-relocs.s
+@@ -0,0 +1,20 @@
++# RUN: llvm-mc -triple=powerpc64le-unknown-linux-gnu -filetype=obj -o %t %s
++# RUN: llvm-jitlink -noexec %t
++#
++# Check that a program that just returns immediately from main (requiring no
++# relocations at all) loads under llvm-jitlink.
++
++	.text
++	.abiversion 2
++	.file	"ppc64le-no-relocs.c"
++	.globl	main
++	.p2align	4
++	.type	main,@function
++main:
++.Lfunc_begin0:
++	li 3, 0
++	blr
++	.long	0
++	.quad	0
++.Lfunc_end0:
++	.size	main, .Lfunc_end0-.Lfunc_begin0

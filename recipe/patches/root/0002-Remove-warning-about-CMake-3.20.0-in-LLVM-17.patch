@@ -1,0 +1,46 @@
+From 5ab940de1792ce9317d93378c88bea7969517f82 Mon Sep 17 00:00:00 2001
+From: Jonas Hahnfeld <jonas.hahnfeld@cern.ch>
+Date: Fri, 28 Jul 2023 16:15:45 +0200
+Subject: [PATCH 02/87] Remove warning about CMake 3.20.0 in LLVM 17
+
+---
+ clang/CMakeLists.txt | 7 -------
+ llvm/CMakeLists.txt  | 7 -------
+ 2 files changed, 14 deletions(-)
+
+diff --git a/clang/CMakeLists.txt b/clang/CMakeLists.txt
+index 090cfa352078..21b3abe6e229 100644
+--- a/clang/CMakeLists.txt
++++ b/clang/CMakeLists.txt
+@@ -11,13 +11,6 @@ include(${LLVM_COMMON_CMAKE_UTILS}/Modules/CMakePolicy.cmake
+ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+   project(Clang)
+   set(CLANG_BUILT_STANDALONE TRUE)
+-  if ("${CMAKE_VERSION}" VERSION_LESS "3.20.0")
+-    message(WARNING
+-      "Your CMake version is ${CMAKE_VERSION}. Starting with LLVM 17.0.0, the "
+-      "minimum version of CMake required to build LLVM will become 3.20.0, and "
+-      "using an older CMake will become an error. Please upgrade your CMake to "
+-      "at least 3.20.0 now to avoid issues in the future!")
+-  endif()
+ endif()
+ 
+ # Must go below project(..)
+diff --git a/llvm/CMakeLists.txt b/llvm/CMakeLists.txt
+index 2b9315c22ed9..0b046717bae5 100644
+--- a/llvm/CMakeLists.txt
++++ b/llvm/CMakeLists.txt
+@@ -1,13 +1,6 @@
+ # See docs/CMake.html for instructions about how to build LLVM with CMake.
+ 
+ cmake_minimum_required(VERSION 3.13.4)
+-if ("${CMAKE_VERSION}" VERSION_LESS "3.20.0")
+-  message(WARNING
+-    "Your CMake version is ${CMAKE_VERSION}. Starting with LLVM 17.0.0, the "
+-    "minimum version of CMake required to build LLVM will become 3.20.0, and "
+-    "using an older CMake will become an error. Please upgrade your CMake to "
+-    "at least 3.20.0 now to avoid issues in the future!")
+-endif()
+ 
+ set(LLVM_COMMON_CMAKE_UTILS ${CMAKE_CURRENT_SOURCE_DIR}/../cmake)
+ include(${LLVM_COMMON_CMAKE_UTILS}/Modules/CMakePolicy.cmake

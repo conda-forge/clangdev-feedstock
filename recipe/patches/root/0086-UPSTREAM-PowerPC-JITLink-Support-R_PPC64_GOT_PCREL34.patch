@@ -1,0 +1,75 @@
+From 58b75abea3a91e83adfa3f71ddd34e04bb8092f9 Mon Sep 17 00:00:00 2001
+From: Kai Luo <lkail@cn.ibm.com>
+Date: Fri, 13 Oct 2023 08:51:11 +0800
+Subject: [PATCH 86/87] UPSTREAM: [PowerPC][JITLink] Support
+ R_PPC64_GOT_PCREL34
+
+`R_PPC64_GOT_PCREL34` is generated for pwr10+.
+
+(cherry picked from commit a712244f3b76cd2ef60b4f3ce5efaf6d4d49c6fe)
+---
+ llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h | 5 +++++
+ llvm/lib/ExecutionEngine/JITLink/ELF_ppc64.cpp    | 6 ++++++
+ llvm/lib/ExecutionEngine/JITLink/ppc64.cpp        | 2 ++
+ 3 files changed, 13 insertions(+)
+
+diff --git a/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h b/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h
+index 88af15d61e71..6d27841bff61 100644
+--- a/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h
++++ b/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h
+@@ -51,6 +51,7 @@ enum EdgeKind_ppc64 : Edge::Kind {
+   TOCDelta16HI,
+   TOCDelta16LO,
+   TOCDelta16LODS,
++  RequestGOTAndTransformToDelta34,
+   CallBranchDelta,
+   // Need to restore r2 after the bl, suggesting the bl is followed by a nop.
+   CallBranchDeltaRestoreTOC,
+@@ -170,6 +171,10 @@ public:
+       // Create TOC section if TOC relocation, PLT or GOT is used.
+       getOrCreateTOCSection(G);
+       return false;
++    case RequestGOTAndTransformToDelta34:
++      E.setKind(ppc64::Delta34);
++      E.setTarget(createEntry(G, E.getTarget()));
++      return true;
+     default:
+       return false;
+     }
+diff --git a/llvm/lib/ExecutionEngine/JITLink/ELF_ppc64.cpp b/llvm/lib/ExecutionEngine/JITLink/ELF_ppc64.cpp
+index 630343f8c61b..0a5fca8a76fd 100644
+--- a/llvm/lib/ExecutionEngine/JITLink/ELF_ppc64.cpp
++++ b/llvm/lib/ExecutionEngine/JITLink/ELF_ppc64.cpp
+@@ -234,6 +234,9 @@ private:
+     if (ELFReloc == ELF::R_PPC64_TLSLD)
+       return make_error<StringError>("Local-dynamic TLS model is not supported",
+                                      inconvertibleErrorCode());
++    if (ELFReloc == ELF::R_PPC64_PCREL_OPT)
++      // TODO: Support PCREL optimization, now ignore it.
++      return Error::success();
+ 
+     auto ObjSymbol = Base::Obj.getRelocationSymbol(Rel, Base::SymTabSec);
+     if (!ObjSymbol)
+@@ -360,6 +363,9 @@ private:
+     case ELF::R_PPC64_PCREL34:
+       Kind = ppc64::Delta34;
+       break;
++    case ELF::R_PPC64_GOT_PCREL34:
++      Kind = ppc64::RequestGOTAndTransformToDelta34;
++      break;
+     case ELF::R_PPC64_GOT_TLSGD16_HA:
+       Kind = ppc64::RequestTLSDescInGOTAndTransformToTOCDelta16HA;
+       break;
+diff --git a/llvm/lib/ExecutionEngine/JITLink/ppc64.cpp b/llvm/lib/ExecutionEngine/JITLink/ppc64.cpp
+index b147ffc8dac2..ac4a62a50391 100644
+--- a/llvm/lib/ExecutionEngine/JITLink/ppc64.cpp
++++ b/llvm/lib/ExecutionEngine/JITLink/ppc64.cpp
+@@ -120,6 +120,8 @@ const char *getEdgeKindName(Edge::Kind K) {
+     return "TOCDelta16LO";
+   case TOCDelta16LODS:
+     return "TOCDelta16LODS";
++  case RequestGOTAndTransformToDelta34:
++    return "RequestGOTAndTransformToDelta34";
+   case CallBranchDelta:
+     return "CallBranchDelta";
+   case CallBranchDeltaRestoreTOC:

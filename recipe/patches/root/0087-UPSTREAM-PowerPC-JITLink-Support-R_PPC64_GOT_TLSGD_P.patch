@@ -1,0 +1,176 @@
+From 6448e0ff2d7b5748632f8e1b61a6775b1ae0ce76 Mon Sep 17 00:00:00 2001
+From: Kai Luo <lkail@cn.ibm.com>
+Date: Sat, 14 Oct 2023 10:57:03 +0800
+Subject: [PATCH 87/87] UPSTREAM: [PowerPC][JITLink] Support
+ R_PPC64_GOT_TLSGD_PCREL34
+
+`R_PPC64_GOT_TLSGD_PCREL34` is generated for pwr10+.
+
+(cherry picked from commit 18dc8dcd768fd99f29d21d3fa1603d299c686da1)
+---
+ .../Linux/ppc64/Inputs/trivial-tls-main.cpp   | 30 +++++++++++++++++++
+ .../Linux/ppc64/Inputs/trivial-tls-pwr10.cpp  |  5 ++++
+ .../Linux/ppc64/trivial-tls-pwr10.test        |  9 ++++++
+ .../llvm/ExecutionEngine/JITLink/ppc64.h      |  5 ++++
+ .../lib/ExecutionEngine/JITLink/ELF_ppc64.cpp | 21 ++++++++++---
+ llvm/lib/ExecutionEngine/JITLink/ppc64.cpp    |  2 ++
+ 6 files changed, 68 insertions(+), 4 deletions(-)
+ create mode 100644 compiler-rt/test/orc/TestCases/Linux/ppc64/Inputs/trivial-tls-main.cpp
+ create mode 100644 compiler-rt/test/orc/TestCases/Linux/ppc64/Inputs/trivial-tls-pwr10.cpp
+ create mode 100644 compiler-rt/test/orc/TestCases/Linux/ppc64/trivial-tls-pwr10.test
+
+diff --git a/compiler-rt/test/orc/TestCases/Linux/ppc64/Inputs/trivial-tls-main.cpp b/compiler-rt/test/orc/TestCases/Linux/ppc64/Inputs/trivial-tls-main.cpp
+new file mode 100644
+index 000000000000..d6757fdd4154
+--- /dev/null
++++ b/compiler-rt/test/orc/TestCases/Linux/ppc64/Inputs/trivial-tls-main.cpp
+@@ -0,0 +1,30 @@
++#include <fstream>
++#include <iostream>
++#include <string>
++
++thread_local int x = 0;
++thread_local int y = 1;
++thread_local int z = -1;
++
++extern int TestPOWER10();
++
++int Test() { return x + y + z; }
++
++static bool CPUModelIsPOWER10() {
++  std::string line;
++  std::ifstream cpuinfo("/proc/cpuinfo", std::ios::in);
++  if (!cpuinfo.is_open())
++    return false;
++  while (std::getline(cpuinfo, line)) {
++    if (line.find("cpu") != std::string::npos &&
++        line.find("POWER10") != std::string::npos)
++      return true;
++  }
++  return false;
++}
++
++int main() {
++  if (CPUModelIsPOWER10())
++    return TestPOWER10();
++  return Test();
++}
+diff --git a/compiler-rt/test/orc/TestCases/Linux/ppc64/Inputs/trivial-tls-pwr10.cpp b/compiler-rt/test/orc/TestCases/Linux/ppc64/Inputs/trivial-tls-pwr10.cpp
+new file mode 100644
+index 000000000000..a6fb3088af62
+--- /dev/null
++++ b/compiler-rt/test/orc/TestCases/Linux/ppc64/Inputs/trivial-tls-pwr10.cpp
+@@ -0,0 +1,5 @@
++extern thread_local int x;
++extern thread_local int y;
++extern thread_local int z;
++
++int __attribute__((target("arch=pwr10"))) TestPOWER10() { return x + y + z; }
+diff --git a/compiler-rt/test/orc/TestCases/Linux/ppc64/trivial-tls-pwr10.test b/compiler-rt/test/orc/TestCases/Linux/ppc64/trivial-tls-pwr10.test
+new file mode 100644
+index 000000000000..93561b1645c3
+--- /dev/null
++++ b/compiler-rt/test/orc/TestCases/Linux/ppc64/trivial-tls-pwr10.test
+@@ -0,0 +1,9 @@
++// RUN: rm -rf %t && mkdir -p %t
++// RUN: %clangxx -fPIC -c -o %t/main.o %S/Inputs/trivial-tls-main.cpp
++// RUN: %clangxx -fPIC -c -o %t/pwr10.o %S/Inputs/trivial-tls-pwr10.cpp
++// RUN: %llvm_jitlink %t/main.o %t/pwr10.o
++// FIXME: We seperate pwr10 code from main object file due to currrent
++// implementation only supports one PLT stub for the same symbol.
++// For example, `bl __tls_get_addr` in one object file has only one PLT stub,
++// however we need another different PLT stub for `bl __tls_get_addr@notoc`
++// whose target symbol is also `__tls_get_addr`.
+diff --git a/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h b/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h
+index 6d27841bff61..265892382665 100644
+--- a/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h
++++ b/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h
+@@ -61,6 +61,7 @@ enum EdgeKind_ppc64 : Edge::Kind {
+   RequestCallNoTOC,
+   RequestTLSDescInGOTAndTransformToTOCDelta16HA,
+   RequestTLSDescInGOTAndTransformToTOCDelta16LO,
++  RequestTLSDescInGOTAndTransformToDelta34,
+ };
+ 
+ enum PLTCallStubKind {
+@@ -202,6 +203,10 @@ public:
+ 
+   static StringRef getSectionName() { return "$__STUBS"; }
+ 
++  // FIXME: One external symbol can only have one PLT stub in a object file.
++  // This is a limitation when we need different PLT stubs for the same symbol.
++  // For example, we need two different PLT stubs for `bl __tls_get_addr` and
++  // `bl __tls_get_addr@notoc`.
+   bool visitEdge(LinkGraph &G, Block *B, Edge &E) {
+     bool isExternal = E.getTarget().isExternal();
+     Edge::Kind K = E.getKind();
+diff --git a/llvm/lib/ExecutionEngine/JITLink/ELF_ppc64.cpp b/llvm/lib/ExecutionEngine/JITLink/ELF_ppc64.cpp
+index 0a5fca8a76fd..e5bbe4ef1517 100644
+--- a/llvm/lib/ExecutionEngine/JITLink/ELF_ppc64.cpp
++++ b/llvm/lib/ExecutionEngine/JITLink/ELF_ppc64.cpp
+@@ -43,17 +43,22 @@ public:
+ 
+   bool visitEdge(LinkGraph &G, Block *B, Edge &E) {
+     Edge::Kind K = E.getKind();
+-    if (K == ppc64::RequestTLSDescInGOTAndTransformToTOCDelta16HA) {
++    switch (K) {
++    case ppc64::RequestTLSDescInGOTAndTransformToTOCDelta16HA:
+       E.setKind(ppc64::TOCDelta16HA);
+       E.setTarget(this->getEntryForTarget(G, E.getTarget()));
+       return true;
+-    }
+-    if (K == ppc64::RequestTLSDescInGOTAndTransformToTOCDelta16LO) {
++    case ppc64::RequestTLSDescInGOTAndTransformToTOCDelta16LO:
+       E.setKind(ppc64::TOCDelta16LO);
+       E.setTarget(this->getEntryForTarget(G, E.getTarget()));
+       return true;
++    case ppc64::RequestTLSDescInGOTAndTransformToDelta34:
++      E.setKind(ppc64::Delta34);
++      E.setTarget(this->getEntryForTarget(G, E.getTarget()));
++      return true;
++    default:
++      return false;
+     }
+-    return false;
+   }
+ 
+   Symbol &createEntry(LinkGraph &G, Symbol &Target) {
+@@ -234,10 +239,15 @@ private:
+     if (ELFReloc == ELF::R_PPC64_TLSLD)
+       return make_error<StringError>("Local-dynamic TLS model is not supported",
+                                      inconvertibleErrorCode());
++
+     if (ELFReloc == ELF::R_PPC64_PCREL_OPT)
+       // TODO: Support PCREL optimization, now ignore it.
+       return Error::success();
+ 
++    if (ELFReloc == ELF::R_PPC64_TPREL34)
++      return make_error<StringError>("Local-exec TLS model is not supported",
++                                     inconvertibleErrorCode());
++
+     auto ObjSymbol = Base::Obj.getRelocationSymbol(Rel, Base::SymTabSec);
+     if (!ObjSymbol)
+       return ObjSymbol.takeError();
+@@ -372,6 +382,9 @@ private:
+     case ELF::R_PPC64_GOT_TLSGD16_LO:
+       Kind = ppc64::RequestTLSDescInGOTAndTransformToTOCDelta16LO;
+       break;
++    case ELF::R_PPC64_GOT_TLSGD_PCREL34:
++      Kind = ppc64::RequestTLSDescInGOTAndTransformToDelta34;
++      break;
+     }
+ 
+     Edge GE(Kind, Offset, *GraphSymbol, Addend);
+diff --git a/llvm/lib/ExecutionEngine/JITLink/ppc64.cpp b/llvm/lib/ExecutionEngine/JITLink/ppc64.cpp
+index ac4a62a50391..27484aaf2059 100644
+--- a/llvm/lib/ExecutionEngine/JITLink/ppc64.cpp
++++ b/llvm/lib/ExecutionEngine/JITLink/ppc64.cpp
+@@ -134,6 +134,8 @@ const char *getEdgeKindName(Edge::Kind K) {
+     return "RequestTLSDescInGOTAndTransformToTOCDelta16HA";
+   case RequestTLSDescInGOTAndTransformToTOCDelta16LO:
+     return "RequestTLSDescInGOTAndTransformToTOCDelta16LO";
++  case RequestTLSDescInGOTAndTransformToDelta34:
++    return "RequestTLSDescInGOTAndTransformToDelta34";
+   default:
+     return getGenericEdgeKindName(static_cast<Edge::Kind>(K));
+   }

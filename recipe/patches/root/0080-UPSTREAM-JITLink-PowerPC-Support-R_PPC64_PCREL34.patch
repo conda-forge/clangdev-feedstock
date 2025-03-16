@@ -1,0 +1,155 @@
+From 6e3e3bb47b1561f286172402f2dab2e6d0f7333e Mon Sep 17 00:00:00 2001
+From: Kai Luo <lkail@cn.ibm.com>
+Date: Wed, 2 Aug 2023 02:00:21 +0000
+Subject: [PATCH 80/87] UPSTREAM: [JITLink][PowerPC] Support R_PPC64_PCREL34
+
+PC-relative instructions are added in ISA-3.1 implemented by pwr10. This patch adds basic pc-relative relocation.
+
+Reviewed By: lhames
+
+Differential Revision: https://reviews.llvm.org/D155771
+
+(cherry picked from commit ca6d86f6bf12c8694724bd4d51704b28bd0eb743)
+---
+ .../llvm/ExecutionEngine/JITLink/ppc64.h      | 33 +++++++++++++++++++
+ .../lib/ExecutionEngine/JITLink/ELF_ppc64.cpp |  3 ++
+ llvm/lib/ExecutionEngine/JITLink/ppc64.cpp    |  2 ++
+ .../JITLink/ppc64/ELF_ppc64le_relocations.s   | 17 ++++++++++
+ .../JITLink/ppc64/ppc64le-relocs.s            | 11 +++++++
+ 5 files changed, 66 insertions(+)
+
+diff --git a/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h b/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h
+index a94acce5674b..dafe49c9232d 100644
+--- a/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h
++++ b/llvm/include/llvm/ExecutionEngine/JITLink/ppc64.h
+@@ -24,6 +24,7 @@ enum EdgeKind_ppc64 : Edge::Kind {
+   Pointer64 = Edge::FirstRelocation,
+   Pointer32,
+   Delta64,
++  Delta34,
+   Delta32,
+   NegDelta32,
+   Delta16,
+@@ -229,6 +230,26 @@ inline static uint16_t ha16(uint64_t x) { return (x + 0x8000) >> 16; }
+ 
+ inline static uint16_t lo16(uint64_t x) { return x & 0xffff; }
+ 
++// Prefixed instruction introduced in ISAv3.1 consists of two 32-bit words,
++// prefix word and suffix word, i.e., prefixed_instruction = concat(prefix_word,
++// suffix_word). That's to say, for a prefixed instruction encoded in uint64_t,
++// the most significant 32 bits belong to the prefix word. The prefix word is at
++// low address for both big/little endian. Byte order in each word still follows
++// its endian.
++template <support::endianness Endianness>
++inline static uint64_t readPrefixedInstruction(const char *Loc) {
++  constexpr bool isLE = Endianness == support::endianness::little;
++  uint64_t Inst = support::endian::read64<Endianness>(Loc);
++  return isLE ? (Inst << 32) | (Inst >> 32) : Inst;
++}
++
++template <support::endianness Endianness>
++inline static void writePrefixedInstruction(char *Loc, uint64_t Inst) {
++  constexpr bool isLE = Endianness == support::endianness::little;
++  Inst = isLE ? (Inst << 32) | (Inst >> 32) : Inst;
++  support::endian::write64<Endianness>(Loc, Inst);
++}
++
+ /// Apply fixup expression for edge to block content.
+ template <support::endianness Endianness>
+ inline Error applyFixup(LinkGraph &G, Block &B, const Edge &E,
+@@ -315,6 +336,18 @@ inline Error applyFixup(LinkGraph &G, Block &B, const Edge &E,
+     support::endian::write64<Endianness>(FixupPtr, Value);
+     break;
+   }
++  case Delta34: {
++    int64_t Value = S + A - P;
++    if (!LLVM_UNLIKELY(isInt<34>(Value)))
++      return makeTargetOutOfRangeError(G, B, E);
++    static const uint64_t SI0Mask = 0x00000003ffff0000;
++    static const uint64_t SI1Mask = 0x000000000000ffff;
++    static const uint64_t FullMask = 0x0003ffff0000ffff;
++    uint64_t Inst = readPrefixedInstruction<Endianness>(FixupPtr) & ~FullMask;
++    writePrefixedInstruction<Endianness>(
++        FixupPtr, Inst | ((Value & SI0Mask) << 16) | (Value & SI1Mask));
++    break;
++  }
+   case Delta32: {
+     int64_t Value = S + A - P;
+     if (LLVM_UNLIKELY(!isInt<32>(Value))) {
+diff --git a/llvm/lib/ExecutionEngine/JITLink/ELF_ppc64.cpp b/llvm/lib/ExecutionEngine/JITLink/ELF_ppc64.cpp
+index dfe71608e440..e6cede1b78cf 100644
+--- a/llvm/lib/ExecutionEngine/JITLink/ELF_ppc64.cpp
++++ b/llvm/lib/ExecutionEngine/JITLink/ELF_ppc64.cpp
+@@ -228,6 +228,9 @@ private:
+     case ELF::R_PPC64_REL64:
+       Kind = ppc64::Delta64;
+       break;
++    case ELF::R_PPC64_PCREL34:
++      Kind = ppc64::Delta34;
++      break;
+     }
+ 
+     Edge GE(Kind, Offset, *GraphSymbol, Addend);
+diff --git a/llvm/lib/ExecutionEngine/JITLink/ppc64.cpp b/llvm/lib/ExecutionEngine/JITLink/ppc64.cpp
+index 8ec460fa5456..1f5a07fb013e 100644
+--- a/llvm/lib/ExecutionEngine/JITLink/ppc64.cpp
++++ b/llvm/lib/ExecutionEngine/JITLink/ppc64.cpp
+@@ -66,6 +66,8 @@ const char *getEdgeKindName(Edge::Kind K) {
+     return "Pointer32";
+   case Delta64:
+     return "Delta64";
++  case Delta34:
++    return "Delta34";
+   case Delta32:
+     return "Delta32";
+   case NegDelta32:
+diff --git a/llvm/test/ExecutionEngine/JITLink/ppc64/ELF_ppc64le_relocations.s b/llvm/test/ExecutionEngine/JITLink/ppc64/ELF_ppc64le_relocations.s
+index 0890525622d3..6df20014ba65 100644
+--- a/llvm/test/ExecutionEngine/JITLink/ppc64/ELF_ppc64le_relocations.s
++++ b/llvm/test/ExecutionEngine/JITLink/ppc64/ELF_ppc64le_relocations.s
+@@ -82,6 +82,23 @@ test_external_call_notoc:
+   blr
+   .size test_external_call_notoc, .-test_external_call_notoc
+ 
++# Check R_PPC64_PCREL34
++# jitlink-check: (section_addr(elf_reloc.o, .rodata.str1.1) - test_pcrel34)[33:0] = \
++# jitlink-check:   ((((*{4}(test_pcrel34)) & 0x3ffff) << 16) | ((*{4}(test_pcrel34 + 4)) & 0xffff))[33:0]
++  .global test_pcrel34
++  .p2align 4
++  .type test_pcrel34,@function
++test_pcrel34:
++  paddi 3, 0, .L.str@PCREL, 1
++  blr
++  .size test_pcrel34, .-test_pcrel34
++
++  .type	.L.str,@object
++	.section	.rodata.str1.1,"aMS",@progbits,1
++.L.str:
++	.asciz	"Hey!"
++	.size	.L.str, 5
++
+  .section .toc,"aw",@progbits
+ .LC0:
+   .tc external_data[TC],external_data
+diff --git a/llvm/test/ExecutionEngine/JITLink/ppc64/ppc64le-relocs.s b/llvm/test/ExecutionEngine/JITLink/ppc64/ppc64le-relocs.s
+index 903e2331bc0d..23e11764b93c 100644
+--- a/llvm/test/ExecutionEngine/JITLink/ppc64/ppc64le-relocs.s
++++ b/llvm/test/ExecutionEngine/JITLink/ppc64/ppc64le-relocs.s
+@@ -183,6 +183,17 @@ bar:
+ .Lfunc_end7:
+ 	.size	bar, .Lfunc_end7-.Lfunc_begin7
+ 
++  .global foobar
++  .p2align
++  .type foobar,@function
++foobar:
++.Lfunc_begin8:
++  .localentry foobar, 1
++  paddi 3, 0, .L.str@PCREL, 1
++  blr
++.Lfunc_end8:
++  .size foobar, .Lfunc_end8-.Lfunc_end8
++
+ 	.type	local_var,@object
+ 	.section	.bss,"aw",@nobits
+ 	.globl	local_var
