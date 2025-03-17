@@ -1,0 +1,99 @@
+From 37ff20290f3e85fc7ab97b782ae74c63c473c243 Mon Sep 17 00:00:00 2001
+From: Vassil Vassilev <v.g.vassilev@gmail.com>
+Date: Mon, 7 Nov 2022 22:24:26 +0000
+Subject: [PATCH 02/89] D129175: [ORC] Fix weak hidden symbols failure on PPC
+ with runtimedyld
+
+Original commit message:"
+
+[ORC] Fix weak hidden symbols failure on PPC with runtimedyld
+
+Fix "JIT session error: Symbols not found: [ DW.ref.__gxx_personality_v0 ] error" which happens when trying to use exceptions on ppc linux. To do this, it expands AutoClaimSymbols option in RTDyldObjectLinkingLayer to also claim weak symbols before they are tried to be resovled. In ppc linux, DW.ref symbols is emitted as weak hidden symbols in the later stage of MC pipeline. This means when using IRLayer (i.e. LLJIT), IRLayer will not claim responsibility for such symbols and RuntimeDyld will skip defining this symbol even though it couldn't resolve corresponding external symbol.
+
+Reviewed By: sgraenitz
+
+Differential Revision: https://reviews.llvm.org/D129175
+"
+
+This patch fixes the same issue for ROOT on ppc64le.
+---
+ llvm/lib/ExecutionEngine/Orc/LLJIT.cpp        |  5 +++
+ .../Orc/RTDyldObjectLinkingLayer.cpp          | 35 +++++++++++++++++++
+ 2 files changed, 40 insertions(+)
+
+diff --git a/llvm/lib/ExecutionEngine/Orc/LLJIT.cpp b/llvm/lib/ExecutionEngine/Orc/LLJIT.cpp
+index 2ac32293e4db..6c52998dc633 100644
+--- a/llvm/lib/ExecutionEngine/Orc/LLJIT.cpp
++++ b/llvm/lib/ExecutionEngine/Orc/LLJIT.cpp
+@@ -670,6 +670,11 @@ LLJIT::createObjectLinkingLayer(LLJITBuilderState &S, ExecutionSession &ES) {
+     Layer->setAutoClaimResponsibilityForObjectSymbols(true);
+   }
+ 
++  if (S.JTMB->getTargetTriple().isOSBinFormatELF() &&
++      (S.JTMB->getTargetTriple().getArch() == Triple::ArchType::ppc64 ||
++       S.JTMB->getTargetTriple().getArch() == Triple::ArchType::ppc64le))
++    Layer->setAutoClaimResponsibilityForObjectSymbols(true);
++
+   // FIXME: Explicit conversion to std::unique_ptr<ObjectLayer> added to silence
+   //        errors from some GCC / libstdc++ bots. Remove this conversion (i.e.
+   //        just return ObjLinkingLayer) once those bots are upgraded.
+diff --git a/llvm/lib/ExecutionEngine/Orc/RTDyldObjectLinkingLayer.cpp b/llvm/lib/ExecutionEngine/Orc/RTDyldObjectLinkingLayer.cpp
+index 27044f66a55d..5d1c9afc560a 100644
+--- a/llvm/lib/ExecutionEngine/Orc/RTDyldObjectLinkingLayer.cpp
++++ b/llvm/lib/ExecutionEngine/Orc/RTDyldObjectLinkingLayer.cpp
+@@ -108,6 +108,7 @@ void RTDyldObjectLinkingLayer::emit(
+   // filter these later.
+   auto InternalSymbols = std::make_shared<std::set<StringRef>>();
+   {
++    SymbolFlagsMap ExtraSymbolsToClaim;
+     for (auto &Sym : (*Obj)->symbols()) {
+ 
+       // Skip file symbols.
+@@ -128,6 +129,33 @@ void RTDyldObjectLinkingLayer::emit(
+         return;
+       }
+ 
++      // Try to claim responsibility of weak symbols
++      // if AutoClaimObjectSymbols flag is set.
++      if (AutoClaimObjectSymbols &&
++          (*SymFlagsOrErr & object::BasicSymbolRef::SF_Weak)) {
++        auto SymName = Sym.getName();
++        if (!SymName) {
++          ES.reportError(SymName.takeError());
++          R->failMaterialization();
++          return;
++        }
++
++        // Already included in responsibility set, skip it
++        SymbolStringPtr SymbolName = ES.intern(*SymName);
++        if (R->getSymbols().count(SymbolName))
++          continue;
++
++        auto SymFlags = JITSymbolFlags::fromObjectSymbol(Sym);
++        if (!SymFlags) {
++          ES.reportError(SymFlags.takeError());
++          R->failMaterialization();
++          return;
++        }
++
++        ExtraSymbolsToClaim[SymbolName] = *SymFlags;
++        continue;
++      }
++
+       // Don't include symbols that aren't global.
+       if (!(*SymFlagsOrErr & object::BasicSymbolRef::SF_Global)) {
+         if (auto SymName = Sym.getName())
+@@ -139,6 +167,13 @@ void RTDyldObjectLinkingLayer::emit(
+         }
+       }
+     }
++
++    if (!ExtraSymbolsToClaim.empty()) {
++      if (auto Err = R->defineMaterializing(ExtraSymbolsToClaim)) {
++        ES.reportError(std::move(Err));
++        R->failMaterialization();
++      }
++    }
+   }
+ 
+   auto MemMgr = GetMemoryManager();

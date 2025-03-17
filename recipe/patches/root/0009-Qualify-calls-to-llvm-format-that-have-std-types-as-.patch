@@ -1,0 +1,35 @@
+From ab2d28f731ed44c47faa146a36318b539e46af62 Mon Sep 17 00:00:00 2001
+From: Charlie Barto <charlie.barto@microsoft.com>
+Date: Wed, 22 Jun 2022 21:34:19 -0700
+Subject: [PATCH 09/89] Qualify calls to llvm::format that have ::std:: types
+ as parameters
+
+... to avoid ambiguity in overload resolution when ADL finds `std::format`.
+
+Differential Revision: https://reviews.llvm.org/D119213
+---
+ llvm/utils/TableGen/GlobalISel/GIMatchDag.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/llvm/utils/TableGen/GlobalISel/GIMatchDag.cpp b/llvm/utils/TableGen/GlobalISel/GIMatchDag.cpp
+index 7e037dd03b60..8be32d2effa6 100644
+--- a/llvm/utils/TableGen/GlobalISel/GIMatchDag.cpp
++++ b/llvm/utils/TableGen/GlobalISel/GIMatchDag.cpp
+@@ -48,7 +48,7 @@ void GIMatchDag::writeDOTGraph(raw_ostream &OS, StringRef ID) const {
+          << Assignment.first << ")";
+       Separator = ", ";
+     }
+-    OS << format("|%p|", &N);
++    OS << llvm::format("|%p|", &N);
+     writePorts("d", N->getOperandInfo());
+     OS << "}\"";
+     if (N->isMatchRoot())
+@@ -82,7 +82,7 @@ void GIMatchDag::writeDOTGraph(raw_ostream &OS, StringRef ID) const {
+     writePorts("s", N->getOperandInfo());
+     OS << "|" << N->getName() << "|";
+     N->printDescription(OS);
+-    OS << format("|%p|", &N);
++    OS << llvm::format("|%p|", &N);
+     writePorts("d", N->getOperandInfo());
+     OS << "}\",style=dotted]\n";
+   }

@@ -1,0 +1,22 @@
+From 6ed499c5627204f2e1c6e7837c63b890a604a824 Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Mon, 20 Oct 2014 14:15:26 +0200
+Subject: [PATCH 32/89] Accessor to "is file opened"; this is crucial info for
+ us.
+
+---
+ clang/include/clang/Basic/FileEntry.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/clang/include/clang/Basic/FileEntry.h b/clang/include/clang/Basic/FileEntry.h
+index 6e91b42e18b7..8b745fc976d0 100644
+--- a/clang/include/clang/Basic/FileEntry.h
++++ b/clang/include/clang/Basic/FileEntry.h
+@@ -365,6 +365,7 @@ public:
+   FileEntryRef getLastRef() const { return *LastRef; }
+ 
+   StringRef tryGetRealPathName() const { return RealPathName; }
++  bool isOpen() const { return (bool)File; }
+   bool isValid() const { return IsValid; }
+   off_t getSize() const { return Size; }
+   unsigned getUID() const { return UID; }

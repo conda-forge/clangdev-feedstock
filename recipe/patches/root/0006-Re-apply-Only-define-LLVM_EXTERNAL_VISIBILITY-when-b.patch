@@ -1,0 +1,71 @@
+From 50a7818651baee88ffbe72acfc444c6436f913e8 Mon Sep 17 00:00:00 2001
+From: Ben Langmuir <blangmuir@apple.com>
+Date: Fri, 10 Dec 2021 11:49:04 -0800
+Subject: [PATCH 06/89] Re-apply "Only define LLVM_EXTERNAL_VISIBILITY when
+ building libLLVM dylib"
+
+With a fix for BUILD_SHARED_LIBS.
+
+Original commit message:
+
+When building LLVM static libraries, we should not make symbols more
+visible than CMAKE_CXX_VISIBILITY_PRESET, since the goal may be to have
+a purely hidden llvm embedded in another library. Instead, we only
+define LLVM_EXTERNAL_VISIBILITY for the dynamic library build (when
+LLVM_BUILD_LLVM_DYLIB=YES or BUILD_SHARED_LIBS=YES).
+
+Original Review: https://reviews.llvm.org/D113610
+
+Differential Revision: https://reviews.llvm.org/D115825
+---
+ llvm/CMakeLists.txt                          | 3 +++
+ llvm/include/llvm/Config/llvm-config.h.cmake | 5 +++++
+ llvm/include/llvm/Support/Compiler.h         | 6 +++++-
+ 3 files changed, 13 insertions(+), 1 deletion(-)
+
+diff --git a/llvm/CMakeLists.txt b/llvm/CMakeLists.txt
+index af53a26d2d67..9525ad6e3b6d 100644
+--- a/llvm/CMakeLists.txt
++++ b/llvm/CMakeLists.txt
+@@ -754,6 +754,9 @@ foreach(t ${LLVM_TARGETS_TO_BUILD})
+   endif()
+ endforeach(t)
+ 
++# Provide an LLVM_ namespaced alias for use in #cmakedefine.
++set(LLVM_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
++
+ # Produce the target definition files, which provide a way for clients to easily
+ # include various classes of targets.
+ configure_file(
+diff --git a/llvm/include/llvm/Config/llvm-config.h.cmake b/llvm/include/llvm/Config/llvm-config.h.cmake
+index 4e7e2e9e39d9..b2f92ca7cb74 100644
+--- a/llvm/include/llvm/Config/llvm-config.h.cmake
++++ b/llvm/include/llvm/Config/llvm-config.h.cmake
+@@ -100,5 +100,10 @@
+ /* Whether Timers signpost passes in Xcode Instruments */
+ #cmakedefine01 LLVM_SUPPORT_XCODE_SIGNPOSTS
+ 
++/* Define if building libLLVM shared library */
++#cmakedefine LLVM_BUILD_LLVM_DYLIB
++
++/* Define if building LLVM with BUILD_SHARED_LIBS */
++#cmakedefine LLVM_BUILD_SHARED_LIBS
+ 
+ #endif
+diff --git a/llvm/include/llvm/Support/Compiler.h b/llvm/include/llvm/Support/Compiler.h
+index 57052b596edb..8a6dbe4c7afc 100644
+--- a/llvm/include/llvm/Support/Compiler.h
++++ b/llvm/include/llvm/Support/Compiler.h
+@@ -126,7 +126,11 @@
+ #if (__has_attribute(visibility) || LLVM_GNUC_PREREQ(4, 0, 0)) &&              \
+     !defined(__MINGW32__) && !defined(__CYGWIN__) && !defined(_WIN32)
+ #define LLVM_LIBRARY_VISIBILITY __attribute__ ((visibility("hidden")))
+-#define LLVM_EXTERNAL_VISIBILITY __attribute__ ((visibility("default")))
++#if defined(LLVM_BUILD_LLVM_DYLIB) || defined(LLVM_BUILD_SHARED_LIBS)
++#define LLVM_EXTERNAL_VISIBILITY __attribute__((visibility("default")))
++#else
++#define LLVM_EXTERNAL_VISIBILITY
++#endif
+ #else
+ #define LLVM_LIBRARY_VISIBILITY
+ #define LLVM_EXTERNAL_VISIBILITY

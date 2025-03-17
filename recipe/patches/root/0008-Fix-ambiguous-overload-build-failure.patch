@@ -1,0 +1,65 @@
+From ca4b4dd2a1f1dfd6b6a563f4c2b3383b08b1fe99 Mon Sep 17 00:00:00 2001
+From: Marcelo Juchem <juchem@gmail.com>
+Date: Fri, 1 Oct 2021 08:42:23 +0100
+Subject: [PATCH 08/89] Fix ambiguous overload build failure
+
+LLVM (llvmorg-14-init) under Debian sid using latest gcc (Debian
+10.3.0-9) 10.3.0 fails due to ambiguous overload on operators == and !=:
+
+/root/src/llvm/src/llvm/tools/obj2yaml/elf2yaml.cpp:212:22:
+error: ambiguous overload for 'operator!='
+(operand types are 'llvm::ELFYAML::ELF_SHF' and 'int')
+
+/root/src/llvm/src/llvm/tools/obj2yaml/elf2yaml.cpp:204:32:
+error: ambiguous overload for 'operator!='
+(operand types are 'const llvm::yaml::Hex64' and 'int')
+
+/root/src/llvm/src/llvm/lib/CodeGen/LiveDebugValues/VarLocBasedImpl.cpp:629:35:
+error: ambiguous overload for 'operator=='
+(operand types are 'const uint64_t' {aka 'const long unsigned int'} and
+'llvm::Register')
+
+Reviewed by: StephenTozer, jmorse, Higuoxing
+
+Differential Revision: https://reviews.llvm.org/D109534
+---
+ llvm/lib/CodeGen/LiveDebugValues/VarLocBasedImpl.cpp | 2 +-
+ llvm/tools/obj2yaml/elf2yaml.cpp                     | 5 +++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/llvm/lib/CodeGen/LiveDebugValues/VarLocBasedImpl.cpp b/llvm/lib/CodeGen/LiveDebugValues/VarLocBasedImpl.cpp
+index 1e6d65c18953..17b1651d064f 100644
+--- a/llvm/lib/CodeGen/LiveDebugValues/VarLocBasedImpl.cpp
++++ b/llvm/lib/CodeGen/LiveDebugValues/VarLocBasedImpl.cpp
+@@ -626,7 +626,7 @@ private:
+     unsigned getRegIdx(Register Reg) const {
+       for (unsigned Idx = 0; Idx < Locs.size(); ++Idx)
+         if (Locs[Idx].Kind == MachineLocKind::RegisterKind &&
+-            Locs[Idx].Value.RegNo == Reg)
++            Register{static_cast<unsigned>(Locs[Idx].Value.RegNo)} == Reg)
+           return Idx;
+       llvm_unreachable("Could not find given Reg in Locs");
+     }
+diff --git a/llvm/tools/obj2yaml/elf2yaml.cpp b/llvm/tools/obj2yaml/elf2yaml.cpp
+index 028758d68d95..9d1713c85995 100644
+--- a/llvm/tools/obj2yaml/elf2yaml.cpp
++++ b/llvm/tools/obj2yaml/elf2yaml.cpp
+@@ -201,7 +201,8 @@ bool ELFDumper<ELFT>::shouldPrintSection(const ELFYAML::Section &S,
+     if (const ELFYAML::RawContentSection *RawSec =
+             dyn_cast<const ELFYAML::RawContentSection>(&S)) {
+       if (RawSec->Type != ELF::SHT_PROGBITS || RawSec->Link || RawSec->Info ||
+-          RawSec->AddressAlign != 1 || RawSec->Address || RawSec->EntSize)
++          RawSec->AddressAlign != yaml::Hex64{1} || RawSec->Address ||
++          RawSec->EntSize)
+         return true;
+ 
+       ELFYAML::ELF_SHF ShFlags = RawSec->Flags.getValueOr(ELFYAML::ELF_SHF(0));
+@@ -209,7 +210,7 @@ bool ELFDumper<ELFT>::shouldPrintSection(const ELFYAML::Section &S,
+       if (SecName == "debug_str")
+         return ShFlags != ELFYAML::ELF_SHF(ELF::SHF_MERGE | ELF::SHF_STRINGS);
+ 
+-      return ShFlags != 0;
++      return ShFlags != ELFYAML::ELF_SHF{0};
+     }
+   }
+ 

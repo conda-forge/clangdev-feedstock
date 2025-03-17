@@ -1,0 +1,48 @@
+From 40f56515fa31b6ad714508aaa12f474eb1f6ba3d Mon Sep 17 00:00:00 2001
+From: Jonas Hahnfeld <jonas.hahnfeld@cern.ch>
+Date: Mon, 23 Jan 2023 14:09:48 +0100
+Subject: [PATCH 04/89] D142352: [CodeGen] Filter out available_externally
+ aliases
+
+The Language Reference says that aliases can have available_externally
+linkage if their aliasee is an available_externally global value. Using
+this kind of aliases resulted in crashes during code generation, filter
+them out (the same that the AsmPrinter also filters out GlobalVariables
+in emitSpecialLLVMGlobal(); Functions are discarded in the machine pass
+infrastructure).
+---
+ llvm/lib/CodeGen/AsmPrinter/AsmPrinter.cpp            |  2 ++
+ .../CodeGen/Generic/available_externally_alias.ll     | 11 +++++++++++
+ 2 files changed, 13 insertions(+)
+ create mode 100644 llvm/test/CodeGen/Generic/available_externally_alias.ll
+
+diff --git a/llvm/lib/CodeGen/AsmPrinter/AsmPrinter.cpp b/llvm/lib/CodeGen/AsmPrinter/AsmPrinter.cpp
+index e528d33b5f8c..d194fc683f07 100644
+--- a/llvm/lib/CodeGen/AsmPrinter/AsmPrinter.cpp
++++ b/llvm/lib/CodeGen/AsmPrinter/AsmPrinter.cpp
+@@ -1850,6 +1850,8 @@ bool AsmPrinter::doFinalization(Module &M) {
+   SmallVector<const GlobalAlias *, 16> AliasStack;
+   SmallPtrSet<const GlobalAlias *, 16> AliasVisited;
+   for (const auto &Alias : M.aliases()) {
++    if (Alias.hasAvailableExternallyLinkage())
++      continue;
+     for (const GlobalAlias *Cur = &Alias; Cur;
+          Cur = dyn_cast<GlobalAlias>(Cur->getAliasee())) {
+       if (!AliasVisited.insert(Cur).second)
+diff --git a/llvm/test/CodeGen/Generic/available_externally_alias.ll b/llvm/test/CodeGen/Generic/available_externally_alias.ll
+new file mode 100644
+index 000000000000..90b289ff393e
+--- /dev/null
++++ b/llvm/test/CodeGen/Generic/available_externally_alias.ll
+@@ -0,0 +1,11 @@
++; RUN: llc < %s
++
++@v = available_externally global i32 42, align 4
++@va = available_externally alias i32, ptr @v
++
++define available_externally i32 @f() {
++entry:
++  ret i32 0
++}
++
++@fa = available_externally alias i32(), ptr @f

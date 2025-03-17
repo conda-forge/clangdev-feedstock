@@ -1,0 +1,56 @@
+From a56dcd912f6229366979410ed87218e203f198df Mon Sep 17 00:00:00 2001
+From: Evgeny Mandrikov <mandrikov@gmail.com>
+Date: Thu, 6 Jan 2022 17:01:05 +0100
+Subject: [PATCH 07/89] Fix build failure with GCC 11 in C++20 mode
+
+See https://wg21.link/cwg2237
+
+Reviewed By: shafik, dexonsmith
+
+Differential Revision: https://reviews.llvm.org/D115355
+---
+ llvm/include/llvm/CodeGen/LiveInterval.h      | 2 +-
+ llvm/include/llvm/Support/BinaryStreamArray.h | 2 +-
+ llvm/lib/Passes/StandardInstrumentations.cpp  | 3 +--
+ 3 files changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/llvm/include/llvm/CodeGen/LiveInterval.h b/llvm/include/llvm/CodeGen/LiveInterval.h
+index c2b158ac1b7f..2165f1f7d761 100644
+--- a/llvm/include/llvm/CodeGen/LiveInterval.h
++++ b/llvm/include/llvm/CodeGen/LiveInterval.h
+@@ -724,7 +724,7 @@ namespace llvm {
+       T *P;
+ 
+     public:
+-      SingleLinkedListIterator<T>(T *P) : P(P) {}
++      SingleLinkedListIterator(T *P) : P(P) {}
+ 
+       SingleLinkedListIterator<T> &operator++() {
+         P = P->Next;
+diff --git a/llvm/include/llvm/Support/BinaryStreamArray.h b/llvm/include/llvm/Support/BinaryStreamArray.h
+index 148ab85169f2..3d4ee46b9e7b 100644
+--- a/llvm/include/llvm/Support/BinaryStreamArray.h
++++ b/llvm/include/llvm/Support/BinaryStreamArray.h
+@@ -328,7 +328,7 @@ public:
+   FixedStreamArrayIterator(const FixedStreamArray<T> &Array, uint32_t Index)
+       : Array(Array), Index(Index) {}
+ 
+-  FixedStreamArrayIterator<T>(const FixedStreamArrayIterator<T> &Other)
++  FixedStreamArrayIterator(const FixedStreamArrayIterator<T> &Other)
+       : Array(Other.Array), Index(Other.Index) {}
+   FixedStreamArrayIterator<T> &
+   operator=(const FixedStreamArrayIterator<T> &Other) {
+diff --git a/llvm/lib/Passes/StandardInstrumentations.cpp b/llvm/lib/Passes/StandardInstrumentations.cpp
+index 5a48923bce8a..1cdcea27576e 100644
+--- a/llvm/lib/Passes/StandardInstrumentations.cpp
++++ b/llvm/lib/Passes/StandardInstrumentations.cpp
+@@ -370,8 +370,7 @@ bool isIgnored(StringRef PassID) {
+ 
+ } // namespace
+ 
+-template <typename IRUnitT>
+-ChangeReporter<IRUnitT>::~ChangeReporter<IRUnitT>() {
++template <typename IRUnitT> ChangeReporter<IRUnitT>::~ChangeReporter() {
+   assert(BeforeStack.empty() && "Problem with Change Printer stack.");
+ }
+ 

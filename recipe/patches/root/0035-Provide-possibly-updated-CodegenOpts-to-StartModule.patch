@@ -1,0 +1,68 @@
+From 9f44e1e6b0b0ee7556b483f3443605ebac077f52 Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Wed, 7 Jan 2015 10:28:02 +0100
+Subject: [PATCH 35/89] Provide (possibly updated) CodegenOpts to StartModule.
+
+---
+ clang/include/clang/CodeGen/ModuleBuilder.h |  3 +++
+ clang/lib/CodeGen/ModuleBuilder.cpp         | 19 ++++++++++++++++++-
+ 2 files changed, 21 insertions(+), 1 deletion(-)
+
+diff --git a/clang/include/clang/CodeGen/ModuleBuilder.h b/clang/include/clang/CodeGen/ModuleBuilder.h
+index beba5421a758..9b3404ed61d0 100644
+--- a/clang/include/clang/CodeGen/ModuleBuilder.h
++++ b/clang/include/clang/CodeGen/ModuleBuilder.h
+@@ -93,6 +93,9 @@ public:
+   llvm::Module* StartModule(llvm::StringRef ModuleName, llvm::LLVMContext &C);
+ 
+   void forgetGlobal(llvm::GlobalValue* GV);
++  llvm::Module* StartModule(llvm::StringRef ModuleName,
++                            llvm::LLVMContext& C,
++                            const CodeGenOptions& CGO);
+ };
+ 
+ /// CreateLLVMCodeGen - Create a CodeGenerator instance.
+diff --git a/clang/lib/CodeGen/ModuleBuilder.cpp b/clang/lib/CodeGen/ModuleBuilder.cpp
+index a7cde625adc3..faec6d5df4c1 100644
+--- a/clang/lib/CodeGen/ModuleBuilder.cpp
++++ b/clang/lib/CodeGen/ModuleBuilder.cpp
+@@ -34,7 +34,7 @@ namespace clang {
+     ASTContext *Ctx;
+     const HeaderSearchOptions &HeaderSearchOpts; // Only used for debug info.
+     const PreprocessorOptions &PreprocessorOpts; // Only used for debug info.
+-    const CodeGenOptions CodeGenOpts;  // Intentionally copied in.
++    CodeGenOptions CodeGenOpts;  // Intentionally copied in.
+ 
+     unsigned HandlingTopLevelDecls;
+ 
+@@ -126,6 +126,16 @@ namespace clang {
+       return Builder->GetAddrOfGlobal(global, ForDefinition_t(isForDefinition));
+     }
+ 
++    llvm::Module *StartModule(llvm::StringRef ModuleName,
++                              llvm::LLVMContext& C,
++                              const CodeGenOptions& CGO) {
++      assert(!M && "Replacing existing Module?");
++      CodeGenOpts = CGO;
++      M.reset(new llvm::Module(ModuleName, C));
++      Initialize(*Ctx);
++      return M.get();
++    }
++
+     void print(llvm::raw_ostream& out) {
+       out << "\n\nCodeGen:\n";
+       //llvm::SmallPtrSet<llvm::GlobalValue*, 10> WeakRefReferences;
+@@ -467,6 +477,13 @@ void CodeGenerator::forgetGlobal(llvm::GlobalValue* GV) {
+   static_cast<CodeGeneratorImpl*>(this)->forgetGlobal(GV);
+ }
+ 
++
++llvm::Module *CodeGenerator::StartModule(llvm::StringRef ModuleName,
++                                         llvm::LLVMContext& C,
++                                         const CodeGenOptions& CGO) {
++  return static_cast<CodeGeneratorImpl*>(this)->StartModule(ModuleName, C, CGO);
++}
++
+ CodeGenerator *clang::CreateLLVMCodeGen(
+     DiagnosticsEngine &Diags, llvm::StringRef ModuleName,
+     const HeaderSearchOptions &HeaderSearchOpts,

@@ -1,0 +1,44 @@
+From 195745c2ca914572171e3cdbc8a387156bc16eca Mon Sep 17 00:00:00 2001
+From: Vassil Vassilev <vvasilev@cern.ch>
+Date: Thu, 27 Feb 2014 15:50:03 +0100
+Subject: [PATCH 17/89] Find an easier way of accessing CodeGenModule
+ internals.
+
+---
+ clang/lib/CodeGen/CodeGenModule.h   | 2 ++
+ clang/lib/CodeGen/ModuleBuilder.cpp | 2 +-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/clang/lib/CodeGen/CodeGenModule.h b/clang/lib/CodeGen/CodeGenModule.h
+index 47dc6f415b60..d2f0f1eff7c9 100644
+--- a/clang/lib/CodeGen/CodeGenModule.h
++++ b/clang/lib/CodeGen/CodeGenModule.h
+@@ -53,6 +53,7 @@ class IndexedInstrProfReader;
+ namespace clang {
+ class ASTContext;
+ class AtomicType;
++class CodeGeneratorImpl; // hack needed by cling
+ class FunctionDecl;
+ class IdentifierInfo;
+ class ObjCMethodDecl;
+@@ -1626,6 +1627,7 @@ private:
+ 
+   llvm::Metadata *CreateMetadataIdentifierImpl(QualType T, MetadataTypeMap &Map,
+                                                StringRef Suffix);
++  friend class clang::CodeGeneratorImpl; // hack needed by cling
+ };
+ 
+ }  // end namespace CodeGen
+diff --git a/clang/lib/CodeGen/ModuleBuilder.cpp b/clang/lib/CodeGen/ModuleBuilder.cpp
+index b63f756ca288..9439cc9c31a6 100644
+--- a/clang/lib/CodeGen/ModuleBuilder.cpp
++++ b/clang/lib/CodeGen/ModuleBuilder.cpp
+@@ -28,7 +28,7 @@
+ using namespace clang;
+ using namespace CodeGen;
+ 
+-namespace {
++namespace clang {
+   class CodeGeneratorImpl : public CodeGenerator {
+     DiagnosticsEngine &Diags;
+     ASTContext *Ctx;

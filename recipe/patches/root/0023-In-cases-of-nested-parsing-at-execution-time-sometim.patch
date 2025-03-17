@@ -1,0 +1,23 @@
+From 4904d1e1d0d4ee709b2de9978f8f67fe3365323a Mon Sep 17 00:00:00 2001
+From: Vassil Vassilev <vvasilev@cern.ch>
+Date: Fri, 11 Apr 2014 14:43:09 +0200
+Subject: [PATCH 23/89] In cases of nested parsing at execution time, sometimes
+ we need to do LookupFile without current file lexer.
+
+---
+ clang/lib/Lex/PPDirectives.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/clang/lib/Lex/PPDirectives.cpp b/clang/lib/Lex/PPDirectives.cpp
+index 3fa8746653b0..114796b2eba1 100644
+--- a/clang/lib/Lex/PPDirectives.cpp
++++ b/clang/lib/Lex/PPDirectives.cpp
+@@ -820,7 +820,7 @@ Optional<FileEntryRef> Preprocessor::LookupFile(
+   SmallVector<std::pair<const FileEntry *, const DirectoryEntry *>, 16>
+       Includers;
+   bool BuildSystemModule = false;
+-  if (!FromDir && !FromFile) {
++  if (!FromDir && !FromFile && getCurrentFileLexer()) {
+     FileID FID = getCurrentFileLexer()->getFileID();
+     const FileEntry *FileEnt = SourceMgr.getFileEntryForID(FID);
+ 
