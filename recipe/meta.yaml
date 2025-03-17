@@ -33,7 +33,9 @@ source:
       # Only enable it for TARGET_OS_OSX.
       - patches/0007-Only-error-on-undefined-TARGET_OS_OSX.patch                    # [osx and x86_64]
       - patches/0008-Improve-logic-for-finding-the-macos-sysroot-for-cond.patch     # [osx]
-      - patches/0009-Remove-trailing-null-bytes-from-the-sysroot-that-com.patch     # [variant and variant.startswith("root_")]
+      # backport https://github.com/llvm/llvm-project/commit/ca80c2438697dd10c60e11c07d68e3b784013b93
+      - patches/0009-Driver-Support-GCC-detection-for-GCC-compiled-with-e.patch
+      - patches/0010-Remove-trailing-null-bytes-from-the-sysroot-that-com.patch     # [variant and variant.startswith("root_")]
 
       - patches/root/0001-Temporary-parsers-should-not-manipulate-global-parse.patch  # [variant and variant.startswith("root_")]
       - patches/root/0002-Only-reset-extra-parsers-if-not-temporary.patch  # [variant and variant.startswith("root_")]

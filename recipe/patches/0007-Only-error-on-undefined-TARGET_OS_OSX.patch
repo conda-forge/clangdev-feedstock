@@ -1,7 +1,7 @@
-From 0788777ac655076c503c3db690d8926cc3cf5fd9 Mon Sep 17 00:00:00 2001
+From cb71f0cbf7a7b92cdec94b0945c779482ecbb967 Mon Sep 17 00:00:00 2001
 From: "Uwe L. Korn" <uwe.korn@quantco.com>
 Date: Tue, 11 May 2021 15:09:51 +0200
-Subject: [PATCH 7/9] Only error on undefined TARGET_OS_OSX
+Subject: [PATCH 07/10] Only error on undefined TARGET_OS_OSX
 
 ---
  clang/lib/Driver/ToolChains/Darwin.cpp | 2 +-

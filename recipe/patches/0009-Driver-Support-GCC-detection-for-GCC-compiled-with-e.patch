@@ -1,0 +1,138 @@
+From fb73bc2bca17bf4cd5928258d4a5c71ec1404c5c Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Ra=C3=BAl=20Pe=C3=B1acoba?= <raul.penacoba@bsc.es>
+Date: Fri, 25 Feb 2022 04:41:02 +0000
+Subject: [PATCH 09/10] [Driver] Support GCC detection for GCC compiled with
+ --enable-version-specific-runtime-libs
+
+GCC's compiled with --enable-version-specific-runtime-libs change the paths where includes and libs are found.
+This patch adds support for these cases
+
+Reviewed By: MaskRay
+
+Differential Revision: https://reviews.llvm.org/D118700
+---
+ clang/lib/Driver/ToolChains/Gnu.cpp           | 14 ++++++++++++
+ .../gcc/x86_64-redhat-linux/10.2.0/crtbegin.o |  0
+ .../10.2.0/include/c++/.keep                  |  0
+ .../lib/gcc/x86_64-redhat-linux/lib64/.keep   |  0
+ .../x86_64-redhat-linux/10.2.0/32/crtbegin.o  |  0
+ .../gcc/x86_64-redhat-linux/10.2.0/crtbegin.o |  0
+ .../10.2.0/include/c++/.keep                  |  0
+ .../lib/gcc/x86_64-redhat-linux/lib32/.keep   |  0
+ .../lib/gcc/x86_64-redhat-linux/lib64/.keep   |  0
+ .../Driver/gcc-toolchain-rt-libs-multi.cpp    | 22 +++++++++++++++++++
+ clang/test/Driver/gcc-toolchain-rt-libs.cpp   | 12 ++++++++++
+ 11 files changed, 48 insertions(+)
+ create mode 100644 clang/test/Driver/Inputs/gcc_version_parsing_rt_libs/lib/gcc/x86_64-redhat-linux/10.2.0/crtbegin.o
+ create mode 100644 clang/test/Driver/Inputs/gcc_version_parsing_rt_libs/lib/gcc/x86_64-redhat-linux/10.2.0/include/c++/.keep
+ create mode 100644 clang/test/Driver/Inputs/gcc_version_parsing_rt_libs/lib/gcc/x86_64-redhat-linux/lib64/.keep
+ create mode 100644 clang/test/Driver/Inputs/gcc_version_parsing_rt_libs_multilib/lib/gcc/x86_64-redhat-linux/10.2.0/32/crtbegin.o
+ create mode 100644 clang/test/Driver/Inputs/gcc_version_parsing_rt_libs_multilib/lib/gcc/x86_64-redhat-linux/10.2.0/crtbegin.o
+ create mode 100644 clang/test/Driver/Inputs/gcc_version_parsing_rt_libs_multilib/lib/gcc/x86_64-redhat-linux/10.2.0/include/c++/.keep
+ create mode 100644 clang/test/Driver/Inputs/gcc_version_parsing_rt_libs_multilib/lib/gcc/x86_64-redhat-linux/lib32/.keep
+ create mode 100644 clang/test/Driver/Inputs/gcc_version_parsing_rt_libs_multilib/lib/gcc/x86_64-redhat-linux/lib64/.keep
+ create mode 100644 clang/test/Driver/gcc-toolchain-rt-libs-multi.cpp
+ create mode 100644 clang/test/Driver/gcc-toolchain-rt-libs.cpp
+
+diff --git a/clang/lib/Driver/ToolChains/Gnu.cpp b/clang/lib/Driver/ToolChains/Gnu.cpp
+index a3efb8f88fa7..016fb3227edc 100644
+--- a/clang/lib/Driver/ToolChains/Gnu.cpp
++++ b/clang/lib/Driver/ToolChains/Gnu.cpp
+@@ -2810,6 +2810,11 @@ void Generic_GCC::AddMultilibPaths(const Driver &D,
+         D, GCCInstallation.getInstallPath() + SelectedMultilib.gccSuffix(),
+         Paths);
+ 
++    // Add lib/gcc/$triple/$libdir
++    // For GCC built with --enable-version-specific-runtime-libs.
++    addPathIfExists(D, GCCInstallation.getInstallPath() + "/../" + OSLibDir,
++                    Paths);
++
+     // GCC cross compiling toolchains will install target libraries which ship
+     // as part of the toolchain under <prefix>/<triple>/<libdir> rather than as
+     // any part of the GCC installation in
+@@ -2988,6 +2993,15 @@ bool Generic_GCC::addGCCLibStdCxxIncludePaths(
+           TripleStr, Multilib.includeSuffix(), DriverArgs, CC1Args))
+     return true;
+ 
++  // Try /gcc/$triple/$version/include/c++/ (gcc --print-multiarch is not
++  // empty). Like above but for GCC built with
++  // --enable-version-specific-runtime-libs.
++  if (addLibStdCXXIncludePaths(LibDir.str() + "/gcc/" + TripleStr + "/" +
++                                   Version.Text + "/include/c++/",
++                               TripleStr, Multilib.includeSuffix(), DriverArgs,
++                               CC1Args))
++    return true;
++
+   // Detect Debian g++-multiarch-incdir.diff.
+   if (addLibStdCXXIncludePaths(LibDir.str() + "/../include/c++/" + Version.Text,
+                                DebianMultiarch, Multilib.includeSuffix(),
+diff --git a/clang/test/Driver/Inputs/gcc_version_parsing_rt_libs/lib/gcc/x86_64-redhat-linux/10.2.0/crtbegin.o b/clang/test/Driver/Inputs/gcc_version_parsing_rt_libs/lib/gcc/x86_64-redhat-linux/10.2.0/crtbegin.o
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/clang/test/Driver/Inputs/gcc_version_parsing_rt_libs/lib/gcc/x86_64-redhat-linux/10.2.0/include/c++/.keep b/clang/test/Driver/Inputs/gcc_version_parsing_rt_libs/lib/gcc/x86_64-redhat-linux/10.2.0/include/c++/.keep
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/clang/test/Driver/Inputs/gcc_version_parsing_rt_libs/lib/gcc/x86_64-redhat-linux/lib64/.keep b/clang/test/Driver/Inputs/gcc_version_parsing_rt_libs/lib/gcc/x86_64-redhat-linux/lib64/.keep
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/clang/test/Driver/Inputs/gcc_version_parsing_rt_libs_multilib/lib/gcc/x86_64-redhat-linux/10.2.0/32/crtbegin.o b/clang/test/Driver/Inputs/gcc_version_parsing_rt_libs_multilib/lib/gcc/x86_64-redhat-linux/10.2.0/32/crtbegin.o
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/clang/test/Driver/Inputs/gcc_version_parsing_rt_libs_multilib/lib/gcc/x86_64-redhat-linux/10.2.0/crtbegin.o b/clang/test/Driver/Inputs/gcc_version_parsing_rt_libs_multilib/lib/gcc/x86_64-redhat-linux/10.2.0/crtbegin.o
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/clang/test/Driver/Inputs/gcc_version_parsing_rt_libs_multilib/lib/gcc/x86_64-redhat-linux/10.2.0/include/c++/.keep b/clang/test/Driver/Inputs/gcc_version_parsing_rt_libs_multilib/lib/gcc/x86_64-redhat-linux/10.2.0/include/c++/.keep
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/clang/test/Driver/Inputs/gcc_version_parsing_rt_libs_multilib/lib/gcc/x86_64-redhat-linux/lib32/.keep b/clang/test/Driver/Inputs/gcc_version_parsing_rt_libs_multilib/lib/gcc/x86_64-redhat-linux/lib32/.keep
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/clang/test/Driver/Inputs/gcc_version_parsing_rt_libs_multilib/lib/gcc/x86_64-redhat-linux/lib64/.keep b/clang/test/Driver/Inputs/gcc_version_parsing_rt_libs_multilib/lib/gcc/x86_64-redhat-linux/lib64/.keep
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/clang/test/Driver/gcc-toolchain-rt-libs-multi.cpp b/clang/test/Driver/gcc-toolchain-rt-libs-multi.cpp
+new file mode 100644
+index 000000000000..378b80a9709e
+--- /dev/null
++++ b/clang/test/Driver/gcc-toolchain-rt-libs-multi.cpp
+@@ -0,0 +1,22 @@
++// RUN: %clangxx %s -### -stdlib=libstdc++ --gcc-toolchain=%S/Inputs/gcc_version_parsing_rt_libs_multilib --target=x86_64-redhat-linux 2>&1 | FileCheck %s -check-prefix=X64-STDCPLUS
++// RUN: %clangxx %s -### -stdlib=libc++ --gcc-toolchain=%S/Inputs/gcc_version_parsing_rt_libs_multilib --target=x86_64-redhat-linux 2>&1 | FileCheck %s -check-prefix=X64-LIBCPLUS
++// RUN: %clangxx %s -m32 -### -stdlib=libstdc++ --gcc-toolchain=%S/Inputs/gcc_version_parsing_rt_libs_multilib --target=x86_64-redhat-linux 2>&1 | FileCheck %s -check-prefix=X32-STDCPLUS
++// RUN: %clangxx %s -m32 -### -stdlib=libc++ --gcc-toolchain=%S/Inputs/gcc_version_parsing_rt_libs_multilib --target=x86_64-redhat-linux 2>&1 | FileCheck %s -check-prefix=X32-LIBCPLUS
++
++int main() {}
++
++// X64-STDCPLUS: "-internal-isystem" "{{[^ ]*}}gcc_version_parsing_rt_libs_multilib/lib/gcc/x86_64-redhat-linux/10.2.0/../../../gcc/x86_64-redhat-linux/10.2.0/include/c++/"
++// X64-STDCPLUS: "-L{{[^ ]*}}gcc_version_parsing_rt_libs_multilib/lib/gcc/x86_64-redhat-linux/10.2.0"
++// X64-STDCPLUS: "-L{{[^ ]*}}gcc_version_parsing_rt_libs_multilib/lib/gcc/x86_64-redhat-linux/10.2.0/../lib64"
++
++// X64-LIBCPLUS-NOT: "-internal-isystem" "{{[^ ]*}}gcc_version_parsing_rt_libs_multilib/lib/gcc/x86_64-redhat-linux/10.2.0/../../../gcc/x86_64-redhat-linux/10.2.0/include/c++/"
++// X64-LIBCPLUS: "-L{{[^ ]*}}gcc_version_parsing_rt_libs_multilib/lib/gcc/x86_64-redhat-linux/10.2.0"
++// X64-LIBCPLUS: "-L{{[^ ]*}}gcc_version_parsing_rt_libs_multilib/lib/gcc/x86_64-redhat-linux/10.2.0/../lib64"
++
++// X32-STDCPLUS: "-internal-isystem" "{{[^ ]*}}gcc_version_parsing_rt_libs_multilib/lib/gcc/x86_64-redhat-linux/10.2.0/../../../gcc/x86_64-redhat-linux/10.2.0/include/c++/"
++// X32-STDCPLUS: "-L{{[^ ]*}}gcc_version_parsing_rt_libs_multilib/lib/gcc/x86_64-redhat-linux/10.2.0/32"
++// X32-STDCPLUS: "-L{{[^ ]*}}gcc_version_parsing_rt_libs_multilib/lib/gcc/x86_64-redhat-linux/10.2.0/../lib32"
++
++// X32-LIBCPLUS-NOT: "-internal-isystem" "{{[^ ]*}}gcc_version_parsing_rt_libs_multilib/lib/gcc/x86_64-redhat-linux/10.2.0/../../../gcc/x86_64-redhat-linux/10.2.0/include/c++/"
++// X32-LIBCPLUS: "-L{{[^ ]*}}gcc_version_parsing_rt_libs_multilib/lib/gcc/x86_64-redhat-linux/10.2.0/32"
++// X32-LIBCPLUS: "-L{{[^ ]*}}gcc_version_parsing_rt_libs_multilib/lib/gcc/x86_64-redhat-linux/10.2.0/../lib32"
+diff --git a/clang/test/Driver/gcc-toolchain-rt-libs.cpp b/clang/test/Driver/gcc-toolchain-rt-libs.cpp
+new file mode 100644
+index 000000000000..3d951ffcd0fd
+--- /dev/null
++++ b/clang/test/Driver/gcc-toolchain-rt-libs.cpp
+@@ -0,0 +1,12 @@
++// RUN: %clangxx %s -### -stdlib=libstdc++ --gcc-toolchain=%S/Inputs/gcc_version_parsing_rt_libs --target=x86_64-redhat-linux 2>&1 | FileCheck %s -check-prefix=STDCPLUS
++// RUN: %clangxx %s -### -stdlib=libc++ --gcc-toolchain=%S/Inputs/gcc_version_parsing_rt_libs --target=x86_64-redhat-linux 2>&1 | FileCheck %s -check-prefix=LIBCPLUS
++
++int main() {}
++
++// STDCPLUS: "-internal-isystem" "{{[^ ]*}}gcc_version_parsing_rt_libs/lib/gcc/x86_64-redhat-linux/10.2.0/../../../gcc/x86_64-redhat-linux/10.2.0/include/c++/"
++// STDCPLUS: "-L{{.*}}gcc_version_parsing_rt_libs/lib/gcc/x86_64-redhat-linux/10.2.0"
++// STDCPLUS: "-L{{.*}}gcc_version_parsing_rt_libs/lib/gcc/x86_64-redhat-linux/10.2.0/../lib64"
++
++// LIBCPLUS-NOT: "-internal-isystem" "{{[^ ]*}}gcc_version_parsing_rt_libs/lib/gcc/x86_64-redhat-linux/10.2.0/../../../gcc/x86_64-redhat-linux/10.2.0/include/c++/"
++// LIBCPLUS: "-L{{.*}}gcc_version_parsing_rt_libs/lib/gcc/x86_64-redhat-linux/10.2.0"
++// LIBCPLUS: "-L{{.*}}gcc_version_parsing_rt_libs/lib/gcc/x86_64-redhat-linux/10.2.0/../lib64"

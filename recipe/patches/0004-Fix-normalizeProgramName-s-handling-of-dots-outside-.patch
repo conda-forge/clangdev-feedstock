@@ -1,8 +1,8 @@
-From 639a60034f1d9f30e3ac16ad9b23f5f062c30d26 Mon Sep 17 00:00:00 2001
+From 842da068adc185cb407be503611cd37464406922 Mon Sep 17 00:00:00 2001
 From: Ray Donnelly <mingw.android@gmail.com>
 Date: Wed, 30 Aug 2017 20:01:49 +0100
-Subject: [PATCH 4/9] Fix normalizeProgramName()'s handling of dots outside of
- .exe
+Subject: [PATCH 04/10] Fix normalizeProgramName()'s handling of dots outside
+ of .exe
 
 It used to strip everything after the last dot, turning:
 

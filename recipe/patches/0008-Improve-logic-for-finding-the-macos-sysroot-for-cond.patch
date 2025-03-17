@@ -1,7 +1,7 @@
-From 183aea66d40e5db1d37d17ff9b9ce5385c3ccb0e Mon Sep 17 00:00:00 2001
+From 11d86d140a4ab95581dd92d04b499f0112a57f06 Mon Sep 17 00:00:00 2001
 From: Chris Burr <christopher.burr@cern.ch>
 Date: Sat, 17 Apr 2021 09:26:17 +0200
-Subject: [PATCH 8/9] Improve logic for finding the macos sysroot for conda
+Subject: [PATCH 08/10] Improve logic for finding the macos sysroot for conda
 
 ---
  clang/lib/Driver/ToolChains/Darwin.cpp | 74 ++++++++++++++++++++++++--
