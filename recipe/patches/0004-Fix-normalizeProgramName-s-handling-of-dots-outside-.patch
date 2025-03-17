@@ -1,8 +1,8 @@
-From 31d103bb665332fbc7eaa94ff419eac866444429 Mon Sep 17 00:00:00 2001
+From 842da068adc185cb407be503611cd37464406922 Mon Sep 17 00:00:00 2001
 From: Ray Donnelly <mingw.android@gmail.com>
 Date: Wed, 30 Aug 2017 20:01:49 +0100
-Subject: [PATCH 4/7] Fix normalizeProgramName()'s handling of dots outside of
- .exe
+Subject: [PATCH 04/10] Fix normalizeProgramName()'s handling of dots outside
+ of .exe
 
 It used to strip everything after the last dot, turning:
 
@@ -14,13 +14,13 @@ x86_64-apple-darwin13.4
 
 .. which was then not a C++ compiler.
 ---
- lib/Driver/ToolChain.cpp | 23 ++++++++++++++++++++++-
+ clang/lib/Driver/ToolChain.cpp | 23 ++++++++++++++++++++++-
  1 file changed, 22 insertions(+), 1 deletion(-)
 
-diff --git a/lib/Driver/ToolChain.cpp b/lib/Driver/ToolChain.cpp
-index 6c1b88141c45..369955206817 100644
---- a/lib/Driver/ToolChain.cpp
-+++ b/lib/Driver/ToolChain.cpp
+diff --git a/clang/lib/Driver/ToolChain.cpp b/clang/lib/Driver/ToolChain.cpp
+index 6c1b88141c45..42e8edaae77c 100644
+--- a/clang/lib/Driver/ToolChain.cpp
++++ b/clang/lib/Driver/ToolChain.cpp
 @@ -50,6 +50,7 @@ using namespace driver;
  using namespace tools;
  using namespace llvm;
@@ -61,6 +61,3 @@ index 6c1b88141c45..369955206817 100644
  #ifdef _WIN32
    // Transform to lowercase for case insensitive file systems.
    std::transform(ProgName.begin(), ProgName.end(), ProgName.begin(), ::tolower);
--- 
-2.32.0.windows.2
-

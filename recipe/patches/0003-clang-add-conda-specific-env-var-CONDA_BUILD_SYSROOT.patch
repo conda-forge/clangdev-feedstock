@@ -1,17 +1,17 @@
-From c4c6e21033e9f48cceb0c428a7262d18de2b9c28 Mon Sep 17 00:00:00 2001
+From 4b4dbf5123c0b708e370d9d5290741298c05c855 Mon Sep 17 00:00:00 2001
 From: Nehal J Wani <nehaljw.kkd1@gmail.com>
 Date: Sat, 25 Aug 2018 09:20:04 -0500
-Subject: [PATCH 3/7] clang: add conda specific env var CONDA_BUILD_SYSROOT
+Subject: [PATCH 03/10] clang: add conda specific env var CONDA_BUILD_SYSROOT
 
 ---
- lib/Driver/Driver.cpp             | 9 +++++++--
- lib/Frontend/InitHeaderSearch.cpp | 6 +++++-
+ clang/lib/Driver/Driver.cpp             | 9 +++++++--
+ clang/lib/Frontend/InitHeaderSearch.cpp | 6 +++++-
  2 files changed, 12 insertions(+), 3 deletions(-)
 
-diff --git a/lib/Driver/Driver.cpp b/lib/Driver/Driver.cpp
+diff --git a/clang/lib/Driver/Driver.cpp b/clang/lib/Driver/Driver.cpp
 index 94a7553e273b..5b9261e990b2 100644
---- a/lib/Driver/Driver.cpp
-+++ b/lib/Driver/Driver.cpp
+--- a/clang/lib/Driver/Driver.cpp
++++ b/clang/lib/Driver/Driver.cpp
 @@ -1152,8 +1152,13 @@ Compilation *Driver::BuildCompilation(ArrayRef<const char *> ArgList) {
        CompilerPath = Split.second;
      }
@@ -28,10 +28,10 @@ index 94a7553e273b..5b9261e990b2 100644
    if (const Arg *A = Args.getLastArg(options::OPT__dyld_prefix_EQ))
      DyldPrefix = A->getValue();
  
-diff --git a/lib/Frontend/InitHeaderSearch.cpp b/lib/Frontend/InitHeaderSearch.cpp
+diff --git a/clang/lib/Frontend/InitHeaderSearch.cpp b/clang/lib/Frontend/InitHeaderSearch.cpp
 index ba9f96384f81..a3ed9d818976 100644
---- a/lib/Frontend/InitHeaderSearch.cpp
-+++ b/lib/Frontend/InitHeaderSearch.cpp
+--- a/clang/lib/Frontend/InitHeaderSearch.cpp
++++ b/clang/lib/Frontend/InitHeaderSearch.cpp
 @@ -26,6 +26,7 @@
  #include "llvm/ADT/Twine.h"
  #include "llvm/Support/ErrorHandling.h"
@@ -52,6 +52,3 @@ index ba9f96384f81..a3ed9d818976 100644
        break;
      }
    }
--- 
-2.32.0.windows.2
-

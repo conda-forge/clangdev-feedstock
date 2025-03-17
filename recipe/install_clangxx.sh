@@ -2,10 +2,6 @@
 
 ln -s $PREFIX/bin/clang  $PREFIX/bin/clang++
 
-if [[ "$variant" == "hcc" ]]; then
-  ln -s $PREFIX/bin/clang++  $PREFIX/bin/hcc
-fi
-
 if [[ "$target_platform" == "linux-"* ]]; then
   source ${RECIPE_DIR}/get_cpu_triplet.sh
   CHOST=$(get_triplet $target_platform)
