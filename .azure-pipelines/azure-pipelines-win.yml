@@ -8,8 +8,11 @@ jobs:
     vmImage: windows-2022
   strategy:
     matrix:
-      win_64_:
-        CONFIG: win_64_
+      win_64_variantcling_1.0:
+        CONFIG: win_64_variantcling_1.0
+        UPLOAD_PACKAGES: 'True'
+      win_64_variantdefault:
+        CONFIG: win_64_variantdefault
         UPLOAD_PACKAGES: 'True'
   timeoutInMinutes: 360
   variables:

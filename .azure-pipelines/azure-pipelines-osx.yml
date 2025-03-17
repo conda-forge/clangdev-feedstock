@@ -8,17 +8,23 @@ jobs:
     vmImage: macOS-13
   strategy:
     matrix:
+      osx_64_variantcling_1.0:
+        CONFIG: osx_64_variantcling_1.0
+        UPLOAD_PACKAGES: 'True'
       osx_64_variantdefault:
         CONFIG: osx_64_variantdefault
         UPLOAD_PACKAGES: 'True'
-      osx_64_variantroot_63004:
-        CONFIG: osx_64_variantroot_63004
+      osx_64_variantroot_63008:
+        CONFIG: osx_64_variantroot_63008
+        UPLOAD_PACKAGES: 'True'
+      osx_arm64_variantcling_1.0:
+        CONFIG: osx_arm64_variantcling_1.0
         UPLOAD_PACKAGES: 'True'
       osx_arm64_variantdefault:
         CONFIG: osx_arm64_variantdefault
         UPLOAD_PACKAGES: 'True'
-      osx_arm64_variantroot_63004:
-        CONFIG: osx_arm64_variantroot_63004
+      osx_arm64_variantroot_63008:
+        CONFIG: osx_arm64_variantroot_63008
         UPLOAD_PACKAGES: 'True'
   timeoutInMinutes: 360
   variables: {}

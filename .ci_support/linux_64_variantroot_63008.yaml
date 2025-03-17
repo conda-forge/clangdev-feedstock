@@ -21,7 +21,7 @@ python_min:
 target_platform:
 - linux-64
 variant:
-- root_63004
+- root_63008
 zlib:
 - '1'
 zstd:
