@@ -1,17 +1,17 @@
-From ee481bf265df400cf4c4a359f8933ada8570fef5 Mon Sep 17 00:00:00 2001
+From 893ab8287aad4786fd5d1d656e0d17ac004e556f Mon Sep 17 00:00:00 2001
 From: Isuru Fernando <isuruf@gmail.com>
 Date: Sat, 27 Jul 2019 11:55:23 -0500
-Subject: [PATCH 5/9] Set VERSION in osx as well
+Subject: [PATCH 05/10] Set VERSION in osx as well
 
 ---
  clang/tools/libclang/CMakeLists.txt | 5 +++++
  1 file changed, 5 insertions(+)
 
 diff --git a/clang/tools/libclang/CMakeLists.txt b/clang/tools/libclang/CMakeLists.txt
-index 7b634003d11f..4c2c4f7d0afd 100644
+index 00a1223c0831..7e5bbdf34141 100644
 --- a/clang/tools/libclang/CMakeLists.txt
 +++ b/clang/tools/libclang/CMakeLists.txt
-@@ -173,6 +173,11 @@ if(ENABLE_SHARED)
+@@ -177,6 +177,11 @@ if(ENABLE_SHARED)
  
      set_property(TARGET libclang APPEND_STRING PROPERTY
                   LINK_FLAGS ${LIBCLANG_LINK_FLAGS})
