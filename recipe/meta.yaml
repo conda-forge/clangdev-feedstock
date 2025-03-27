@@ -1,4 +1,4 @@
-{% set version = "20.0.0.dev6" %}
+{% set version = "21.0.0.dev1" %}
 {% set major_version = version.split(".")[0] %}
 {% set tail_version = version.split(".")[-1] %}
 {% set build_number = 0 %}
@@ -23,8 +23,8 @@ package:
 
 source:
   # - url: https://github.com/llvm/llvm-project/archive/refs/tags/llvmorg-{{ version.replace(".rc", "-rc") }}.tar.gz
-  - url: https://github.com/llvm/llvm-project/archive/3b5e9eed2f67c1fb6dcf7033e92509ba2b0381e9.tar.gz
-    sha256: 29c26ef6c079376cf4dfdbca1cd2e6c53bb2e47eaafc66e13d396bdacdde1336
+  - url: https://github.com/llvm/llvm-project/archive/e5129b7e2092c54e503f60cc0ac552c765d5a144.tar.gz
+    sha256: f8506cf5d53a5d555384a8917432db40ef8a2b89a5172d64f8a753b649f0274b
     patches:
       - patches/0001-Find-conda-gcc-installation.patch
       - patches/0002-Fix-sysroot-detection-for-linux.patch
@@ -36,8 +36,6 @@ source:
       - patches/0008-Make-PIE-default-on-macOS-too.patch
       - patches/0009-Find-ROCm-device-library-in-conda-layout.patch
       - patches/0010-Add-conda-mingw-paths.patch
-      # backport clang-bits of https://github.com/llvm/llvm-project/pull/110217
-      - patches/0011-clang-LLVM_ENABLE_RUNTIMES-flang-rt.patch
     # name folder for easier deletion; we do the equivalent of downloading
     # the subproject sources, so the work folder then has clang in it;
     # for details see build scripts

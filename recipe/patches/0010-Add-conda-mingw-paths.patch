@@ -1,7 +1,7 @@
-From 2c640a395cf7936e878160dfb653a93f03ed0947 Mon Sep 17 00:00:00 2001
+From 5d6ef3734600e77c6062ca1e9ea2bd6d2eb59ec3 Mon Sep 17 00:00:00 2001
 From: Isuru Fernando <isuruf@gmail.com>
 Date: Fri, 18 Oct 2024 10:28:09 -0400
-Subject: [PATCH 10/11] Add conda mingw paths
+Subject: [PATCH 10/10] Add conda mingw paths
 
 ---
  clang/lib/Driver/ToolChains/MinGW.cpp | 8 ++++++++
