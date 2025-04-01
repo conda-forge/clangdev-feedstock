@@ -12,7 +12,7 @@ Subject: [PATCH 29/52] UPSTREAM: [clang-repl] Fix printing preprocessed tokens
  create mode 100644 clang/test/Interpreter/preprocessor.cpp
 
 diff --git a/clang/lib/Frontend/PrintPreprocessedOutput.cpp b/clang/lib/Frontend/PrintPreprocessedOutput.cpp
-index 7f5f66906823..ddb468f457b0 100644
+index 7f5f66906..ddb468f45 100644
 --- a/clang/lib/Frontend/PrintPreprocessedOutput.cpp
 +++ b/clang/lib/Frontend/PrintPreprocessedOutput.cpp
 @@ -833,8 +833,7 @@ static void PrintPreprocessedTokens(Preprocessor &PP, Token &Tok,
@@ -48,7 +48,7 @@ index 7f5f66906823..ddb468f457b0 100644
    for (Preprocessor::macro_iterator I = PP.macro_begin(), E = PP.macro_end();
 diff --git a/clang/test/Interpreter/preprocessor.cpp b/clang/test/Interpreter/preprocessor.cpp
 new file mode 100644
-index 000000000000..8239fd45e661
+index 000000000..8239fd45e
 --- /dev/null
 +++ b/clang/test/Interpreter/preprocessor.cpp
 @@ -0,0 +1,4 @@

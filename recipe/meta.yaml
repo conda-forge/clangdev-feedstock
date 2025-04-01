@@ -1,6 +1,6 @@
 {% set version = "18.1.8" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 8 %}
+{% set build_number = 9 %}
 
 # always includes minor as of v18, see https://github.com/llvm/llvm-project/issues/76273
 {% set minor_aware_ext = major_version ~ "." ~ version.split(".")[1] %}
@@ -85,7 +85,8 @@ source:
       - patches/root/0050-Disable-validation-of-transent-files.patch
       - patches/root/0051-Import-various-changes-to-the-global-module-index.patch
       - patches/root/0052-Do-not-install-Clang-Cling-Config.cmake-in-the-proje.patch
-{% elif variant and variant.startswith("cling_") %}
+{% endif %}
+{% if variant and variant.startswith("cling_") %}
       - patches/cling/0001-UPSTREAM-ORC-Preserve-order-of-constructors-with-sam.patch
       - patches/cling/0002-UPSTREAM-clang-repl-Fix-printing-preprocessed-tokens.patch
       - patches/cling/0003-UPSTREAM-MLGO-Only-configure-tests-with-LLVM_INCLUDE.patch
