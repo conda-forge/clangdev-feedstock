@@ -19,7 +19,7 @@ redundant for that usecase.
  1 file changed, 7 insertions(+), 3 deletions(-)
 
 diff --git a/clang/lib/Serialization/ASTReader.cpp b/clang/lib/Serialization/ASTReader.cpp
-index b35ea14d3b18..b5b22ab5aae7 100644
+index b35ea14d3..b5b22ab5a 100644
 --- a/clang/lib/Serialization/ASTReader.cpp
 +++ b/clang/lib/Serialization/ASTReader.cpp
 @@ -4210,9 +4210,13 @@ ASTReader::ReadModuleMapFileBlock(RecordData &Record, ModuleFile &F,
