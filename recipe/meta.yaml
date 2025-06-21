@@ -478,6 +478,7 @@ outputs:
         - mytest.cxx
       commands:
         - clang++ --version
+        - clang++-{{ major_version }} --version
         - clang++ -v -c mytest.cxx
         - unset CONDA_BUILD_SYSROOT   # [unix]
         - set "CONDA_BUILD_SYSROOT="  # [win]
