@@ -1,4 +1,4 @@
-From 50e4c793811935bb9bafa0cf6539da8e36787b54 Mon Sep 17 00:00:00 2001
+From cbf1c13847f0c0e78878fb3b956c4e905c93ab46 Mon Sep 17 00:00:00 2001
 From: Nehal J Wani <nehaljw.kkd1@gmail.com>
 Date: Sat, 25 Aug 2018 09:20:04 -0500
 Subject: [PATCH 03/10] clang: add conda specific env var CONDA_BUILD_SYSROOT
@@ -15,10 +15,10 @@ Co-authored-by: Isuru Fernando <isuruf@gmail.com>
  3 files changed, 84 insertions(+), 3 deletions(-)
 
 diff --git a/clang/lib/Driver/Driver.cpp b/clang/lib/Driver/Driver.cpp
-index 07e36ea2efba..0fd63a02122c 100644
+index 2d055ffa17a8..e1ca562431cc 100644
 --- a/clang/lib/Driver/Driver.cpp
 +++ b/clang/lib/Driver/Driver.cpp
-@@ -1624,6 +1624,11 @@ Compilation *Driver::BuildCompilation(ArrayRef<const char *> ArgList) {
+@@ -1642,6 +1642,11 @@ Compilation *Driver::BuildCompilation(ArrayRef<const char *> ArgList) {
        CompilerPath = Split.second;
      }
    }
@@ -31,10 +31,10 @@ index 07e36ea2efba..0fd63a02122c 100644
      SysRoot = A->getValue();
    if (const Arg *A = Args.getLastArg(options::OPT__dyld_prefix_EQ))
 diff --git a/clang/lib/Driver/ToolChains/Darwin.cpp b/clang/lib/Driver/ToolChains/Darwin.cpp
-index 4c8872273059..e51cbbf45604 100644
+index e5075cbcaf66..6272a1c2db10 100644
 --- a/clang/lib/Driver/ToolChains/Darwin.cpp
 +++ b/clang/lib/Driver/ToolChains/Darwin.cpp
-@@ -30,6 +30,18 @@
+@@ -27,6 +27,18 @@
  #include "llvm/TargetParser/Triple.h"
  #include <cstdlib> // ::getenv
  
@@ -53,7 +53,7 @@ index 4c8872273059..e51cbbf45604 100644
  using namespace clang::driver;
  using namespace clang::driver::tools;
  using namespace clang::driver::toolchains;
-@@ -2271,15 +2283,75 @@ void Darwin::AddDeploymentTarget(DerivedArgList &Args) const {
+@@ -2356,15 +2368,75 @@ void Darwin::AddDeploymentTarget(DerivedArgList &Args) const {
      if (!getVFS().exists(A->getValue()))
        getDriver().Diag(clang::diag::warn_missing_sysroot) << A->getValue();
    } else {
@@ -132,7 +132,7 @@ index 4c8872273059..e51cbbf45604 100644
  
    // Read the SDKSettings.json file for more information, like the SDK version
 diff --git a/clang/lib/Lex/InitHeaderSearch.cpp b/clang/lib/Lex/InitHeaderSearch.cpp
-index bb2a21356fa8..a240eed4e5a0 100644
+index 3e22b4001bde..5d69d0a87f75 100644
 --- a/clang/lib/Lex/InitHeaderSearch.cpp
 +++ b/clang/lib/Lex/InitHeaderSearch.cpp
 @@ -21,6 +21,7 @@
@@ -143,15 +143,15 @@ index bb2a21356fa8..a240eed4e5a0 100644
  #include "llvm/Support/raw_ostream.h"
  #include "llvm/TargetParser/Triple.h"
  #include <optional>
-@@ -206,7 +207,10 @@ void InitHeaderSearch::AddDefaultCIncludePaths(const llvm::Triple &triple,
-       [[fallthrough]];
-     default:
-       // FIXME: temporary hack: hard-coded paths.
--      AddPath("/usr/local/include", System, false);
-+      std::optional<std::string> CondaBuildSysrootValue =
-+              llvm::sys::Process::GetEnv("CONDA_BUILD_SYSROOT");
-+      if (!CondaBuildSysrootValue.has_value())
-+        AddPath("/usr/local/include", System, false);
-       break;
-     }
+@@ -177,7 +178,10 @@ void InitHeaderSearch::AddDefaultCIncludePaths(const llvm::Triple &triple,
+ 
+   if (HSOpts.UseStandardSystemIncludes) {
+     // FIXME: temporary hack: hard-coded paths.
+-    AddPath("/usr/local/include", System, false);
++    std::optional<std::string> CondaBuildSysrootValue =
++            llvm::sys::Process::GetEnv("CONDA_BUILD_SYSROOT");
++    if (!CondaBuildSysrootValue.has_value())
++      AddPath("/usr/local/include", System, false);
    }
+ 
+   // Builtin includes use #include_next directives and should be positioned
