@@ -17,7 +17,7 @@ docker_image:
 libclang_soversion:
 - '13'
 libxml2:
-- '2'
+- '2.13'
 python_min:
 - '3.9'
 target_platform:
