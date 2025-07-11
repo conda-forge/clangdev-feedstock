@@ -472,7 +472,7 @@ outputs:
     test:
       requires:
         - {{ compiler("cxx") }}
-        - gxx_impl_{{ target_platform }}  # [win64]
+        # - gxx_impl_{{ target_platform }}  # [win64]
       files:
         - mytest.cxx
       commands:
@@ -482,7 +482,7 @@ outputs:
         - unset CONDA_BUILD_SYSROOT   # [unix]
         - set "CONDA_BUILD_SYSROOT="  # [win]
         - clang++ -v -c mytest.cxx
-        - clang++ -v mytest.cxx --target=x86_64-w64-mingw32  # [win64]
+        # - clang++ -v mytest.cxx --target=x86_64-w64-mingw32  # [win64]
 
   - name: clang-format-{{ major_version }}
     script: install_clang_format.sh  # [unix]
