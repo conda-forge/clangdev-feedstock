@@ -434,10 +434,13 @@ outputs:
         - libgcc-devel_{{ target_platform }}   # [linux]
         - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
     test:
+      files:
+        - test_resource_dir.bat     # [win]
       commands:
         - clang --version
         - clang-cl --version
         - clang-cpp --version
+        - test_resource_dir.bat     # [win]
 
   - name: clangxx
     script: install_clangxx.sh  # [unix]
