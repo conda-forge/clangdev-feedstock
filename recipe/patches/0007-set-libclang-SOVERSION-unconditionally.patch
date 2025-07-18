@@ -1,7 +1,7 @@
 From e5d018a29b6347b08b21bad6e5d822b27b8dafc1 Mon Sep 17 00:00:00 2001
 From: "H. Vetinari" <h.vetinari@gmx.com>
 Date: Thu, 14 Apr 2022 11:57:00 +1100
-Subject: [PATCH 07/10] set libclang SOVERSION unconditionally
+Subject: [PATCH 07/11] set libclang SOVERSION unconditionally
 
 and avoid creating libclang with full version suffix
 ---
