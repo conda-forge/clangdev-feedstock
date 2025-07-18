@@ -99,14 +99,14 @@ Current release info
 Installing clangdev
 ===================
 
-Installing `clangdev` from the `conda-forge/label/llvm_rc` channel can be achieved by adding `conda-forge/label/llvm_rc` to your channels with:
+Installing `clangdev` from the `conda-forge` channel can be achieved by adding `conda-forge` to your channels with:
 
 ```
-conda config --add channels conda-forge/label/llvm_rc
+conda config --add channels conda-forge
 conda config --set channel_priority strict
 ```
 
-Once the `conda-forge/label/llvm_rc` channel has been enabled, `clang, clang-20, clang-format, clang-format-20, clang-tools, clangdev, clangxx, libclang, libclang-cpp, libclang-cpp20.1, libclang13, python-clang` can be installed with `conda`:
+Once the `conda-forge` channel has been enabled, `clang, clang-20, clang-format, clang-format-20, clang-tools, clangdev, clangxx, libclang, libclang-cpp, libclang-cpp20.1, libclang13, python-clang` can be installed with `conda`:
 
 ```
 conda install clang clang-20 clang-format clang-format-20 clang-tools clangdev clangxx libclang libclang-cpp libclang-cpp20.1 libclang13 python-clang
@@ -121,26 +121,26 @@ mamba install clang clang-20 clang-format clang-format-20 clang-tools clangdev c
 It is possible to list all of the versions of `clang` available on your platform with `conda`:
 
 ```
-conda search clang --channel conda-forge/label/llvm_rc
+conda search clang --channel conda-forge
 ```
 
 or with `mamba`:
 
 ```
-mamba search clang --channel conda-forge/label/llvm_rc
+mamba search clang --channel conda-forge
 ```
 
 Alternatively, `mamba repoquery` may provide more information:
 
 ```
 # Search all versions available on your platform:
-mamba repoquery search clang --channel conda-forge/label/llvm_rc
+mamba repoquery search clang --channel conda-forge
 
 # List packages depending on `clang`:
-mamba repoquery whoneeds clang --channel conda-forge/label/llvm_rc
+mamba repoquery whoneeds clang --channel conda-forge
 
 # List dependencies of `clang`:
-mamba repoquery depends clang --channel conda-forge/label/llvm_rc
+mamba repoquery depends clang --channel conda-forge
 ```
 
 
