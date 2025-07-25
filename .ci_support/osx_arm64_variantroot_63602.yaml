@@ -25,7 +25,7 @@ python_min:
 target_platform:
 - osx-arm64
 variant:
-- root_63406
+- root_63602
 zlib:
 - '1'
 zstd:
