@@ -472,17 +472,19 @@ outputs:
     test:
       requires:
         - {{ compiler("cxx") }}
-        # - gxx_impl_{{ target_platform }}  # [win64]
+        - gxx_impl_{{ target_platform }}  # [win64]
       files:
         - mytest.cxx
       commands:
+        # avoid CMake picking up random clang in image when using unactivated compilers
+        - del /s /q "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\Llvm\x64\bin\clang++.exe"  # [win]
         - clang++ --version
         - clang++-{{ major_version }} --version
         - clang++ -v -c mytest.cxx
         - unset CONDA_BUILD_SYSROOT   # [unix]
         - set "CONDA_BUILD_SYSROOT="  # [win]
         - clang++ -v -c mytest.cxx
-        # - clang++ -v mytest.cxx --target=x86_64-w64-mingw32  # [win64]
+        - clang++ -v mytest.cxx --target=x86_64-w64-mingw32  # [win64]
 
   - name: clang-format-{{ major_version }}
     script: install_clang_format.sh  # [unix]
