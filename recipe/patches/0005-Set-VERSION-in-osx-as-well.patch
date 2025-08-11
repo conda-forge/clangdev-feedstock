@@ -1,7 +1,7 @@
 From 4ee1ce6090103934f36a7bb58e682ae7a082462b Mon Sep 17 00:00:00 2001
 From: Isuru Fernando <isuruf@gmail.com>
 Date: Sat, 27 Jul 2019 11:55:23 -0500
-Subject: [PATCH 05/11] Set VERSION in osx as well
+Subject: [PATCH 05/10] Set VERSION in osx as well
 
 ---
  clang/tools/libclang/CMakeLists.txt | 5 +++++
