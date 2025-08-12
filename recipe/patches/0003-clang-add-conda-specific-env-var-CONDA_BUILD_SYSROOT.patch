@@ -1,7 +1,7 @@
 From 95133a77b91df1861378b3b3f7a35f72c375ce92 Mon Sep 17 00:00:00 2001
 From: Nehal J Wani <nehaljw.kkd1@gmail.com>
 Date: Sat, 25 Aug 2018 09:20:04 -0500
-Subject: [PATCH 03/11] clang: add conda specific env var CONDA_BUILD_SYSROOT
+Subject: [PATCH 03/10] clang: add conda specific env var CONDA_BUILD_SYSROOT
 
 And also improve logic for finding the macos sysroot for conda
 

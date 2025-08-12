@@ -1,4 +1,4 @@
-{% set version = "21.1.0.rc1" %}
+{% set version = "21.1.0.rc2" %}
 {% set major_version = version.split(".")[0] %}
 {% set tail_version = version.split(".")[-1] %}
 {% set build_number = 0 %}
@@ -23,7 +23,7 @@ package:
 
 source:
   - url: https://github.com/llvm/llvm-project/archive/refs/tags/llvmorg-{{ version.replace(".rc", "-rc") }}.tar.gz
-    sha256: 43c05ada2449f545d35a2530a44ef64a3de7e9dd54e6c53eaa7ffb419daa4f9e
+    sha256: f28b419ea38e554c295969c4d7fc3ea3b517d893b9f35e8e7aff50c507549459
     patches:
       - patches/0001-Find-conda-gcc-installation.patch
       - patches/0002-Fix-sysroot-detection-for-linux.patch
@@ -35,8 +35,6 @@ source:
       - patches/0008-Make-PIE-default-on-macOS-too.patch
       - patches/0009-Find-ROCm-device-library-in-conda-layout.patch
       - patches/0010-Add-conda-mingw-paths.patch
-      # backport https://github.com/llvm/llvm-project/pull/149570
-      - patches/0011-Revert-Move-python-binding-tests-to-lit-framework-14.patch
     # name folder for easier deletion; we do the equivalent of downloading
     # the subproject sources, so the work folder then has clang in it;
     # for details see build scripts
@@ -474,17 +472,19 @@ outputs:
     test:
       requires:
         - {{ compiler("cxx") }}
-        # - gxx_impl_{{ target_platform }}  # [win64]
+        - gxx_impl_{{ target_platform }}  # [win64]
       files:
         - mytest.cxx
       commands:
+        # avoid CMake picking up random clang in image when using unactivated compilers
+        - del /s /q "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\Llvm\x64\bin\clang++.exe"  # [win]
         - clang++ --version
         - clang++-{{ major_version }} --version
         - clang++ -v -c mytest.cxx
         - unset CONDA_BUILD_SYSROOT   # [unix]
         - set "CONDA_BUILD_SYSROOT="  # [win]
         - clang++ -v -c mytest.cxx
-        # - clang++ -v mytest.cxx --target=x86_64-w64-mingw32  # [win64]
+        - clang++ -v mytest.cxx --target=x86_64-w64-mingw32  # [win64]
 
   - name: clang-format-{{ major_version }}
     script: install_clang_format.sh  # [unix]

@@ -1,7 +1,7 @@
 From 33a528eefd88bca0a65db98d9bc4ec4c46cb8251 Mon Sep 17 00:00:00 2001
 From: Isuru Fernando <isuruf@gmail.com>
 Date: Mon, 11 Mar 2024 14:03:12 -0500
-Subject: [PATCH 09/11] Find ROCm device library in conda layout
+Subject: [PATCH 09/10] Find ROCm device library in conda layout
 
 ---
  clang/lib/Driver/ToolChains/AMDGPU.cpp | 19 +++++++++++++++++++
