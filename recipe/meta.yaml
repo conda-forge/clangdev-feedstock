@@ -100,6 +100,51 @@ source:
       - patches/root/0067-UPSTREAM-Introduce-paged-vector.patch
       - patches/root/0068-PR137806-clang-Forward-TPL-of-NestedNameSpecifier.patch
 {% endif %}
+{% if variant and variant.startswith("cling_") %}
+      - patches/cling/0001-Remove-warning-about-CMake-3.20.0-in-LLVM-17.patch
+      - patches/cling/0002-UPSTREAM-Clang-Implement-CWG2518-static_assert-false.patch
+      - patches/cling/0003-UPSTREAM-clang-repl-Correctly-disambiguate-dtor-decl.patch
+      - patches/cling/0004-UPSTREAM-clang-repl-Do-not-assert-if-we-have-weak-re.patch
+      - patches/cling/0005-UPSTREAM-clang-repl-Consider-the-scope-spec-in-templ.patch
+      - patches/cling/0006-UPSTREAM-clang-modules-Add-features-for-recent-C-ver.patch
+      - patches/cling/0007-UPSTREAM-Commit-to-a-primary-definition-for-a-class-.patch
+      - patches/cling/0008-UPSTREAM-clang-repl-Disambiguate-global-namespace-id.patch
+      - patches/cling/0009-UPSTREAM-CodeGen-Clean-up-access-to-EmittedDeferredD.patch
+      - patches/cling/0010-UPSTREAM-CodeGen-Keep-track-of-eagerly-emitted-globa.patch
+      - patches/cling/0011-UPSTREAM-clang-repl-Disambiguate-declarations-with-p.patch
+      - patches/cling/0012-UPSTREAM-clang-repl-Emit-const-variables-only-once.patch
+      - patches/cling/0013-UPSTREAM-Modules-textual-headers-in-submodules-never.patch
+      - patches/cling/0014-UPSTREAM-clang-Sema-Always-clear-UndefinedButUsed.patch
+      - patches/cling/0015-UPSTREAM-Fix-crash-with-modules-and-constexpr-destru.patch
+      - patches/cling/0016-Temporary-parsers-should-not-manipulate-global-parse.patch
+      - patches/cling/0017-Only-reset-extra-parsers-if-not-temporary.patch
+      - patches/cling/0018-Let-autoload-act-on-fwd-declares.patch
+      - patches/cling/0019-Remove-macro-and-print-macro.patch
+      - patches/cling/0020-Find-an-easier-way-of-accessing-CodeGenModule-intern.patch
+      - patches/cling/0021-From-Vassil-add-debug-printout-of-ModuleBuilder-data.patch
+      - patches/cling/0022-Cleanup-cached-constant-.str-from-codegen.patch
+      - patches/cling/0023-Implement-FileManager-uncaching.patch
+      - patches/cling/0024-Mark-the-file-entry-invalid-until-reread.-Invalidate.patch
+      - patches/cling/0025-In-cases-of-nested-parsing-at-execution-time-sometim.patch
+      - patches/cling/0026-Access-sema-internals-and-revert-the-list-of-unused-.patch
+      - patches/cling/0027-Make-sure-the-inode-did-not-get-updated-since-we-rea.patch
+      - patches/cling/0028-More-RAIIs-for-autoloading.patch
+      - patches/cling/0029-Use-raw-string-literals-to-correctly-stringify-and-i.patch
+      - patches/cling/0030-Accessor-to-is-file-opened-this-is-crucial-info-for-.patch
+      - patches/cling/0031-Buffer-the-pending-instantiations-in-case-or-recursi.patch
+      - patches/cling/0032-Also-store-Parser-paren-numbers-likely-fixes-ROOT-69.patch
+      - patches/cling/0033-Provide-possibly-updated-CodegenOpts-to-StartModule.patch
+      - patches/cling/0034-Clear-pending-decls-from-Builder-in-case-of-errors-R.patch
+      - patches/cling/0035-Fix-ROOT-7775-by-making-all-static-init-function-nam.patch
+      - patches/cling/0036-Do-not-load-the-source-file-just-to-get-an-irrelevan.patch
+      - patches/cling/0037-Do-not-collect-DeleteExprs-over-incremental-end-of-T.patch
+      - patches/cling/0038-Keep-into-account-if-files-were-virtual.patch
+      - patches/cling/0039-cxxmodules-Don-t-complain-when-modulemap-for-implici.patch
+      - patches/cling/0040-Implement-a-module-attribute-optional-to-allow-missi.patch
+      - patches/cling/0041-survive-Inon-accessible-directory.patch
+      - patches/cling/0042-D154328-AST-Add-API-to-iterate-already-loaded-specia.patch
+      - patches/cling/0043-Add-method-to-forget-generated-declarations.patch
+{% endif %}
     # name folder for easier deletion; we do the equivalent of downloading
     # the subproject sources, so the work folder then has clang in it;
     # for details see build scripts
