@@ -1,0 +1,30 @@
+From 15e6fdc9bd812f12434851ff98c0f02ed379f0fe Mon Sep 17 00:00:00 2001
+From: Vassil Vassilev <vvasilev@cern.ch>
+Date: Tue, 8 Apr 2014 16:48:23 +0200
+Subject: [PATCH 24/43] Mark the file entry invalid, until reread. Invalidate
+ SLocEntry cache, readd it on reread.
+
+Do not use translateFile, because it pulls in parts of the pch.
+---
+ clang/lib/Basic/SourceManager.cpp | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/clang/lib/Basic/SourceManager.cpp b/clang/lib/Basic/SourceManager.cpp
+index facf85dd2..8b36f0400 100644
+--- a/clang/lib/Basic/SourceManager.cpp
++++ b/clang/lib/Basic/SourceManager.cpp
+@@ -366,6 +366,14 @@ void SourceManager::invalidateCache(FileID FID) {
+     E->setBuffer(nullptr);
+     E = 0;
+   }
++  if (!FID.isInvalid()) {
++    const SrcMgr::SLocEntry& SLocE = getSLocEntry(FID);
++    if (SLocE.isFile()) {
++      SrcMgr::ContentCache& CC =
++        const_cast<SrcMgr::ContentCache&>(SLocE.getFile().getContentCache());
++      CC.setBuffer(nullptr);
++    }
++  }
+   getFileManager().invalidateCache(const_cast<FileEntry*>(Entry));
+ }
+ 

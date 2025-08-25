@@ -1,0 +1,85 @@
+From 5ea3d0244382e3f28442bf5d2c2cabe980c5829c Mon Sep 17 00:00:00 2001
+From: Ian Anderson <iana@apple.com>
+Date: Fri, 20 Oct 2023 13:23:34 -0700
+Subject: [PATCH 13/68] UPSTREAM: [Modules] textual headers in submodules never
+ resolve their `use`s
+
+When an include from a textual header is resolved, the textual header's
+submodule is used as the requesting module. The submodule's uses are
+resolved, but that doesn't work because only top level modules have
+uses, and only the top level module uses are used for checking uses in
+Module::directlyUses. ModuleMap::resolveUses to resolve the top level
+module instead of the submodule.
+
+(cherry picked from commit 09ec0004eee2d9929d25cf519956cc470ffb33dd)
+---
+ clang/lib/Lex/ModuleMap.cpp                 | 13 +++++----
+ clang/test/Modules/no-undeclared-includes.c | 31 +++++++++++++++++++++
+ 2 files changed, 38 insertions(+), 6 deletions(-)
+ create mode 100644 clang/test/Modules/no-undeclared-includes.c
+
+diff --git a/clang/lib/Lex/ModuleMap.cpp b/clang/lib/Lex/ModuleMap.cpp
+index ee2cca4e0..e602316a0 100644
+--- a/clang/lib/Lex/ModuleMap.cpp
++++ b/clang/lib/Lex/ModuleMap.cpp
+@@ -1367,16 +1367,17 @@ bool ModuleMap::resolveExports(Module *Mod, bool Complain) {
+ }
+ 
+ bool ModuleMap::resolveUses(Module *Mod, bool Complain) {
+-  auto Unresolved = std::move(Mod->UnresolvedDirectUses);
+-  Mod->UnresolvedDirectUses.clear();
++  auto *Top = Mod->getTopLevelModule();
++  auto Unresolved = std::move(Top->UnresolvedDirectUses);
++  Top->UnresolvedDirectUses.clear();
+   for (auto &UDU : Unresolved) {
+-    Module *DirectUse = resolveModuleId(UDU, Mod, Complain);
++    Module *DirectUse = resolveModuleId(UDU, Top, Complain);
+     if (DirectUse)
+-      Mod->DirectUses.push_back(DirectUse);
++      Top->DirectUses.push_back(DirectUse);
+     else
+-      Mod->UnresolvedDirectUses.push_back(UDU);
++      Top->UnresolvedDirectUses.push_back(UDU);
+   }
+-  return !Mod->UnresolvedDirectUses.empty();
++  return !Top->UnresolvedDirectUses.empty();
+ }
+ 
+ bool ModuleMap::resolveConflicts(Module *Mod, bool Complain) {
+diff --git a/clang/test/Modules/no-undeclared-includes.c b/clang/test/Modules/no-undeclared-includes.c
+new file mode 100644
+index 000000000..83a654f6e
+--- /dev/null
++++ b/clang/test/Modules/no-undeclared-includes.c
+@@ -0,0 +1,31 @@
++// RUN: rm -rf %t
++// RUN: split-file %s %t
++// RUN: %clang_cc1 -fmodules-cache-path=%t -fmodules -fimplicit-module-maps -I %t %t/no-undeclared-includes.c -verify
++
++//--- no-undeclared-includes.c
++// expected-no-diagnostics
++#include <assert.h>
++
++//--- assert.h
++#include <base.h>
++
++//--- base.h
++#ifndef base_h
++#define base_h
++
++
++
++#endif /* base_h */
++
++//--- module.modulemap
++module cstd [system] [no_undeclared_includes] {
++  use base
++  module assert {
++    textual header "assert.h"
++  }
++}
++
++module base [system] {
++  header "base.h"
++  export *
++}

@@ -1,0 +1,31 @@
+From f36e4029a0012833d017ac96c7e66804fba47841 Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Thu, 14 Jul 2016 12:19:42 +0200
+Subject: [PATCH 37/43] Do not collect DeleteExprs over incremental end-of-TUs
+ (speedup).
+
+---
+ clang/lib/Sema/Sema.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/clang/lib/Sema/Sema.cpp b/clang/lib/Sema/Sema.cpp
+index d9738ef76..1d28f490d 100644
+--- a/clang/lib/Sema/Sema.cpp
++++ b/clang/lib/Sema/Sema.cpp
+@@ -1419,7 +1419,7 @@ void Sema::ActOnEndOfTranslationUnit() {
+   }
+ 
+   if (!Diags.isIgnored(diag::warn_mismatched_delete_new, SourceLocation())) {
+-    if (ExternalSource)
++    if (ExternalSource && !PP.isIncrementalProcessingEnabled())
+       ExternalSource->ReadMismatchingDeleteExpressions(DeleteExprs);
+     for (const auto &DeletedFieldInfo : DeleteExprs) {
+       for (const auto &DeleteExprLoc : DeletedFieldInfo.second) {
+@@ -1427,6 +1427,7 @@ void Sema::ActOnEndOfTranslationUnit() {
+                                   DeleteExprLoc.second);
+       }
+     }
++    DeleteExprs.clear();
+   }
+ 
+   // Check we've noticed that we're no longer parsing the initializer for every
