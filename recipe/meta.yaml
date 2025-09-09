@@ -231,8 +231,8 @@ outputs:
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
         - libxml2-devel     # [unix]
-        - zlib              # [unix]
-        - zstd              # [unix]
+        - zlib              # [unix and not (variant or "").startswith("root_")]
+        - zstd              # [unix and not (variant or "").startswith("root_")]
     requirements:
       build:
         - {{ stdlib('c') }}
@@ -329,8 +329,8 @@ outputs:
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
         - libxml2-devel
-        - zlib     # [unix]
-        - zstd     # [unix]
+        - zlib              # [unix and not (variant or "").startswith("root_")]
+        - zstd              # [unix and not (variant or "").startswith("root_")]
     requirements:
       build:
         - {{ stdlib('c') }}
@@ -441,8 +441,8 @@ outputs:
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
         - libxml2-devel
-        - zlib     # [unix]
-        - zstd     # [unix]
+        - zlib              # [unix and not (variant or "").startswith("root_")]
+        - zstd              # [unix and not (variant or "").startswith("root_")]
     requirements:
       build:
         - {{ stdlib('c') }}
@@ -583,8 +583,8 @@ outputs:
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
         - libxml2-devel     # [unix]
-        - zlib              # [unix]
-        - zstd              # [unix]
+        - zlib              # [unix and not (variant or "").startswith("root_")]
+        - zstd              # [unix and not (variant or "").startswith("root_")]
     requirements:
       build:
         # "compiling .pyc files" fails without this
@@ -673,13 +673,13 @@ outputs:
     script: install_clang_tools.bat  # [win]
     build:
       track_features:
-        - root         # [variant and variant.startswith("root_")]
-        - cling        # [variant and variant.startswith("cling_")]
+        - root      # [(variant or "").startswith("root_")]
+        - cling     # [(variant or "").startswith("cling_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
-        - zlib     # [unix]
-        - zstd     # [unix]
+        - zlib      # [unix and not (variant or "").startswith("root_")]
+        - zstd      # [unix and not (variant or "").startswith("root_")]
     requirements:
       build:
         # "compiling .pyc files" fails without this
