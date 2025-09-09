@@ -583,8 +583,8 @@ outputs:
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
         - libxml2-devel     # [unix]
-        - zlib              # [unix and not (variant or "").startswith("root_")]
-        - zstd              # [unix and not (variant or "").startswith("root_")]
+        - zlib              # [unix]
+        - zstd              # [unix]
     requirements:
       build:
         # "compiling .pyc files" fails without this
