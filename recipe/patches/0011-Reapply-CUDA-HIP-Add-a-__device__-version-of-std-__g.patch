@@ -1,21 +1,24 @@
-From 9b725e564cdc58771a4f98b54d3f03d0af20481d Mon Sep 17 00:00:00 2001
-From: =?UTF-8?q?Juan=20Manuel=20Martinez=20Caama=C3=B1o?= <juamarti@amd.com>
-Date: Thu, 19 Jun 2025 09:13:26 +0200
-Subject: [PATCH 11/11] Reapply "[CUDA][HIP] Add a __device__ version of
- std::__glibcxx_assert_fail() (#136133)"
+From 8ec0552a7f1f50986dda6d13eae310d121d7e3ba Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Juan=20Manuel=20Martinez=20Caama=C3=B1o?=
+ <jmartinezcaamao@gmail.com>
+Date: Tue, 24 Jun 2025 09:13:13 +0200
+Subject: [PATCH] Reapply "[CUDA][HIP] Add a __device__ version of
+ std::__glibcxx_assert_fail() (#144886)
 
-This reverts commit 5bfb9bb3a0002de9007d4bc04c2b0e300a72c52d.
+Modifications to reapply the commit:
+* Add noexcept only after C++11 on __glibcxx_assert_fail
+* Remove vararg version of __glibcxx_assert_fail
 ---
  clang/lib/Headers/CMakeLists.txt              |  1 +
- .../Headers/cuda_wrappers/bits/c++config.h    | 51 +++++++++++++++++++
- 2 files changed, 52 insertions(+)
+ .../Headers/cuda_wrappers/bits/c++config.h    | 61 +++++++++++++++++++
+ 2 files changed, 62 insertions(+)
  create mode 100644 clang/lib/Headers/cuda_wrappers/bits/c++config.h
 
 diff --git a/clang/lib/Headers/CMakeLists.txt b/clang/lib/Headers/CMakeLists.txt
-index 43124111b..f650c896a 100644
+index c1c9d2e8c7b79..c96d209c1fc0c 100644
 --- a/clang/lib/Headers/CMakeLists.txt
 +++ b/clang/lib/Headers/CMakeLists.txt
-@@ -330,6 +330,7 @@ set(cuda_wrapper_files
+@@ -341,6 +341,7 @@ set(cuda_wrapper_files
  )
  
  set(cuda_wrapper_bits_files
@@ -25,10 +28,10 @@ index 43124111b..f650c896a 100644
    cuda_wrappers/bits/basic_string.tcc
 diff --git a/clang/lib/Headers/cuda_wrappers/bits/c++config.h b/clang/lib/Headers/cuda_wrappers/bits/c++config.h
 new file mode 100644
-index 000000000..eafa13a9c
+index 0000000000000..27083253181d2
 --- /dev/null
 +++ b/clang/lib/Headers/cuda_wrappers/bits/c++config.h
-@@ -0,0 +1,51 @@
+@@ -0,0 +1,61 @@
 +// libstdc++ uses the non-constexpr function std::__glibcxx_assert_fail()
 +// to trigger compilation errors when the __glibcxx_assert(cond) macro
 +// is used in a constexpr context.
@@ -51,25 +54,35 @@ index 000000000..eafa13a9c
 +_GLIBCXX_BEGIN_NAMESPACE_VERSION
 +#endif
 +
-+#ifdef _GLIBCXX_VERBOSE_ASSERT
++#pragma push_macro("CUDA_NOEXCEPT")
++#if __cplusplus >= 201103L
++#define CUDA_NOEXCEPT noexcept
++#else
++#define CUDA_NOEXCEPT
++#endif
++
 +__attribute__((device, noreturn)) inline void
 +__glibcxx_assert_fail(const char *file, int line, const char *function,
-+                      const char *condition) noexcept {
++                      const char *condition) CUDA_NOEXCEPT {
++#ifdef _GLIBCXX_VERBOSE_ASSERT
 +  if (file && function && condition)
 +    __builtin_printf("%s:%d: %s: Assertion '%s' failed.\n", file, line,
 +                     function, condition);
 +  else if (function)
 +    __builtin_printf("%s: Undefined behavior detected.\n", function);
++#endif
 +  __builtin_abort();
 +}
-+#endif
 +
 +#endif
 +__attribute__((device, noreturn, __always_inline__,
 +               __visibility__("default"))) inline void
-+__glibcxx_assert_fail(...) noexcept {
++__glibcxx_assert_fail() CUDA_NOEXCEPT {
 +  __builtin_abort();
 +}
++
++#pragma pop_macro("CUDA_NOEXCEPT")
++
 +#ifdef _LIBCPP_END_NAMESPACE_STD
 +_LIBCPP_END_NAMESPACE_STD
 +#else
