@@ -396,6 +396,7 @@ outputs:
 
         # versioned binaries
         - clang-{{ major_version }} --version
+        - clang++-{{ major_version }} --version
 
         # absence of unversioned binaries
         - test ! -f $PREFIX/bin/clang                   # [unix]
