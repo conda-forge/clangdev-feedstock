@@ -11,4 +11,5 @@ if [[ ! -d $PREFIX/lib/clang/${MAJOR_VERSION}/include ]]; then
 fi
 # Make sure omp.h from conda environment is found by clang
 ln -sf $PREFIX/include/omp.h $PREFIX/lib/clang/${MAJOR_VERSION}/include/
-ln -s "${PREFIX}/bin/clang-${maj_version}" "${PREFIX}/bin/clang++-${maj_version}"
+
+ln -s "${PREFIX}/bin/clang-${MAJOR_VERSION}" "${PREFIX}/bin/clang++-${MAJOR_VERSION}"
