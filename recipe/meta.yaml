@@ -1,7 +1,7 @@
 {% set version = "20.1.8" %}
 {% set major_version = version.split(".")[0] %}
 {% set tail_version = version.split(".")[-1] %}
-{% set build_number = 3 %}
+{% set build_number = 4 %}
 
 # always includes minor as of v18, see https://github.com/llvm/llvm-project/issues/76273
 {% set maj_min = major_version ~ "." ~ version.split(".")[1] %}
@@ -346,10 +346,12 @@ outputs:
     script: install_clang.sh  # [unix]
     script: install_clang.bat  # [win]
     files:
-      - lib/clang                                  # [unix]
-      - bin/clang-{{ major_version }}              # [unix]
-      - Library/lib/clang                          # [win]
-      - Library/bin/clang-{{ major_version }}.exe  # [win]
+      - lib/clang                                    # [unix]
+      - bin/clang-{{ major_version }}                # [unix]
+      - bin/clang++-{{ major_version }}              # [unix]
+      - Library/lib/clang                            # [win]
+      - Library/bin/clang-{{ major_version }}.exe    # [win]
+      - Library/bin/clang++-{{ major_version }}.exe  # [win]
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
@@ -396,6 +398,7 @@ outputs:
 
         # versioned binaries
         - clang-{{ major_version }} --version
+        - clang++-{{ major_version }} --version
 
         # absence of unversioned binaries
         - test ! -f $PREFIX/bin/clang                   # [unix]
