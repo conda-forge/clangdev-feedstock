@@ -16,3 +16,8 @@ for /f "tokens=1 delims=." %%a in ("%PKG_VERSION%") do (
   move bin2\clang.exe bin\clang-%%a.exe
 )
 rmdir /s /q bin2
+
+cd %LIBRARY_BIN%
+for /f "tokens=1 delims=." %%a in ("%PKG_VERSION%") do (
+  copy clang-%%a.exe "clang++-%%a.exe"
+)
