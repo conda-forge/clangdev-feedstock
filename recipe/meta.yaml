@@ -449,12 +449,14 @@ outputs:
         - clang --version
         - clang-cl --version
         - clang-cpp --version
+
         # test that compiler-rt bits are available where clang expects them to be
         - test -f $PREFIX/lib/clang/{{ major_version }}/lib/linux/clang_rt.crtend-x86_64.o       # [linux and x86_64]
         - test -f $PREFIX/lib/clang/{{ major_version }}/lib/linux/clang_rt.crtend-aarch64.o      # [linux and aarch64]
         - test -f $PREFIX/lib/clang/{{ major_version }}/lib/linux/clang_rt.crtend-powerpc64le.o  # [linux and ppc64le]
         - test -f $PREFIX/lib/clang/{{ major_version }}/lib/darwin/libclang_rt.osx.a             # [osx]
         - if not exist %LIBRARY_LIB%\clang\{{ major_version }}\lib\windows\clang_rt.builtins-x86_64.lib exit 1  # [win and x64_64]
+
   - name: clangxx
     script: install_clangxx.sh  # [unix]
     script: install_clangxx.bat  # [win]

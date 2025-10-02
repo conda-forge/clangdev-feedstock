@@ -30,5 +30,5 @@ if NOT "!RESOURCE_DIR!" == "!RESOURCE_DIR_REF!" (
     exit 1
 )
 
-# Make sure omp.h from conda environment is found by clang
+:: Make sure omp.h from conda environment is found by clang
 copy %LIBRARY_PREFIX%/include/omp.h %RESOURCE_DIR_REF%/include/
