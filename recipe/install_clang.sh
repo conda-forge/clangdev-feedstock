@@ -22,26 +22,3 @@ if [[ "$target_platform" == "$build_platform" ]]; then
     exit 1
   fi
 fi
-
-# check that compiler-rt is found in expected directory
-case ${target_platform} in
-  osx-*)
-    fname = "${RESOURCE_DIR}/lib/darwin/libclang_rt.osx.a"
-    ;;
-  linux-64)
-    fname = "${RESOURCE_DIR}/lib/linux/clang_rt.crtend-x86_64.o"
-    ;;
-  linux-aarch64)
-    fname = "${RESOURCE_DIR}/lib/linux/clang_rt.crtend-aarch64.o"
-    ;;
-  linux-aarch64)
-    fname = "${RESOURCE_DIR}/lib/linux/clang_rt.crtend-powerpc64le.o"
-    ;;
-  default)
-    echo "Unknown platform"
-    exit 1
-esac
-if [[ ! -f "${fname}" ]]; then
-  echo "${fname} not found"
-  exit 1
-fi

@@ -13,19 +13,22 @@ mkdir bin
 
 setlocal enabledelayedexpansion
 for /f "tokens=1 delims=." %%a in ("%PKG_VERSION%") do (
-  move bin2\clang.exe bin\clang-%%a.exe
+  set "MAJOR_VERSION=%%a"
 )
+move bin2\clang.exe bin\clang-!MAJOR_VERSION!.exe
 rmdir /s /q bin2
 
 cd %LIBRARY_BIN%
-for /f "tokens=1 delims=." %%a in ("%PKG_VERSION%") do (
-  copy clang-%%a.exe "clang++-%%a.exe"
-)
+copy clang-!MAJOR_VERSION!.exe "clang++-!MAJOR_VERSION!.exe"
 
 FOR /F "tokens=* USEBACKQ" %%F IN (`%LIBRARY_PREFIX%\bin\clang.exe -print-resource-dir`) DO (
    set "RESOURCE_DIR=%%F"
 )
-if not exist "!RESOURCE_DIR!\lib\windows\clang_rt.builtins-x86_64.lib" (
-    echo "!RESOURCE_DIR!\lib\windows\clang_rt.builtins-x86_64.lib not found"
+set "RESOURCE_DIR_REF=%LIBRARY_LIB:/=\%\lib\clang\!MAJOR_VERSION!"
+if NOT "!RESOURCE_DIR!" == "!RESOURCE_DIR_REF!" (
+    echo "resource dir !RESOURCE_DIR_REF! does not match expected !RESOURCE_DIR!"
     exit 1
 )
+
+# Make sure omp.h from conda environment is found by clang
+copy %LIBRARY_PREFIX%/include/omp.h %RESOURCE_DIR_REF%/include/
