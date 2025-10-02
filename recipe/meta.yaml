@@ -441,7 +441,7 @@ outputs:
         - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
         - ld64                                 # [osx]
         - compiler-rt {{ version }}
-        - llvm-openmp {{ version }}
+        - llvm-openmp >={{ version }}
     test:
       commands:
         - clang --version
