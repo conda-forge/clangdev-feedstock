@@ -24,7 +24,7 @@ copy clang-!MAJOR_VERSION!.exe "clang++-!MAJOR_VERSION!.exe"
 FOR /F "tokens=* USEBACKQ" %%F IN (`%LIBRARY_PREFIX%\bin\clang.exe -print-resource-dir`) DO (
    set "RESOURCE_DIR=%%F"
 )
-set "RESOURCE_DIR_REF=%LIBRARY_LIB:/=\%\lib\clang\!MAJOR_VERSION!"
+set "RESOURCE_DIR_REF=%LIBRARY_LIB:/=\%\clang\!MAJOR_VERSION!"
 if NOT "!RESOURCE_DIR!" == "!RESOURCE_DIR_REF!" (
     echo "resource dir !RESOURCE_DIR_REF! does not match expected !RESOURCE_DIR!"
     exit 1
