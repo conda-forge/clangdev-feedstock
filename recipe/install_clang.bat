@@ -21,7 +21,7 @@ rmdir /s /q bin2
 cd %LIBRARY_BIN%
 copy clang-!MAJOR_VERSION!.exe "clang++-!MAJOR_VERSION!.exe"
 
-FOR /F "tokens=* USEBACKQ" %%F IN (`%LIBRARY_PREFIX%\bin\clang.exe -print-resource-dir`) DO (
+FOR /F "tokens=* USEBACKQ" %%F IN (`%LIBRARY_PREFIX%\bin\clang-!MAJOR_VERSION!.exe -print-resource-dir`) DO (
    set "RESOURCE_DIR=%%F"
 )
 set "RESOURCE_DIR_REF=%LIBRARY_LIB:/=\%\clang\!MAJOR_VERSION!"
