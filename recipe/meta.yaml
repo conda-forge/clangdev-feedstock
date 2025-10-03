@@ -381,6 +381,7 @@ outputs:
         - llvm-openmp {{ version }}
       run:
         - {{ pin_subpackage("libclang-cpp" ~ maj_min, exact=True) }}  # [unix]
+        - llvm-openmp >={{ version }}
         # we need to do this manually because clang_bootstrap has no run-export
         - libcxx >={{ version }}    # [osx]
     test:
@@ -443,7 +444,6 @@ outputs:
         - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
         - ld64                                 # [osx]
         - compiler-rt {{ version }}
-        - llvm-openmp >={{ version }}
     test:
       commands:
         - clang --version
