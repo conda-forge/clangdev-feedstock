@@ -264,6 +264,7 @@ outputs:
         - libxml2-devel
         - zlib
         - zstd
+        - ld64                                 # [osx]
       run:
         # we need to do this manually because clang_bootstrap has no run-export
         - libcxx >={{ version }}    # [osx]
