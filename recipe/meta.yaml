@@ -549,6 +549,7 @@ outputs:
         - clang-{{ major_version }} {{ version }}.* {{ variant }}_*             # [osx]
         - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}            # [not osx]
         - {{ pin_subpackage("clang_impl_" ~ target_platform, exact=True) }}     # [unix]
+        - ld64_{{ target_platform }} * llvm{{ maj_min.replace(".", "_") }}_*    # [osx]
     test:
       commands:
         - clang --version
