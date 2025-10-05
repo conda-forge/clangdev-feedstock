@@ -479,6 +479,7 @@ outputs:
         - libgcc-devel_{{ target_platform }}   # [linux]
         - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
         - {{ pin_subpackage("clang_impl_" ~ target_platform, exact=True) }}     # [unix]
+        - ld64_{{ target_platform }} * llvm{{ maj_min.replace(".", "_") }}_*    # [osx]
     test:
       commands:
         - clang --version
