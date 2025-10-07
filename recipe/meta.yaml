@@ -1,7 +1,7 @@
-{% set version = "21.1.2" %}
+{% set version = "21.1.3" %}
 {% set major_version = version.split(".")[0] %}
 {% set tail_version = version.split(".")[-1] %}
-{% set build_number = 3 %}
+{% set build_number = 0 %}
 
 # always includes minor as of v18, see https://github.com/llvm/llvm-project/issues/76273
 {% set maj_min = major_version ~ "." ~ version.split(".")[1] %}
@@ -23,7 +23,7 @@ package:
 
 source:
   - url: https://github.com/llvm/llvm-project/archive/refs/tags/llvmorg-{{ version.replace(".rc", "-rc") }}.tar.gz
-    sha256: eced3dd78186621f4df8a1accbcd1ecf2ee399571e62d052c21e9bf363af2166
+    sha256: 5bc91fe86bafebc64189465faca1ff35626dcb1b8539a14ae2ec07834c3e8e95
     patches:
       - patches/0001-Find-conda-gcc-installation.patch
       - patches/0002-Fix-sysroot-detection-for-linux.patch
