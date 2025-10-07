@@ -18,6 +18,8 @@ libclang_soversion:
 - '13'
 libxml2_devel:
 - '2.14'
+llvm_openmp:
+- '19'
 macos_machine:
 - x86_64-apple-darwin13.4.0
 python_min:
