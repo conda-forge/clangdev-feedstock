@@ -1,7 +1,7 @@
 {% set version = "21.1.2" %}
 {% set major_version = version.split(".")[0] %}
 {% set tail_version = version.split(".")[-1] %}
-{% set build_number = 2 %}
+{% set build_number = 3 %}
 
 # always includes minor as of v18, see https://github.com/llvm/llvm-project/issues/76273
 {% set maj_min = major_version ~ "." ~ version.split(".")[1] %}
@@ -377,9 +377,10 @@ outputs:
         - libxml2-devel
         - zlib
         - zstd
-        - compiler-rt {{ version }}
+        - compiler-rt{{ major_version }} {{ version }}
         - llvm-openmp {{ version }}
       run:
+        - compiler-rt{{ major_version }} {{ version }}
         - {{ pin_subpackage("libclang-cpp" ~ maj_min, exact=True) }}  # [unix]
         # we need to do this manually because clang_bootstrap has no run-export
         - libcxx >={{ version }}    # [osx]
@@ -445,7 +446,6 @@ outputs:
         - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
         - ld64_{{ target_platform }} * llvm{{ maj_min.replace(".", "_") }}_*    # [osx]
         - ld64                                 # [osx]
-        - compiler-rt {{ version }}
         - llvm-openmp >={{ version }}
     test:
       commands:
