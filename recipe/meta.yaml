@@ -48,6 +48,7 @@ requirements:
     - {{ stdlib('c') }}
     - {{ compiler('cxx') }}
     - cmake
+    - lld
     - ninja  # [win]
     - make   # [unix]
     # "compiling .pyc files" fails without this
