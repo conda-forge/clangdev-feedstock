@@ -1,7 +1,7 @@
 {% set version = "21.1.5" %}
 {% set major_version = version.split(".")[0] %}
 {% set tail_version = version.split(".")[-1] %}
-{% set build_number = 0 %}
+{% set build_number = 1 %}
 
 # always includes minor as of v18, see https://github.com/llvm/llvm-project/issues/76273
 {% set maj_min = major_version ~ "." ~ version.split(".")[1] %}
@@ -377,7 +377,6 @@ outputs:
         - libxml2-devel
         - zlib
         - zstd
-        - compiler-rt{{ major_version }} {{ version }}
         - llvm-openmp {{ version }}
       run:
         - compiler-rt{{ major_version }} {{ version }}
