@@ -1,0 +1,29 @@
+From a75834d97e3c6fcd98198fd54c443fe98989a8d3 Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Tue, 10 Sep 2013 17:01:46 +0200
+Subject: [PATCH 34/50] Duplicate declarations of template default argument
+ from rootmap files are just fine.
+
+---
+ clang/lib/Sema/SemaTemplate.cpp | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/clang/lib/Sema/SemaTemplate.cpp b/clang/lib/Sema/SemaTemplate.cpp
+index 1c555b382..2c59bbb7f 100644
+--- a/clang/lib/Sema/SemaTemplate.cpp
++++ b/clang/lib/Sema/SemaTemplate.cpp
+@@ -2511,6 +2511,14 @@ bool Sema::CheckTemplateParameterList(TemplateParameterList *NewParams,
+       Invalid = true;
+     }
+ 
++    if (RedundantDefaultArg &&
++        (((*OldParam)->hasAttr<AnnotateAttr>() &&
++         (*OldParam)->getAttr<AnnotateAttr>()->getAnnotation() == "rootmap") ||
++        ((*NewParam)->hasAttr<AnnotateAttr>() &&
++         (*NewParam)->getAttr<AnnotateAttr>()->getAnnotation() == "rootmap"))) {
++      RedundantDefaultArg = false;
++    }
++
+     // [basic.def.odr]/13:
+     //     There can be more than one definition of a
+     //     ...

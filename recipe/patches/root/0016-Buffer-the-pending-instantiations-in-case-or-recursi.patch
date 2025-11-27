@@ -1,0 +1,40 @@
+From 6916d0cec3adf0cbb1e450326403e71a54be5fee Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Tue, 2 Dec 2014 17:43:18 +0100
+Subject: [PATCH 16/50] Buffer the pending instantiations in case or recursive
+ parsing.
+
+---
+ clang/include/clang/Sema/Sema.h | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+
+diff --git a/clang/include/clang/Sema/Sema.h b/clang/include/clang/Sema/Sema.h
+index 6a0723fa4..3f0f77f21 100644
+--- a/clang/include/clang/Sema/Sema.h
++++ b/clang/include/clang/Sema/Sema.h
+@@ -13641,6 +13641,25 @@ public:
+         SavedPendingLocalImplicitInstantiations;
+   };
+ 
++  class SavePendingInstantiationsRAII {
++  public:
++    SavePendingInstantiationsRAII(Sema &S)
++        : SavedPendingLocalImplicitInstantiations(S), S(S) {
++      SavedPendingInstantiations.swap(S.PendingInstantiations);
++    }
++
++    ~SavePendingInstantiationsRAII() {
++      assert(S.PendingInstantiations.empty() &&
++             "there shouldn't be any pending instantiations");
++      SavedPendingInstantiations.swap(S.PendingInstantiations);
++    }
++
++  private:
++    LocalEagerInstantiationScope SavedPendingLocalImplicitInstantiations;
++    Sema &S;
++    std::deque<PendingImplicitInstantiation> SavedPendingInstantiations;
++  };
++
+   /// Records and restores the CurFPFeatures state on entry/exit of compound
+   /// statements.
+   class FPFeaturesStateRAII {

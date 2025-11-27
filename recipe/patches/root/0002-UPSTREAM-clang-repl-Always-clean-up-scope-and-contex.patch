@@ -1,0 +1,65 @@
+From 4bda697fbcfd0db451a8875cf6417cb680d2330c Mon Sep 17 00:00:00 2001
+From: Devajith <devajith.valaparambil.sreeramaswamy@cern.ch>
+Date: Wed, 23 Jul 2025 17:03:07 +0200
+Subject: [PATCH 02/50] UPSTREAM: [clang-repl] Always clean up scope and
+ context for TopLevelStmtDecl (#150215)
+
+This fixes an issue introduced by
+https://github.com/llvm/llvm-project/pull/84150, where failing to pop
+compound scope, function scope info, and decl context after a failed
+statement could lead to an inconsistent internal state.
+
+(cherry picked from commit 38a977d00c4e22f4a2a21e5f577c57df2053872e)
+---
+ clang/lib/Parse/ParseDecl.cpp   | 3 +--
+ clang/lib/Sema/SemaDecl.cpp     | 3 ++-
+ clang/test/Interpreter/fail.cpp | 7 +++++++
+ 3 files changed, 10 insertions(+), 3 deletions(-)
+
+diff --git a/clang/lib/Parse/ParseDecl.cpp b/clang/lib/Parse/ParseDecl.cpp
+index f136d5007..5596e98fd 100644
+--- a/clang/lib/Parse/ParseDecl.cpp
++++ b/clang/lib/Parse/ParseDecl.cpp
+@@ -6023,11 +6023,10 @@ Parser::DeclGroupPtrTy Parser::ParseTopLevelStmtDecl() {
+                                Scope::CompoundStmtScope);
+   TopLevelStmtDecl *TLSD = Actions.ActOnStartTopLevelStmtDecl(getCurScope());
+   StmtResult R = ParseStatementOrDeclaration(Stmts, SubStmtCtx);
++  Actions.ActOnFinishTopLevelStmtDecl(TLSD, R.get());
+   if (!R.isUsable())
+     return nullptr;
+ 
+-  Actions.ActOnFinishTopLevelStmtDecl(TLSD, R.get());
+-
+   if (Tok.is(tok::annot_repl_input_end) &&
+       Tok.getAnnotationValue() != nullptr) {
+     ConsumeAnnotationToken();
+diff --git a/clang/lib/Sema/SemaDecl.cpp b/clang/lib/Sema/SemaDecl.cpp
+index 41d5f9f2f..320ffba55 100644
+--- a/clang/lib/Sema/SemaDecl.cpp
++++ b/clang/lib/Sema/SemaDecl.cpp
+@@ -20250,7 +20250,8 @@ TopLevelStmtDecl *Sema::ActOnStartTopLevelStmtDecl(Scope *S) {
+ }
+ 
+ void Sema::ActOnFinishTopLevelStmtDecl(TopLevelStmtDecl *D, Stmt *Statement) {
+-  D->setStmt(Statement);
++  if (Statement)
++    D->setStmt(Statement);
+   PopCompoundScope();
+   PopFunctionScopeInfo();
+   PopDeclContext();
+diff --git a/clang/test/Interpreter/fail.cpp b/clang/test/Interpreter/fail.cpp
+index 633d92794..4963df8c5 100644
+--- a/clang/test/Interpreter/fail.cpp
++++ b/clang/test/Interpreter/fail.cpp
+@@ -18,4 +18,11 @@ extern "C" int printf(const char *, ...);
+ int i = 42;
+ auto r1 = printf("i = %d\n", i);
+ // CHECK: i = 42
++
++1aap = 42; // expected-error {{invalid digit 'a' in decimal constant}}
++1aap = 42; i = 5; // expected-error {{invalid digit 'a' in decimal constant}}
++
++printf("i = %d\n", i);
++// CHECK: i = 42
++
+ %quit

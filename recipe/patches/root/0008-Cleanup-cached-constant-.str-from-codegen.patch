@@ -1,0 +1,63 @@
+From 4893242613c6830da52236130744288f9f8b3b29 Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Wed, 6 Apr 2016 14:31:51 +0200
+Subject: [PATCH 08/50] Cleanup cached constant (.str) from codegen.
+
+---
+ clang/include/clang/CodeGen/ModuleBuilder.h |  3 +++
+ clang/lib/CodeGen/ModuleBuilder.cpp         | 14 ++++++++++++++
+ 2 files changed, 17 insertions(+)
+
+diff --git a/clang/include/clang/CodeGen/ModuleBuilder.h b/clang/include/clang/CodeGen/ModuleBuilder.h
+index 9f13b45ed..462859fc2 100644
+--- a/clang/include/clang/CodeGen/ModuleBuilder.h
++++ b/clang/include/clang/CodeGen/ModuleBuilder.h
+@@ -19,6 +19,7 @@
+ 
+ namespace llvm {
+   class Constant;
++  class GlobalValue;
+   class LLVMContext;
+   class Module;
+   class StringRef;
+@@ -103,6 +104,8 @@ public:
+   /// Create a new \c llvm::Module after calling HandleTranslationUnit. This
+   /// enable codegen in interactive processing environments.
+   llvm::Module* StartModule(llvm::StringRef ModuleName, llvm::LLVMContext &C);
++
++  void forgetGlobal(llvm::GlobalValue* GV);
+ };
+ 
+ /// CreateLLVMCodeGen - Create a CodeGenerator instance.
+diff --git a/clang/lib/CodeGen/ModuleBuilder.cpp b/clang/lib/CodeGen/ModuleBuilder.cpp
+index 2078461a8..bf0c30676 100644
+--- a/clang/lib/CodeGen/ModuleBuilder.cpp
++++ b/clang/lib/CodeGen/ModuleBuilder.cpp
+@@ -261,6 +261,16 @@ namespace clang {
+       return M.get();
+     }
+ 
++    void forgetGlobal(llvm::GlobalValue* GV) {
++      for (auto I = Builder->ConstantStringMap.begin(),
++            E = Builder->ConstantStringMap.end(); I != E; ++I) {
++        if (I->second == GV) {
++          Builder->ConstantStringMap.erase(I);
++          break;
++        }
++      }
++    }
++
+     void Initialize(ASTContext &Context) override {
+       Ctx = &Context;
+ 
+@@ -477,6 +487,10 @@ llvm::Module *CodeGenerator::StartModule(llvm::StringRef ModuleName,
+   return static_cast<CodeGeneratorImpl*>(this)->StartModule(ModuleName, C);
+ }
+ 
++void CodeGenerator::forgetGlobal(llvm::GlobalValue* GV) {
++  static_cast<CodeGeneratorImpl*>(this)->forgetGlobal(GV);
++}
++
+ CodeGenerator *
+ clang::CreateLLVMCodeGen(DiagnosticsEngine &Diags, llvm::StringRef ModuleName,
+                          IntrusiveRefCntPtr<llvm::vfs::FileSystem> FS,

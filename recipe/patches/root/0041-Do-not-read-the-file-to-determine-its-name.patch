@@ -1,0 +1,30 @@
+From e7f8e56ff170cddbeeb12e455ed3b68ae4413fd7 Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Mon, 6 Oct 2014 10:36:27 +0200
+Subject: [PATCH 41/50] Do not read the file to determine its name!
+
+---
+ clang/lib/Basic/SourceManager.cpp | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/clang/lib/Basic/SourceManager.cpp b/clang/lib/Basic/SourceManager.cpp
+index dba372b09..9343b3a3e 100644
+--- a/clang/lib/Basic/SourceManager.cpp
++++ b/clang/lib/Basic/SourceManager.cpp
+@@ -1492,6 +1492,16 @@ StringRef SourceManager::getBufferName(SourceLocation Loc,
+   auto B = getBufferOrNone(getFileID(Loc));
+   if (Invalid)
+     *Invalid = !B;
++
++  // Try to get the name without reading the buffer.
++  FileID FID = getFileID(Loc);
++  const SrcMgr::SLocEntry &Entry = getSLocEntry(FID, Invalid);
++  if (!Invalid && Entry.isFile()) {
++    if (OptionalFileEntryRef FE =
++            Entry.getFile().getContentCache().ContentsEntry)
++      return FE->getName();
++  }
++
+   return B ? B->getBufferIdentifier() : "<invalid buffer>";
+ }
+ 

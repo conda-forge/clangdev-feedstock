@@ -1,0 +1,36 @@
+From 6a579665071475f7dc3f0f4110b51aa26807d52d Mon Sep 17 00:00:00 2001
+From: Devajith Valaparambil Sreeramaswamy
+ <devajith.valaparambil.sreeramaswamy@cern.ch>
+Date: Fri, 19 Sep 2025 15:35:52 +0200
+Subject: [PATCH 28/50] Restore pre-LLVM20 behaviour in
+ HeaderSearch::LookupFile
+
+Reverts part of upstream LLVM commit
+https://github.com/llvm/llvm-project/commit/84df7a09f8da5809b85fd097015e5ac6cc8a3f88
+
+The newer logic triggers an assertion when building ROOT.
+---
+ clang/lib/Lex/HeaderSearch.cpp | 10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
+
+diff --git a/clang/lib/Lex/HeaderSearch.cpp b/clang/lib/Lex/HeaderSearch.cpp
+index 0b6771af7..e8c0962ee 100644
+--- a/clang/lib/Lex/HeaderSearch.cpp
++++ b/clang/lib/Lex/HeaderSearch.cpp
+@@ -951,13 +951,9 @@ OptionalFileEntryRef HeaderSearch::LookupFile(
+       // If we have no includer, that means we're processing a #include
+       // from a module build. We should treat this as a system header if we're
+       // building a [system] module.
+-      bool IncluderIsSystemHeader = [&]() {
+-        if (!Includer)
+-          return BuildSystemModule;
+-        const HeaderFileInfo *HFI = getExistingFileInfo(*Includer);
+-        assert(HFI && "includer without file info");
+-        return HFI->DirInfo != SrcMgr::C_User;
+-      }();
++      bool IncluderIsSystemHeader =
++          Includer ? getFileInfo(*Includer).DirInfo != SrcMgr::C_User :
++          BuildSystemModule;
+       if (OptionalFileEntryRef FE = getFileAndSuggestModule(
+               TmpDir, IncludeLoc, IncluderAndDir.second, IncluderIsSystemHeader,
+               RequestingModule, SuggestedModule)) {
