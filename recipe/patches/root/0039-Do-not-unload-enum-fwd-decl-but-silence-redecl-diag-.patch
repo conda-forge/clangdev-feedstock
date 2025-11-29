@@ -1,0 +1,51 @@
+From e1af4a3a6397ee4764dee9a37a0f8fca1f067328 Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Wed, 16 May 2018 08:42:15 +0200
+Subject: [PATCH 39/50] Do not unload enum fwd decl but silence redecl diag
+ (ROOT-9363 ROOT-9114).
+
+Unloading the enum forward decl has tragic consequences e.g. for template
+specializations relying on that decl (as template type parameter): the
+enum definition will not be associated with the forward decl, and any
+subsequent template specialization will not recognize the type identity
+of the enum forward declaration and its definition.
+
+Instead, silence the diagnostic. This is not nice, but will be fixed by
+C++ modules.
+---
+ clang/lib/Sema/SemaDecl.cpp | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
+
+diff --git a/clang/lib/Sema/SemaDecl.cpp b/clang/lib/Sema/SemaDecl.cpp
+index eab6f5425..6054f9705 100644
+--- a/clang/lib/Sema/SemaDecl.cpp
++++ b/clang/lib/Sema/SemaDecl.cpp
+@@ -16924,6 +16924,28 @@ bool Sema::CheckEnumRedeclaration(SourceLocation EnumLoc, bool IsScoped,
+       return true;
+     }
+   } else if (IsFixed != Prev->isFixed()) {
++    // Determine whether this is a cling fwd decl.
++    auto hasFwdDeclAnnotation = [](const Decl *Prev) -> bool {
++      for(auto attr = Prev->specific_attr_begin<AnnotateAttr>(),
++               end = Prev->specific_attr_end<AnnotateAttr> ();
++          attr != end;
++          ++attr)
++      {
++        if (!attr->isInherited()) {
++          llvm::StringRef annotation = attr->getAnnotation();
++          assert(!annotation.empty() && "Empty annotation!");
++          if (annotation.starts_with("$clingAutoload$")) {
++            // autoload annotation.
++            return true;
++          }
++        }
++      }
++      return false;
++    };
++
++    if (hasFwdDeclAnnotation(Prev))
++      return false;
++
+     Diag(EnumLoc, diag::err_enum_redeclare_fixed_mismatch)
+       << Prev->isFixed();
+     Diag(Prev->getLocation(), diag::note_previous_declaration);

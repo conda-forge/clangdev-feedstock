@@ -1,0 +1,26 @@
+From 72dece9c5215abdc68b322340e676e3cbbe01769 Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Tue, 7 Jan 2014 12:05:19 +0100
+Subject: [PATCH 12/50] Make sure the inode did not get updated since we read
+ it.
+
+Co-authored-by: Philippe Canal <pcanal@fnal.gov>
+---
+ clang/lib/Basic/FileManager.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/clang/lib/Basic/FileManager.cpp b/clang/lib/Basic/FileManager.cpp
+index 3dced94f9..14b36c7bc 100644
+--- a/clang/lib/Basic/FileManager.cpp
++++ b/clang/lib/Basic/FileManager.cpp
+@@ -351,7 +351,9 @@ llvm::Expected<FileEntryRef> FileManager::getFileRef(StringRef Filename,
+   }
+ 
+   FileEntryRef ReturnedRef(*NamedFileEnt);
+-  if (ReusingEntry) { // Already have an entry with this inode, return it.
++  if (ReusingEntry &&
++      llvm::sys::toTimeT(Status.getLastModificationTime()) == UFE->ModTime) {
++    // Already have an entry with this inode, return it.
+     return ReturnedRef;
+   }
+ 

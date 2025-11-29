@@ -1,0 +1,25 @@
+From 3bd4736833f546046979b4a1ecead6e1578c0fac Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Mon, 23 Mar 2015 15:22:49 +0100
+Subject: [PATCH 20/50] Do not load the source file just to get an irrelevant
+ SourceLoc (ROOT-7111).
+
+---
+ clang/lib/Lex/Lexer.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/clang/lib/Lex/Lexer.cpp b/clang/lib/Lex/Lexer.cpp
+index 087c6f13a..75dcea2e1 100644
+--- a/clang/lib/Lex/Lexer.cpp
++++ b/clang/lib/Lex/Lexer.cpp
+@@ -857,6 +857,10 @@ SourceLocation Lexer::getLocForEndOfToken(SourceLocation Loc, unsigned Offset,
+       return {}; // Points inside the macro expansion.
+   }
+ 
++  // Don't hit the file system for ASTReader tokens.
++  if (SM.isLoadedSourceLocation(Loc))
++    return Loc;
++
+   unsigned Len = Lexer::MeasureTokenLength(Loc, SM, LangOpts);
+   if (Len > Offset)
+     Len = Len - Offset;
