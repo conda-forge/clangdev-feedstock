@@ -37,9 +37,12 @@ else
   rm -rf $BUILD_PREFIX/bin/llvm-tblgen
 fi
 
+export LTO=auto
+
 if [[ "$target_platform" == osx* ]]; then
   export CXXFLAGS="$CXXFLAGS -DTARGET_OS_OSX=1"
   CMAKE_ARGS="$CMAKE_ARGS -DLLVM_ENABLE_LIBCXX=ON"
+  export LTO=Thin
 fi
 
 # disable -fno-plt due to some GCC bug causing linker errors, see
@@ -66,6 +69,8 @@ cmake \
   -DLLVM_ENABLE_ZLIB=FORCE_ON \
   -DLLVM_ENABLE_ZSTD=FORCE_ON \
   -DLLVM_ENABLE_RTTI=ON \
+  -DLLVM_ENABLE_LTO=$LTO \
+  -DLLVM_ENABLE_FATLTO=ON \
   -DCMAKE_AR=$AR \
   -DPython3_EXECUTABLE=${BUILD_PREFIX}/bin/python \
   $CMAKE_ARGS \
