@@ -31,3 +31,12 @@ rmdir /s /q bin2
 
 cd %LIBRARY_BIN%
 copy clang-!MAJOR_VERSION!.exe "clang++-!MAJOR_VERSION!.exe"
+
+:: conda's use of `files:` disables usual before/after snapshotting mechanism
+:: of host environment, see https://github.com/conda/conda-build/issues/5455;
+:: since we're including `Library/lib/clang` on windows and llvm-openmp is in
+:: host, we need to delete files in that path which llvm-openmp brings along;
+:: only from 18-20 because those are the only versions where this is relevant
+rmdir /s /q %LIBRARY_LIB%\clang\18
+rmdir /s /q %LIBRARY_LIB%\clang\19
+rmdir /s /q %LIBRARY_LIB%\clang\20
