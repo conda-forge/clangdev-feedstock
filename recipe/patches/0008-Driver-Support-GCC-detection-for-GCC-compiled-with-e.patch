@@ -1,4 +1,4 @@
-From 80273e49f3652a60ba3c54bc7c397106dc1eed42 Mon Sep 17 00:00:00 2001
+From 94cabc0a177da9e7af376c0821c7a981348b0be2 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Ra=C3=BAl=20Pe=C3=B1acoba?= <raul.penacoba@bsc.es>
 Date: Fri, 25 Feb 2022 04:41:02 +0000
 Subject: [PATCH 8/9] [Driver] Support GCC detection for GCC compiled with

@@ -1,4 +1,4 @@
-From 71a2ecfbaf58f89e3ea009fc4c8709c47c71f2e1 Mon Sep 17 00:00:00 2001
+From 383affd24590e0f318865232e784723988b2f081 Mon Sep 17 00:00:00 2001
 From: Chris Burr <christopher.burr@cern.ch>
 Date: Thu, 3 Mar 2022 23:19:02 +0100
 Subject: [PATCH 9/9] Remove trailing null bytes from the sysroot that come

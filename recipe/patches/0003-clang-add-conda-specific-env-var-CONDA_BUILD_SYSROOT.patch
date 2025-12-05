@@ -1,4 +1,4 @@
-From e9350523ffe9f3ef689206bf06813e70f2d2c5cd Mon Sep 17 00:00:00 2001
+From f59eacac72a8220ceae6f658858a3eaba2540ac2 Mon Sep 17 00:00:00 2001
 From: Nehal J Wani <nehaljw.kkd1@gmail.com>
 Date: Sat, 25 Aug 2018 09:20:04 -0500
 Subject: [PATCH 3/9] clang: add conda specific env var CONDA_BUILD_SYSROOT
@@ -8,11 +8,12 @@ And also improve logic for finding the macos sysroot for conda
 Co-authored-by: Chris Burr <christopher.burr@cern.ch>
 Co-authored-by: Vincenzo Eduardo Padulano <v.e.padulano@gmail.com>
 Co-authored-by: Isuru Fernando <isuruf@gmail.com>
+Co-authored-by: H. Vetinari <h.vetinari@gmx.com>
 ---
  clang/lib/Driver/Driver.cpp             |  5 ++
- clang/lib/Driver/ToolChains/Darwin.cpp  | 76 ++++++++++++++++++++++++-
+ clang/lib/Driver/ToolChains/Darwin.cpp  | 75 ++++++++++++++++++++++++-
  clang/lib/Frontend/InitHeaderSearch.cpp |  6 +-
- 3 files changed, 84 insertions(+), 3 deletions(-)
+ 3 files changed, 83 insertions(+), 3 deletions(-)
 
 diff --git a/clang/lib/Driver/Driver.cpp b/clang/lib/Driver/Driver.cpp
 index 94a7553e273b..ec97f298cfc6 100644
@@ -31,17 +32,16 @@ index 94a7553e273b..ec97f298cfc6 100644
      SysRoot = A->getValue();
    if (const Arg *A = Args.getLastArg(options::OPT__dyld_prefix_EQ))
 diff --git a/clang/lib/Driver/ToolChains/Darwin.cpp b/clang/lib/Driver/ToolChains/Darwin.cpp
-index 261f522f6c49..901f5262ed82 100644
+index 261f522f6c49..16129b466764 100644
 --- a/clang/lib/Driver/ToolChains/Darwin.cpp
 +++ b/clang/lib/Driver/ToolChains/Darwin.cpp
-@@ -28,6 +28,18 @@
+@@ -28,6 +28,17 @@
  #include "llvm/Support/VirtualFileSystem.h"
  #include <cstdlib> // ::getenv
  
 +// Extra includes for conda patch
 +#include <cstdio>
 +#include <memory>
-+#include <optional>
 +#include <string>
 +#include "llvm/ADT/ArrayRef.h"
 +#include "llvm/ADT/StringRef.h"
@@ -53,7 +53,7 @@ index 261f522f6c49..901f5262ed82 100644
  using namespace clang::driver;
  using namespace clang::driver::tools;
  using namespace clang::driver::toolchains;
-@@ -1842,15 +1854,75 @@ void Darwin::AddDeploymentTarget(DerivedArgList &Args) const {
+@@ -1842,15 +1853,75 @@ void Darwin::AddDeploymentTarget(DerivedArgList &Args) const {
      if (!getVFS().exists(A->getValue()))
        getDriver().Diag(clang::diag::warn_missing_sysroot) << A->getValue();
    } else {
@@ -87,40 +87,40 @@ index 261f522f6c49..901f5262ed82 100644
 +    if (foundSDKPath == "/" && !getVFS().exists("/usr/include/sys/types.h")) {
 +
 +      auto pathFromExecutable = [](llvm::ArrayRef<llvm::StringRef> Argv)
-+          -> std::optional<std::string> {
++          -> Optional<std::string> {
 +        // Inspired by clang-tools-extra/clangd/CompileCommands.cpp
 +        auto Exe = llvm::sys::findProgramByName(Argv[0]);
 +        if (!Exe) {
-+          return std::nullopt;
++          return None;
 +        }
 +        llvm::SmallString<64> OutFile;
 +        llvm::sys::fs::createTemporaryFile("darwin-adddeploymenttarget", "",
 +                                           OutFile);
 +        llvm::FileRemover OutRemover(OutFile);
-+        std::optional<llvm::StringRef> Redirects[3] = {
++        Optional<llvm::StringRef> Redirects[3] = {
 +            /*stdin=*/{""}, /*stdout=*/{OutFile.str()}, /*stderr=*/{""}};
 +        int Ret = llvm::sys::ExecuteAndWait(*Exe, Argv,
-+                                            /*Env=*/std::nullopt, Redirects,
++                                            /*Env=*/None, Redirects,
 +                                            /*SecondsToWait=*/10);
 +        if (Ret != 0) {
-+          return std::nullopt;
++          return None;
 +        }
 +
 +        auto Buf = llvm::MemoryBuffer::getFile(OutFile);
 +        if (!Buf) {
-+          return std::nullopt;
++          return None;
 +        }
 +        llvm::StringRef Path = Buf->get()->getBuffer().trim();
 +        if (Path.empty()) {
-+          return std::nullopt;
++          return None;
 +        }
 +        return Path.str();
 +      };
 +
 +      auto XcrunPath = pathFromExecutable({"xcrun", "--show-sdk-path"});
 +      if (foundSDKPath == "/" && XcrunPath &&
-+          getVFS().exists(XcrunPath.value() + "/usr/include/sys/types.h")) {
-+        foundSDKPath = XcrunPath.value();
++          getVFS().exists(XcrunPath.getValue() + "/usr/include/sys/types.h")) {
++        foundSDKPath = XcrunPath.getValue();
 +      }
 +    }
 +
