@@ -1,6 +1,6 @@
 {% set version = "13.0.1" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 10 %}
+{% set build_number = 11 %}
 
 {% set minor_aware_ext = major_version %}
 {% set minor_int = version.split(".")[1] | int %}
@@ -32,10 +32,9 @@ source:
       # Disable -Werror,-Wundef-prefix=TARGET_OS as they are not yet defined in the 10.9 SDK used for osx-64
       # Only enable it for TARGET_OS_OSX.
       - patches/0007-Only-error-on-undefined-TARGET_OS_OSX.patch                    # [osx and x86_64]
-      - patches/0008-Improve-logic-for-finding-the-macos-sysroot-for-cond.patch     # [osx]
       # backport https://github.com/llvm/llvm-project/commit/ca80c2438697dd10c60e11c07d68e3b784013b93
-      - patches/0009-Driver-Support-GCC-detection-for-GCC-compiled-with-e.patch
-      - patches/0010-Remove-trailing-null-bytes-from-the-sysroot-that-com.patch     # [variant and variant.startswith("root_")]
+      - patches/0008-Driver-Support-GCC-detection-for-GCC-compiled-with-e.patch
+      - patches/0009-Remove-trailing-null-bytes-from-the-sysroot-that-com.patch     # [variant and variant.startswith("root_")]
 
     {% if (variant or "").startswith("root_") or (variant or "").startswith("cling_") %}
       # the following patches are 100% identical between
@@ -155,13 +154,13 @@ requirements:
     - m2w64-xz  # [win]
     # "compiling .pyc files" fails without this
     - python >3
-    - llvmdev =={{ version }}    # [build_platform != target_platform]
-    - libxml2                    # [build_platform != target_platform]
-    - zlib                       # [build_platform != target_platform]
-    - zstd                       # [build_platform != target_platform]
+    - llvmdev {{ version }}     # [build_platform != target_platform]
+    - libxml2                   # [build_platform != target_platform]
+    - zlib                      # [build_platform != target_platform]
+    - zstd                      # [build_platform != target_platform]
   host:
     - libcxx-devel {{ cxx_compiler_version }}   # [osx]
-    - llvmdev =={{ version }}
+    - llvmdev {{ version }}
     - libxml2
     - zlib
     - zstd
@@ -186,8 +185,8 @@ outputs:
         - cmake
         - ninja  # [win]
         - make   # [unix]
-        - llvmdev =={{ version }}    # [build_platform != target_platform]
-        - zlib                       # [build_platform != target_platform and (linux or win)]
+        - llvmdev {{ version }}     # [build_platform != target_platform]
+        - zlib                      # [build_platform != target_platform]
       host:
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clangxx", exact=True) }}
@@ -196,7 +195,7 @@ outputs:
         - {{ pin_subpackage("libclang-cpp", exact=True) }}
         # Use the same requirements as the top-level requirements
         - libcxx-devel {{ cxx_compiler_version }}   # [osx]
-        - llvmdev =={{ version }}
+        - llvmdev {{ version }}
         - libxml2
         - zlib
         - zstd
@@ -206,7 +205,7 @@ outputs:
         - {{ pin_subpackage("clang-tools", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
         - {{ pin_subpackage("libclang-cpp", exact=True) }}
-        - llvmdev =={{ version }}
+        - llvmdev {{ version }}
         - libcxx-devel >={{ version }},<={{ libcxx_bound }}     # [osx]
         # we need to do this manually because clang_bootstrap has no run-export
         - libcxx >={{ cxx_compiler_version }}                   # [osx]
@@ -262,13 +261,13 @@ outputs:
         - cmake
         - ninja  # [win]
         - make   # [unix]
-        - llvmdev =={{ version }}    # [build_platform != target_platform]
-        - zlib                       # [build_platform != target_platform and linux]
+        - llvmdev {{ version }}     # [build_platform != target_platform]
+        - zlib                      # [build_platform != target_platform]
       host:
-        - llvm =={{ version }}
+        - llvm {{ version }}
         # Use the same requirements as the top-level requirements
         - libcxx-devel {{ cxx_compiler_version }}  # [osx]
-        - llvmdev =={{ version }}
+        - llvmdev {{ version }}
         - libxml2
         - zlib
         - zstd
@@ -307,14 +306,14 @@ outputs:
         - cmake
         - ninja  # [win]
         - make   # [unix]
-        - llvmdev =={{ version }}    # [build_platform != target_platform]
-        - zlib                       # [build_platform != target_platform and linux]
+        - llvmdev {{ version }}     # [build_platform != target_platform]
+        - zlib                      # [build_platform != target_platform]
       host:
-        - llvm =={{ version }}
+        - llvm {{ version }}
         - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, exact=True) }}  # [unix]
         # Use the same requirements as the top-level requirements
         - libcxx-devel {{ cxx_compiler_version }}   # [osx]
-        - llvmdev =={{ version }}
+        - llvmdev {{ version }}
         - libxml2
         - zlib
         - zstd
@@ -355,16 +354,16 @@ outputs:
         - {{ stdlib('c') }}
         - {{ compiler('cxx') }}
         - cmake
-        - ninja                      # [win]
-        - make                       # [unix]
-        - llvmdev =={{ version }}    # [build_platform != target_platform]
-        - zlib                       # [build_platform != target_platform and (linux or win)]
+        - ninja                     # [win]
+        - make                      # [unix]
+        - llvmdev {{ version }}     # [build_platform != target_platform]
+        - zlib                      # [build_platform != target_platform]
       host:
-        - llvm =={{ version }}
+        - llvm {{ version }}
         - {{ pin_subpackage("clang", exact=True) }}
         # Use the same requirements as the top-level requirements
         - libcxx-devel {{ cxx_compiler_version }}   # [osx]
-        - llvmdev =={{ version }}
+        - llvmdev {{ version }}
         - libxml2
         - zlib
         - zstd
@@ -406,16 +405,16 @@ outputs:
         - {{ stdlib('c') }}
         - {{ compiler('cxx') }}
         - cmake
-        - ninja                              # [win]
-        - make                               # [unix]
-        - llvmdev =={{ version }}            # [build_platform != target_platform]
-        - zlib                               # [build_platform != target_platform and (linux or win)]
+        - ninja                     # [win]
+        - make                      # [unix]
+        - llvmdev {{ version }}     # [build_platform != target_platform]
+        - zlib                      # [build_platform != target_platform]
       host:
-        - llvm =={{ version }}
+        - llvm {{ version }}
         - {{ pin_subpackage("libclang-cpp" ~ minor_aware_ext, exact=True) }}  # [unix]
         # Use the same requirements as the top-level requirements
         - libcxx-devel {{ cxx_compiler_version }}  # [osx]
-        - llvmdev =={{ version }}
+        - llvmdev {{ version }}
         - libxml2
         - zlib
         - zstd
@@ -458,11 +457,15 @@ outputs:
         - zlib     # [unix]
         - zstd
     requirements:
+      # for run-exports
+      build:                        # [win]
+        - {{ stdlib('c') }}         # [win]
+        - {{ compiler('cxx') }}     # [win]
       host:
         - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
         # Use the same requirements as the top-level requirements
         - libcxx-devel {{ cxx_compiler_version }}   # [osx]
-        - llvmdev =={{ version }}
+        - llvmdev {{ version }}
         - libxml2
         - zlib
         - zstd
@@ -492,11 +495,15 @@ outputs:
         - zlib     # [unix]
         - zstd
     requirements:
+      # for run-exports
+      build:                        # [win]
+        - {{ stdlib('c') }}         # [win]
+        - {{ compiler('cxx') }}     # [win]
       host:
         - {{ pin_subpackage("clang", exact=True) }}
         # Use the same requirements as the top-level requirements
         - libcxx-devel {{ cxx_compiler_version }}   # [osx]
-        - llvmdev =={{ version }}
+        - llvmdev {{ version }}
         - libxml2
         - zlib
         - zstd
@@ -542,17 +549,17 @@ outputs:
         - {{ compiler('cxx') }}
         - cmake
         - make   # [unix]
-        - llvmdev =={{ version }}    # [build_platform != target_platform]
-        - zlib                       # [build_platform != target_platform and (linux or win)]
+        - llvmdev {{ version }}     # [build_platform != target_platform]
+        - zlib                      # [build_platform != target_platform]
       host:
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clangxx", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
         - {{ pin_subpackage("libclang-cpp", exact=True) }}
-        - llvm =={{ version }}
+        - llvm {{ version }}
         # Use the same requirements as the top-level requirements
         - libcxx-devel {{ cxx_compiler_version }}   # [osx]
-        - llvmdev =={{ version }}
+        - llvmdev {{ version }}
         - libxml2
         - zlib
         - zstd
@@ -593,18 +600,18 @@ outputs:
         - cmake
         - ninja  # [win]
         - make   # [unix]
-        - llvmdev =={{ version }}    # [build_platform != target_platform]
-        - zlib                       # [build_platform != target_platform and (linux or win)]
+        - llvmdev {{ version }}     # [build_platform != target_platform]
+        - zlib                      # [build_platform != target_platform]
       host:
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clangxx", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
         - {{ pin_subpackage("libclang-cpp", exact=True) }}
         - {{ pin_subpackage("clang-format-" ~ major_version, exact=True) }}   # [unix]
-        - llvm =={{ version }}
+        - llvm {{ version }}
         # Use the same requirements as the top-level requirements
         - libcxx-devel {{ cxx_compiler_version }}   # [osx]
-        - llvmdev =={{ version }}
+        - llvmdev {{ version }}
         - libxml2
         - zlib
         - zstd
@@ -641,18 +648,18 @@ outputs:
         - cmake
         - ninja  # [win]
         - make   # [unix]
-        - llvmdev =={{ version }}    # [build_platform != target_platform]
-        - zlib                       # [build_platform != target_platform and (linux or win)]
+        - llvmdev {{ version }}     # [build_platform != target_platform]
+        - zlib                      # [build_platform != target_platform]
       host:
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clangxx", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
         - {{ pin_subpackage("libclang-cpp", exact=True) }}
         - {{ pin_subpackage("clang-format", exact=True) }}
-        - llvm =={{ version }}
+        - llvm {{ version }}
         # Use the same requirements as the top-level requirements
         - libcxx-devel {{ cxx_compiler_version }}  # [osx]
-        - llvmdev =={{ version }}
+        - llvmdev {{ version }}
         - libxml2
         - zlib
         - zstd
@@ -687,7 +694,7 @@ outputs:
         - python {{ python_min }}
       run:
         - python >={{ python_min }}
-        - libclang =={{ version }}
+        - libclang {{ version }}
     test:
       requires:
         - python {{ python_min }}
