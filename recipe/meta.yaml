@@ -1,7 +1,7 @@
 {% set version = "20.1.8" %}
 {% set major_version = version.split(".")[0] %}
 {% set tail_version = version.split(".")[-1] %}
-{% set build_number = 5 %}
+{% set build_number = 6 %}
 
 # always includes minor as of v18, see https://github.com/llvm/llvm-project/issues/76273
 {% set maj_min = major_version ~ "." ~ version.split(".")[1] %}
@@ -460,6 +460,35 @@ outputs:
         - if exist %LIBRARY_BIN%\clang-cl.exe exit 1    # [win]
         - if exist %LIBRARY_BIN%\clang-cpp.exe exit 1   # [win]
 
+  - name: clang_impl_{{ target_platform }}
+    script: install_clang_symlinks.sh
+    build:
+      track_features:
+        - root         # [variant and variant.startswith("root_")]
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+      skip: true  # [win]
+    requirements:
+      host:
+        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+      run:
+        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+        - compiler-rt_{{ target_platform }}
+        - compiler-rt {{ version }}.*
+        - binutils_impl_{{ target_platform }}  # [linux]
+        - sysroot_{{ target_platform }}        # [linux]
+        - libgcc-devel_{{ target_platform }}   # [linux]
+        - llvm-tools {{ version }}.*           # [osx]
+        - cctools_impl_{{ target_platform }}   # [osx]
+        - ld64_{{ target_platform }} * llvm{{ maj_min.replace(".", "_") }}_*    # [osx]
+        - ld64                                 # [osx]
+        - llvm-openmp >={{ version }}
+    test:
+      commands:
+        - x86_64-conda-linux-gnu-clang --version         # [linux64]
+        - x86_64-conda-linux-gnu-clang-cpp --version     # [linux64]
+        - x86_64-apple-darwin13.4.0-clang --version      # [osx and x86_64]
+        - x86_64-apple-darwin13.4.0-clang-cpp --version  # [osx and x86_64]
+
   - name: clang
     script: install_clang_symlinks.sh  # [unix]
     script: install_clang_symlinks.bat  # [win]
@@ -490,15 +519,37 @@ outputs:
         - sysroot_{{ target_platform }}        # [linux]
         - libgcc-devel_{{ target_platform }}   # [linux]
         - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+        - {{ pin_subpackage("clang_impl_" ~ target_platform, exact=True) }}     # [unix]
     test:
       commands:
         - clang --version
         - clang-cl --version
         - clang-cpp --version
 
+  - name: clangxx_impl_{{ target_platform }}
+    script: install_clang_symlinks.sh
+    build:
+      track_features:
+        - root         # [variant and variant.startswith("root_")]
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+      skip: true  # [win]
+    requirements:
+      host:
+        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+      run:
+        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+        - {{ pin_subpackage("clang_impl_" ~ target_platform, exact=True) }}
+        - libstdcxx-devel_{{ target_platform }}  # [linux]
+        # only minor-pin to avoid issues when building new libcxx versions
+        - libcxx-devel {{ maj_min }}             # [osx]
+    test:
+      commands:
+        - x86_64-conda-linux-gnu-clang++ --version         # [linux64]
+        - x86_64-apple-darwin13.4.0-clang++ --version      # [osx and x86_64]
+
   - name: clangxx
-    script: install_clangxx.sh  # [unix]
-    script: install_clangxx.bat  # [win]
+    script: install_clang_symlinks.sh  # [unix]
+    script: install_clang_symlinks.bat  # [win]
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
@@ -514,14 +565,17 @@ outputs:
         - {{ stdlib('c') }}         # [win]
         - {{ compiler('cxx') }}     # [win]
       host:
-        - {{ pin_subpackage("clang", exact=True) }}
-        # Use the same requirements as the top-level requirements
-        - libcxx-devel {{ cxx_compiler_version }}   # [osx]
+        - {{ pin_subpackage("clangxx_impl_" ~ target_platform, exact=True) }}  # [unix]
+        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+        # cannot pin to `cxx_compiler_version` here,
+        # because clangxx_impl_ pins libcxx-devel to `maj_min`
+        - libcxx-devel {{ maj_min }}    # [osx]
         - llvmdev {{ version }}
         - libxml2-devel
         - zlib
         - zstd
       run:
+        - {{ pin_subpackage("clangxx_impl_" ~ target_platform, exact=True) }}  # [unix]
         - libstdcxx-devel_{{ target_platform }}  # [linux]
         # only minor-pin to avoid issues when building new libcxx versions
         - libcxx-devel {{ maj_min }}             # [osx]
