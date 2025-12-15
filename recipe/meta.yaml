@@ -489,6 +489,27 @@ outputs:
         - test -f $PREFIX/lib/clang/{{ major_version }}/lib/darwin/libclang_rt.osx.a             # [osx]
         - if not exist %LIBRARY_LIB%\clang\{{ major_version }}\lib\windows\clang_rt.builtins-x86_64.lib exit 1  # [win and x64_64]
 
+  - name: clangxx_impl_{{ target_platform }}
+    script: install_clang_symlinks.sh
+    build:
+      track_features:
+        - root         # [variant and variant.startswith("root_")]
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+      skip: true  # [win]
+    requirements:
+      host:
+        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+      run:
+        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+        - {{ pin_subpackage("clang_impl_" ~ target_platform, exact=True) }}
+        - libstdcxx-devel_{{ target_platform }}  # [linux]
+        # only minor-pin to avoid issues when building new libcxx versions
+        - libcxx-devel {{ maj_min }}             # [osx]
+    test:
+      commands:
+        - x86_64-conda-linux-gnu-clang++ --version         # [linux64]
+        - x86_64-apple-darwin13.4.0-clang++ --version      # [osx and x86_64]
+
   - name: clangxx
     script: install_clang_symlinks.sh  # [unix]
     script: install_clang_symlinks.bat  # [win]
@@ -508,6 +529,7 @@ outputs:
         - {{ compiler('cxx') }}     # [win]
       host:
         - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+        - {{ pin_subpackage("clangxx_impl_" ~ target_platform, exact=True) }}
         # Use the same requirements as the top-level requirements
         - libcxx-devel {{ cxx_compiler_version }}   # [osx]
         - llvmdev {{ version }}
@@ -515,6 +537,7 @@ outputs:
         - zlib
         - zstd
       run:
+        - {{ pin_subpackage("clangxx_impl_" ~ target_platform, exact=True) }}
         - libstdcxx-devel_{{ target_platform }}  # [linux]
         # only minor-pin to avoid issues when building new libcxx versions
         - libcxx-devel {{ maj_min }}             # [osx]
