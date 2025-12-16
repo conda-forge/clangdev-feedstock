@@ -529,7 +529,6 @@ outputs:
         - {{ compiler('cxx') }}     # [win]
       host:
         - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
-        - {{ pin_subpackage("clangxx_impl_" ~ target_platform, exact=True) }}  # [unix]
         # Use the same requirements as the top-level requirements
         - libcxx-devel {{ cxx_compiler_version }}   # [osx]
         - llvmdev {{ version }}
