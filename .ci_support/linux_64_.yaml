@@ -22,6 +22,9 @@ target_platform:
 - linux-64
 variant:
 - default
+with_flags:
+- false
+- true
 zlib:
 - '1'
 zstd:

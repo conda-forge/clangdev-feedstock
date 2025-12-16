@@ -12,3 +12,7 @@ libclang_soversion:
 # keep for use with root when it catches up
 variant:
   - default
+
+with_flags:
+  - true
+  - false
