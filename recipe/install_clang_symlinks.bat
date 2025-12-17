@@ -10,7 +10,7 @@ if "%PKG_NAME%" == "clang" (
   )
 )
 
-if "%PKG_NAME%" == clangxx" (
+if "%PKG_NAME%" == "clangxx" (
   for /f "tokens=1 delims=." %%a in ("%PKG_VERSION%") do (
     copy clang-%%a.exe clang++.exe
   )
