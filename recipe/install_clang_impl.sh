@@ -17,7 +17,7 @@ fi
 
 mkdir -p ${PREFIX}/bin
 
-if [[ "${with_flags}" == "true" ]]; then
+if [[ "${with_cfg}" == "true" ]]; then
   echo '-isystem <CFGDIR>/../include'                    > ${PREFIX}/bin/${TARGET}.cfg
   echo '$-Wl,-L,<CFGDIR>/../lib'                        >> ${PREFIX}/bin/${TARGET}.cfg
   echo '$-Wl,-rpath,<CFGDIR>/../lib'                    >> ${PREFIX}/bin/${TARGET}.cfg

@@ -22,7 +22,7 @@ target_platform:
 - linux-ppc64le
 variant:
 - default
-with_flags:
+with_cfg:
 - false
 - true
 zlib:

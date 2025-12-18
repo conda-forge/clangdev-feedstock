@@ -70,8 +70,8 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
-      string: {{ variant }}_flags_h{{ PKG_HASH }}_{{ build_number }}    # [with_flags]
-      string: {{ variant }}_noflags_h{{ PKG_HASH }}_{{ build_number }}  # [not with_flags]
+      string: {{ variant }}_cfg_h{{ PKG_HASH }}_{{ build_number }}    # [with_cfg]
+      string: {{ variant }}_nocfg_h{{ PKG_HASH }}_{{ build_number }}  # [not with_cfg]
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
         - libxml2-devel     # [unix]
@@ -419,9 +419,9 @@ outputs:
     build:
       track_features:
         - root           # [variant and variant.startswith("root_")]
-        - clang_noflags  # [not with_flags]
-      string: {{ variant }}_flags_h{{ PKG_HASH }}_{{ build_number }}    # [with_flags]
-      string: {{ variant }}_noflags_h{{ PKG_HASH }}_{{ build_number }}  # [not with_flags]
+        - clang_nocfg  # [not with_cfg]
+      string: {{ variant }}_cfg_h{{ PKG_HASH }}_{{ build_number }}    # [with_cfg]
+      string: {{ variant }}_nocfg_h{{ PKG_HASH }}_{{ build_number }}  # [not with_cfg]
       skip: true  # [win]
     requirements:
       host:
@@ -451,9 +451,9 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
-        - clang_noflags  # [not with_flags]
-      string: {{ variant }}_flags_h{{ PKG_HASH }}_{{ build_number }}    # [with_flags]
-      string: {{ variant }}_noflags_h{{ PKG_HASH }}_{{ build_number }}  # [not with_flags]
+        - clang_nocfg  # [not with_cfg]
+      string: {{ variant }}_cfg_h{{ PKG_HASH }}_{{ build_number }}    # [with_cfg]
+      string: {{ variant }}_nocfg_h{{ PKG_HASH }}_{{ build_number }}  # [not with_cfg]
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
         - libxml2-devel
@@ -499,9 +499,9 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
-        - clang_noflags  # [not with_flags]
-      string: {{ variant }}_flags_h{{ PKG_HASH }}_{{ build_number }}    # [with_flags]
-      string: {{ variant }}_noflags_h{{ PKG_HASH }}_{{ build_number }}  # [not with_flags]
+        - clang_nocfg  # [not with_cfg]
+      string: {{ variant }}_cfg_h{{ PKG_HASH }}_{{ build_number }}    # [with_cfg]
+      string: {{ variant }}_nocfg_h{{ PKG_HASH }}_{{ build_number }}  # [not with_cfg]
       skip: true  # [win]
     requirements:
       host:
@@ -523,9 +523,9 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
-        - clang_noflags  # [not with_flags]
-      string: {{ variant }}_flags_h{{ PKG_HASH }}_{{ build_number }}    # [with_flags]
-      string: {{ variant }}_noflags_h{{ PKG_HASH }}_{{ build_number }}  # [not with_flags]
+        - clang_nocfg  # [not with_cfg]
+      string: {{ variant }}_cfg_h{{ PKG_HASH }}_{{ build_number }}    # [with_cfg]
+      string: {{ variant }}_nocfg_h{{ PKG_HASH }}_{{ build_number }}  # [not with_cfg]
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
         - libxml2-devel

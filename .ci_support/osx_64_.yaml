@@ -28,7 +28,7 @@ target_platform:
 - osx-64
 variant:
 - default
-with_flags:
+with_cfg:
 - false
 - true
 zlib:

@@ -13,6 +13,6 @@ libclang_soversion:
 variant:
   - default
 
-with_flags:
+with_cfg:
   - true
   - false
