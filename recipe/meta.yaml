@@ -593,6 +593,7 @@ outputs:
         - make   # [unix]
         - llvmdev {{ version }}     # [build_platform != target_platform]
       host:
+        # it does not matter whether we use cfg or nocfg clang{,xx} in host
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clangxx", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
@@ -641,6 +642,7 @@ outputs:
         - make   # [unix]
         - llvmdev {{ version }}     # [build_platform != target_platform]
       host:
+        # it does not matter whether we use cfg or nocfg clang{,xx} in host
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clangxx", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
@@ -687,6 +689,7 @@ outputs:
         - make   # [unix]
         - llvmdev {{ version }}     # [build_platform != target_platform]
       host:
+        # it does not matter whether we use cfg or nocfg clang{,xx} in host
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clangxx", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
