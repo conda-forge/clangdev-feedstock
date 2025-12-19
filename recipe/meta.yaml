@@ -454,7 +454,7 @@ outputs:
     requirements:
       build:
       run:
-        - {{ pin_subpackage("clang_impl-" ~ target_platform, exact=True) }}
+        - {{ pin_subpackage("clang_impl_" ~ target_platform, exact=True) }}
     test:
       commands:
         - x86_64-conda-linux-gnu-clang --version         # [linux64]
