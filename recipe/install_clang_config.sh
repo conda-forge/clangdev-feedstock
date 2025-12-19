@@ -1,4 +1,5 @@
-source ${RECIPE_DIR}/install_clang_symlinks.sh
+#!/bin/bash
+set -ex
 
 if [[ "${target_platform}" == "linux-64" ]]; then
   TARGET=x86_64-conda-linux-gnu
