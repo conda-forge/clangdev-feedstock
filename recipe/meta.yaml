@@ -536,6 +536,14 @@ outputs:
         - clang-cl --version
         - clang-cpp --version
 
+  - name: clang-no-conda-cfg
+    build:
+      skip: true  # [with_cfg]
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+    requirements:
+      run:
+        - clang {{ version }} {{ variant }}_nocfg_*_{{ build_number }}
+
   - name: clangxx_impl_{{ target_platform }}
     script: install_clang_symlinks.sh
     build:
