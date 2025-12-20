@@ -523,7 +523,9 @@ outputs:
         - sysroot_{{ target_platform }}        # [linux]
         - libgcc-devel_{{ target_platform }}   # [linux]
         - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
-        - {{ pin_subpackage("clang_impl_" ~ target_platform, exact=True) }}     # [unix]
+        # morally, this is `{{ pin_subpackage("clang_impl_" ~ target_platform, exact=True) }}`
+        - clang_impl_{{ target_platform }} {{ version }} {{ variant }}_cfg_*_{{ build_number }}    # [with_cfg]
+        - clang_impl_{{ target_platform }} {{ version }} {{ variant }}_nocfg_*_{{ build_number }}  # [not with_cfg]
     test:
       commands:
         - clang --version
@@ -556,7 +558,9 @@ outputs:
         - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
       run:
         - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
-        - {{ pin_subpackage("clang_impl_" ~ target_platform, exact=True) }}
+        # morally, this is `{{ pin_subpackage("clang_impl_" ~ target_platform, exact=True) }}`
+        - clang_impl_{{ target_platform }} {{ version }} {{ variant }}_cfg_*_{{ build_number }}    # [with_cfg]
+        - clang_impl_{{ target_platform }} {{ version }} {{ variant }}_nocfg_*_{{ build_number }}  # [not with_cfg]
         - libstdcxx-devel_{{ target_platform }}  # [linux]
         # only minor-pin to avoid issues when building new libcxx versions
         - libcxx-devel {{ maj_min }}             # [osx]
