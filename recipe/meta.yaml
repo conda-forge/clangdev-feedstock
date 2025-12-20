@@ -536,7 +536,8 @@ outputs:
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
     requirements:
       run:
-        - {{ pin_subpackage("clang", exact=True) }}
+        - clang {{ version }} *_{{ build_number }}
+        - clang * *nocfg*
     test:
       commands:
         - clang --version
