@@ -465,7 +465,7 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
-        - clang_nocfg  # [not with_cfg]
+        - clang_cfg    # [with_cfg]
       string: {{ variant }}_cfg_h{{ PKG_HASH }}_{{ build_number }}    # [with_cfg]
       string: {{ variant }}_nocfg_h{{ PKG_HASH }}_{{ build_number }}  # [not with_cfg]
       skip: true  # [win]
@@ -497,7 +497,7 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
-        - clang_nocfg  # [not with_cfg]
+        - clang_cfg    # [with_cfg]
       string: {{ variant }}_cfg_h{{ PKG_HASH }}_{{ build_number }}    # [with_cfg]
       string: {{ variant }}_nocfg_h{{ PKG_HASH }}_{{ build_number }}  # [not with_cfg]
       ignore_run_exports_from:
@@ -543,7 +543,7 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
-        - clang_nocfg  # [not with_cfg]
+        - clang_cfg    # [with_cfg]
       string: {{ variant }}_cfg_h{{ PKG_HASH }}_{{ build_number }}    # [with_cfg]
       string: {{ variant }}_nocfg_h{{ PKG_HASH }}_{{ build_number }}  # [not with_cfg]
       skip: true  # [win]
@@ -567,7 +567,7 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
-        - clang_nocfg  # [not with_cfg]
+        - clang_cfg    # [with_cfg]
       string: {{ variant }}_cfg_h{{ PKG_HASH }}_{{ build_number }}    # [with_cfg]
       string: {{ variant }}_nocfg_h{{ PKG_HASH }}_{{ build_number }}  # [not with_cfg]
       ignore_run_exports_from:
