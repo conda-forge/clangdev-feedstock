@@ -16,6 +16,8 @@ target_platform:
 - win-64
 variant:
 - default
+with_cfg:
+- false
 zlib:
 - '1'
 zstd:

@@ -26,6 +26,9 @@ target_platform:
 - osx-arm64
 variant:
 - root_63800
+with_cfg:
+- false
+- true
 zlib:
 - '1'
 zstd:

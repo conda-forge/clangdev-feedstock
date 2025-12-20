@@ -12,3 +12,7 @@ libclang_soversion:
 variant:
   - default
   - root_63800  # [linux or osx]
+
+with_cfg:
+  - true        # [unix]
+  - false
