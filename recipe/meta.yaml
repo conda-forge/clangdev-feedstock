@@ -599,7 +599,9 @@ outputs:
         - libstdcxx-devel_{{ target_platform }}  # [linux]
         # only minor-pin to avoid issues when building new libcxx versions
         - libcxx-devel {{ maj_min }}             # [osx]
-        - {{ pin_subpackage("clang", exact=True) }}
+        # morally, this is `{{ pin_subpackage("clang", exact=True) }}`
+        - clang {{ version }} {{ variant }}_cfg_*_{{ build_number }}    # [with_cfg]
+        - clang {{ version }} {{ variant }}_nocfg_*_{{ build_number }}  # [not with_cfg]
     test:
       requires:
         - {{ compiler("cxx") }}
