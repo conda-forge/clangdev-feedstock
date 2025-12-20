@@ -26,6 +26,9 @@ target_platform:
 - osx-64
 variant:
 - default
+with_cfg:
+- false
+- true
 zlib:
 - '1'
 zstd:
