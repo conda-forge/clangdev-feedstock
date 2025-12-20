@@ -537,6 +537,9 @@ outputs:
     requirements:
       run:
         - {{ pin_subpackage("clang", exact=True) }}
+    test:
+      commands:
+        - clang --version
 
   - name: clangxx_impl_{{ target_platform }}
     script: install_clang_symlinks.sh
