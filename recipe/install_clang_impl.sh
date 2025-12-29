@@ -18,15 +18,22 @@ fi
 mkdir -p ${PREFIX}/bin
 
 if [[ "${with_cfg}" == "true" ]]; then
-  echo '-isystem <CFGDIR>/../include'                    > ${PREFIX}/bin/${TARGET}.cfg
-  echo '$-Wl,-L,<CFGDIR>/../lib'                        >> ${PREFIX}/bin/${TARGET}.cfg
-  echo '$-Wl,-rpath,<CFGDIR>/../lib'                    >> ${PREFIX}/bin/${TARGET}.cfg
-  if [[ "${target_platform}" == "linux-"* ]]; then
-    echo '$-Wl,-rpath-link,<CFGDIR>/../lib'             >> ${PREFIX}/bin/${TARGET}.cfg
-    echo "--sysroot=<CFGDIR>/../${TARGET}/sysroot"      >> ${PREFIX}/bin/${TARGET}.cfg
-  fi
-else
-  if [[ "${target_platform}" == "linux-"* ]]; then
-    echo "--sysroot=<CFGDIR>/../${TARGET}/sysroot"       > ${PREFIX}/bin/${TARGET}.cfg
-  fi
+  # technically the clang++/flang cfg files should be in clang++ and flang packages
+  # but it's easier to consolidate them here.
+  for driver in clang clang++ clang-cpp; do
+    echo '-isystem <CFGDIR>/../include'                    > ${PREFIX}/bin/${TARGET}-${driver}.cfg
+  done
+  for driver in clang clang++ flang; do
+    echo '$-Wl,-L,<CFGDIR>/../lib'                        >> ${PREFIX}/bin/${TARGET}-${driver}.cfg
+    echo '$-Wl,-rpath,<CFGDIR>/../lib'                    >> ${PREFIX}/bin/${TARGET}-${driver}.cfg
+    if [[ "${target_platform}" == "linux-"* ]]; then
+      echo '$-Wl,-rpath-link,<CFGDIR>/../lib'             >> ${PREFIX}/bin/${TARGET}-${driver}.cfg
+    fi
+  done
+fi
+
+if [[ "${target_platform}" == "linux-"* ]]; then
+  for driver in clang clang++ flang clang-cpp; do
+    echo "--sysroot=<CFGDIR>/../${TARGET}/sysroot"        >> ${PREFIX}/bin/${TARGET}-${driver}.cfg
+  done
 fi
