@@ -5,4 +5,4 @@ ninja install
 if %ERRORLEVEL% neq 0 exit 1
 
 cd %LIBRARY_PREFIX%
-rmdir /s /q include\clang include\clang-c include\clang-tidy lib
+rmdir /s /q include\clang include\clang-c include\clang-tidy lib\cmake\clang lib\*.lib

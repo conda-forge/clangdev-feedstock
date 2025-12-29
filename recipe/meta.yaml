@@ -67,6 +67,19 @@ outputs:
   - name: clangdev
     script: install_clangdev.sh  # [unix]
     script: install_clangdev.bat  # [win]
+    files:
+      - include/clang-c
+      - include/clang-tidy
+      - include/clang
+      - lib/cmake/clang
+      - lib/libclang*.a
+      - lib/libfindAllSymbols.a
+      - Library/include/clang-c
+      - Library/include/clang-tidy
+      - Library/include/clang
+      - Library/lib/cmake/clang
+      - Library/lib/clang*.lib
+      - Library/lib/findAllSymbols.lib
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
@@ -85,11 +98,6 @@ outputs:
         - make   # [unix]
         - llvmdev {{ version }}     # [build_platform != target_platform]
       host:
-        - {{ pin_subpackage("clang", exact=True) }}
-        - {{ pin_subpackage("clangxx", exact=True) }}
-        - {{ pin_subpackage("clang-tools", exact=True) }}
-        - {{ pin_subpackage("libclang", exact=True) }}
-        - {{ pin_subpackage("libclang-cpp", exact=True) }}
         # cannot pin to `cxx_compiler_version` here,
         # because clangxx pins libcxx-devel to `maj_min`
         - libcxx-devel {{ maj_min }}    # [osx]
@@ -98,8 +106,8 @@ outputs:
         - zlib
         - zstd
       run:
-        - clang {{ version }} *_{{ build_number }}
-        - clangxx {{ version }} *_{{ build_number }}
+        - clang {{ version }} {{ variant }}_*_{{ build_number }}
+        - clangxx {{ version }} {{ variant }}_*_{{ build_number }}
         - {{ pin_subpackage("clang-tools", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
         - {{ pin_subpackage("libclang-cpp", exact=True) }}
@@ -257,7 +265,6 @@ outputs:
         - llvmdev {{ version }}     # [build_platform != target_platform]
       host:
         - llvm {{ version }}
-        - {{ pin_subpackage("clang", exact=True) }}
         # Use the same requirements as the top-level requirements
         - libcxx-devel {{ cxx_compiler_version }}   # [osx]
         - llvmdev {{ version }}
@@ -322,7 +329,6 @@ outputs:
         - llvmdev {{ version }}     # [build_platform != target_platform]
       host:
         - llvm {{ version }}
-        - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("libclang" ~ libclang_soversion, exact=True) }}
         # Use the same requirements as the top-level requirements
         - libcxx-devel {{ cxx_compiler_version }}   # [osx]
@@ -539,21 +545,18 @@ outputs:
         - {{ stdlib('c') }}         # [win]
         - {{ compiler('cxx') }}     # [win]
       host:
-        - {{ pin_subpackage("clangxx_impl_" ~ target_platform, exact=True) }}  # [unix]
-        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
         # cannot pin to `cxx_compiler_version` here,
         # because clangxx_impl_ pins libcxx-devel to `maj_min`
-        - libcxx-devel {{ maj_min }}    # [osx]
         - llvmdev {{ version }}
         - libxml2-devel
         - zlib
         - zstd
       run:
-        - {{ pin_subpackage("clangxx_impl_" ~ target_platform, exact=True) }}  # [unix]
+        - clangxx_impl_{{ target_platform }} {{ version }}.* {{ variant }}_*_{{ build_number }}
+        - {{ pin_subpackage("clang", exact=True) }}
         - libstdcxx-devel_{{ target_platform }}  # [linux]
         # only minor-pin to avoid issues when building new libcxx versions
         - libcxx-devel {{ maj_min }}             # [osx]
-        - {{ pin_subpackage("clang", exact=True) }}
     test:
       requires:
         - {{ compiler("cxx") }}
@@ -596,11 +599,6 @@ outputs:
         - make   # [unix]
         - llvmdev {{ version }}     # [build_platform != target_platform]
       host:
-        # it does not matter whether we use cfg or nocfg clang{,xx} in host
-        - {{ pin_subpackage("clang", exact=True) }}
-        - {{ pin_subpackage("clangxx", exact=True) }}
-        - {{ pin_subpackage("libclang", exact=True) }}
-        - {{ pin_subpackage("libclang-cpp", exact=True) }}
         # cannot pin to `cxx_compiler_version` here,
         # because clangxx pins libcxx-devel to `maj_min`
         - libcxx-devel {{ maj_min }}    # [osx]
@@ -645,12 +643,6 @@ outputs:
         - make   # [unix]
         - llvmdev {{ version }}     # [build_platform != target_platform]
       host:
-        # it does not matter whether we use cfg or nocfg clang{,xx} in host
-        - {{ pin_subpackage("clang", exact=True) }}
-        - {{ pin_subpackage("clangxx", exact=True) }}
-        - {{ pin_subpackage("libclang", exact=True) }}
-        - {{ pin_subpackage("libclang-cpp", exact=True) }}
-        - {{ pin_subpackage("clang-format-" ~ major_version, exact=True) }}      # [unix]
         # cannot pin to `cxx_compiler_version` here,
         # because clangxx pins libcxx-devel to `maj_min`
         - libcxx-devel {{ maj_min }}    # [osx]
@@ -692,12 +684,6 @@ outputs:
         - make   # [unix]
         - llvmdev {{ version }}     # [build_platform != target_platform]
       host:
-        # it does not matter whether we use cfg or nocfg clang{,xx} in host
-        - {{ pin_subpackage("clang", exact=True) }}
-        - {{ pin_subpackage("clangxx", exact=True) }}
-        - {{ pin_subpackage("libclang", exact=True) }}
-        - {{ pin_subpackage("libclang-cpp", exact=True) }}
-        - {{ pin_subpackage("clang-format", exact=True) }}
         # cannot pin to `cxx_compiler_version` here,
         # because clangxx pins libcxx-devel to `maj_min`
         - libcxx-devel {{ maj_min }}    # [osx]
