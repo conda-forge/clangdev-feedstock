@@ -122,18 +122,18 @@ outputs:
     script: install_clangdev.sh  # [unix]
     script: install_clangdev.bat  # [win]
     files:
-      - include/clang-c
-      - include/clang-tidy
-      - include/clang
-      - lib/cmake/clang
-      - lib/libclang*.a
-      - lib/libfindAllSymbols.a
-      - Library/include/clang-c
-      - Library/include/clang-tidy
-      - Library/include/clang
-      - Library/lib/cmake/clang
-      - Library/lib/clang*.lib
-      - Library/lib/findAllSymbols.lib
+      - include/clang-c                    # [unix]
+      - include/clang-tidy                 # [unix]
+      - include/clang                      # [unix]
+      - lib/cmake/clang                    # [unix]
+      - lib/libclang*.a                    # [unix]
+      - lib/libfindAllSymbols.a            # [unix]
+      - Library/include/clang-c            # [win]
+      - Library/include/clang-tidy         # [win]
+      - Library/include/clang              # [win]
+      - Library/lib/cmake/clang            # [win]
+      - Library/lib/clang*.lib             # [win]
+      - Library/lib/findAllSymbols.lib     # [win]
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
