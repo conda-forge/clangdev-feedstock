@@ -65,21 +65,19 @@ requirements:
 
 outputs:
   - name: clangdev
-    script: install_clangdev.sh  # [unix]
-    script: install_clangdev.bat  # [win]
     files:
-      - include/clang-c
-      - include/clang-tidy
-      - include/clang
-      - lib/cmake/clang
-      - lib/libclang*.a
-      - lib/libfindAllSymbols.a
-      - Library/include/clang-c
-      - Library/include/clang-tidy
-      - Library/include/clang
-      - Library/lib/cmake/clang
-      - Library/lib/clang*.lib
-      - Library/lib/findAllSymbols.lib
+      - include/clang-c                    # [unix]
+      - include/clang-tidy                 # [unix]
+      - include/clang                      # [unix]
+      - lib/cmake/clang                    # [unix]
+      - lib/libclang*.a                    # [unix]
+      - lib/libfindAllSymbols.a            # [unix]
+      - Library/include/clang-c            # [win]
+      - Library/include/clang-tidy         # [win]
+      - Library/include/clang              # [win]
+      - Library/lib/cmake/clang            # [win]
+      - Library/lib/clang*.lib             # [win]
+      - Library/lib/findAllSymbols.lib     # [win]
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
@@ -143,7 +141,6 @@ outputs:
         - '%LIBRARY_BIN%/clang -v -c mytest.c'  # [win]
 
   - name: libclang-cpp{{ maj_min }}
-    script: install_libclang_cpp.sh  # [unix]
     files:
       - lib/libclang-cpp.so.{{ sover }}     # [linux]
       - lib/libclang-cpp.{{ sover }}.dylib  # [osx]
@@ -190,10 +187,10 @@ outputs:
 
   - name: libclang-cpp
     # note that this is just an empty wrapper on windows
-    script: install_libclang_cpp.sh  # [unix]
-    files:                      # [unix]
+    files:
       - lib/libclang-cpp.so     # [linux]
       - lib/libclang-cpp.dylib  # [osx]
+      - Library/bin/clang-cpp.dll  # [win]
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
@@ -236,8 +233,6 @@ outputs:
         - if exist %LIBRARY_BIN%\libclang-cpp.dll exit 1          # [win]
 
   - name: libclang{{ libclang_soversion }}
-    script: install_libclang.sh  # [unix]
-    script: install_libclang.bat  # [win]
     files:
       - Library/bin/libclang-{{ libclang_soversion }}.dll   # [win]
       - lib/libclang.so.{{ libclang_soversion }}            # [linux]
@@ -300,8 +295,6 @@ outputs:
         {% endif %}
 
   - name: libclang
-    script: install_libclang.sh  # [unix]
-    script: install_libclang.bat  # [win]
     files:
       - Library/lib/libclang.lib  # [win]
       - lib/libclang.so           # [linux]
@@ -347,12 +340,12 @@ outputs:
         - if not exist %LIBRARY_LIB%\libclang.lib exit 1    # [win]
 
   - name: clang-{{ major_version }}
-    script: install_clang_maj.sh  # [unix]
-    script: install_clang_maj.bat  # [win]
     files:
       - lib/clang                                    # [unix]
       - bin/clang-{{ major_version }}                # [unix]
       - bin/clang++-{{ major_version }}              # [unix]
+      - bin/clang-cl-{{ major_version }}             # [unix]
+      - bin/clang-cpp-{{ major_version }}            # [unix]
       - Library/lib/clang                            # [win]
       - Library/bin/clang-{{ major_version }}.exe    # [win]
       - Library/bin/clang++-{{ major_version }}.exe  # [win]
@@ -420,11 +413,23 @@ outputs:
         - if exist %LIBRARY_BIN%\clang-cpp.exe exit 1   # [win]
 
   - name: clang_impl_{{ target_platform }}
-    script: install_clang_symlinks.sh
+    files:
+      - bin/{{ TARGET }}-clang
+      - bin/{{ TARGET }}-clang-cpp
+      # we add configuration files for with_cfg only. `_NO_VER` is only relevant on osx.
+      # on linux, the --sysroot argument is added for non-cfg builds as well,
+      # through the file bin/<TARGET>.cfg that's present in the sysroot package
+      - bin/{{ TARGET_NO_VER }}-clang.cfg       # [with_cfg]
+      - bin/{{ TARGET_NO_VER }}-clang-cl.cfg    # [with_cfg]
+      - bin/{{ TARGET_NO_VER }}-clang-cpp.cfg   # [with_cfg]
+      # technically the flang cfg files should be in flang, but it's easier to consolidate them here.
+      - bin/{{ TARGET_NO_VER }}-flang.cfg       # [with_cfg]
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
-      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+        - clang_nocfg  # [unix and not with_cfg]
+      string: {{ variant }}_cfg_h{{ PKG_HASH }}_{{ build_number }}    # [with_cfg]
+      string: {{ variant }}_nocfg_h{{ PKG_HASH }}_{{ build_number }}  # [not with_cfg]
       skip: true  # [win]
     requirements:
       host:
@@ -446,8 +451,13 @@ outputs:
         - x86_64-apple-darwin13.4.0-clang-cpp --version  # [osx and x86_64]
 
   - name: clang
-    script: install_clang_symlinks.sh  # [unix]
-    script: install_clang_symlinks.bat  # [win]
+    files:
+      - bin/clang                   # [unix]
+      - bin/clang-cl                # [unix]
+      - bin/clang-cpp               # [unix]
+      - Library/bin/clang.exe       # [win]
+      - Library/bin/clang-cl.exe    # [win]
+      - Library/bin/clang-cpp.exe   # [win]
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
@@ -497,6 +507,7 @@ outputs:
         - if not exist %LIBRARY_LIB%\clang\{{ major_version }}\lib\windows\clang_rt.builtins-x86_64.lib exit 1  # [win and x64_64]
 
   - name: clang-no-conda-cfg
+    files: []
     build:
       skip: true  # [with_cfg]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
@@ -505,11 +516,15 @@ outputs:
         - clang {{ version }} {{ variant }}_nocfg_*_{{ build_number }}
 
   - name: clangxx_impl_{{ target_platform }}
-    script: install_clang_symlinks.sh
+    files:
+      - bin/{{ TARGET }}-clang++
+      - bin/{{ TARGET_NO_VER }}-clang++.cfg     # [with_cfg]
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
-      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+        - clang_nocfg  # [unix and not with_cfg]
+      string: {{ variant }}_cfg_h{{ PKG_HASH }}_{{ build_number }}    # [with_cfg]
+      string: {{ variant }}_nocfg_h{{ PKG_HASH }}_{{ build_number }}  # [not with_cfg]
       skip: true  # [win]
     requirements:
       host:
@@ -526,8 +541,9 @@ outputs:
         - x86_64-apple-darwin13.4.0-clang++ --version      # [osx and x86_64]
 
   - name: clangxx
-    script: install_clang_symlinks.sh  # [unix]
-    script: install_clang_symlinks.bat  # [win]
+    files:
+      - bin/clang++                   # [unix]
+      - Library/bin/clang++.exe       # [win]
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
@@ -545,6 +561,7 @@ outputs:
         - {{ stdlib('c') }}         # [win]
         - {{ compiler('cxx') }}     # [win]
       host:
+        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
         # cannot pin to `cxx_compiler_version` here,
         # because clangxx_impl_ pins libcxx-devel to `maj_min`
         - llvmdev {{ version }}
@@ -552,14 +569,13 @@ outputs:
         - zlib
         - zstd
       run:
-        - clangxx_impl_{{ target_platform }} {{ version }}.* {{ variant }}_*_{{ build_number }}
+        - clangxx_impl_{{ target_platform }} {{ version }}.* {{ variant }}_*_{{ build_number }}   # [unix]
         - {{ pin_subpackage("clang", exact=True) }}
         - libstdcxx-devel_{{ target_platform }}  # [linux]
         # only minor-pin to avoid issues when building new libcxx versions
         - libcxx-devel {{ maj_min }}             # [osx]
     test:
       requires:
-        - {{ compiler("cxx") }}
         - gxx_impl_{{ target_platform }}  # [win64]
       files:
         - mytest.cxx
@@ -575,7 +591,6 @@ outputs:
         - clang++ -v mytest.cxx --target=x86_64-w64-mingw32  # [win64]
 
   - name: clang-format-{{ major_version }}
-    script: install_clang_format.sh  # [unix]
     files:
       - bin/clang-format-{{ major_version }}                # [unix]
     build:
@@ -618,8 +633,6 @@ outputs:
         - test ! -f ${PREFIX}/bin/c-index-test                   # [unix]
 
   - name: clang-format
-    script: install_clang_format.sh  # [unix]
-    script: install_clang_format.bat  # [win]
     files:
       - bin/clang-format               # [unix]
       - Library/bin/clang-format.exe   # [win]
@@ -663,8 +676,46 @@ outputs:
         - if exist %LIBRARY_BIN%\c-index-test.exe exit 1         # [win]
 
   - name: clang-tools
-    script: install_clang_tools.sh  # [unix]
-    script: install_clang_tools.bat  # [win]
+    files:
+      include:
+        - bin/*                                    # [unix]
+        - lib/libear/*                             # [unix]
+        - lib/libscanbuild/*                       # [unix]
+        - libexec/*                                # [unix]
+        - share/*                                  # [unix]
+        - Library/bin/*                            # [win]
+        - Library/lib/libear/*                     # [win]
+        - Library/lib/libscanbuild/*               # [win]
+        - Library/libexec/*                        # [win]
+        - Library/share/*                          # [win]
+      exclude:
+        - bin/cc                                   # [unix]
+        - bin/c++                                  # [unix]
+        - bin/cpp                                  # [unix]
+        - bin/clang-cpp                            # [unix]
+        - bin/clang                                # [unix]
+        - bin/clang++                              # [unix]
+        - bin/clang-cl                             # [unix]
+        - bin/clang-cpp                            # [unix]
+        - bin/clang-format                         # [unix]
+        - bin/clang-{{ major_version }}            # [unix]
+        - bin/clang++-{{ major_version }}          # [unix]
+        - bin/clang-cl-{{ major_version }}         # [unix]
+        - bin/clang-cpp-{{ major_version }}        # [unix]
+        - bin/clang-format-{{ major_version }}     # [unix]
+        - bin/{{ TARGET }}-*                       # [unix]
+        - bin/*.cfg                                # [unix]
+        - Library/bin/*.dll                                    # [win]
+        - Library/bin/clang.exe                                # [win]
+        - Library/bin/clang++.exe                              # [win]
+        - Library/bin/clang-cl.exe                             # [win]
+        - Library/bin/clang-cpp.exe                            # [win]
+        - Library/bin/clang-format.exe                         # [win]
+        - Library/bin/clang-{{ major_version }}.exe            # [win]
+        - Library/bin/clang++-{{ major_version }}.exe          # [win]
+        - Library/bin/clang-cl-{{ major_version }}.exe         # [win]
+        - Library/bin/clang-cpp-{{ major_version }}.exe        # [win]
+        - Library/bin/clang-format-{{ major_version }}.exe     # [win]
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
