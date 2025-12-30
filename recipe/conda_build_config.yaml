@@ -3,6 +3,26 @@ c_compiler:          # [osx]
 cxx_compiler:        # [osx]
   - clang_bootstrap  # [osx]
 
+TARGET:
+  - x86_64-conda-linux-gnu   # [linux and x86_64]
+  - aarch64-conda-linux-gnu  # [linux and aarch64]
+  - ppc64le-conda-linux-gnu  # [linux and ppc64le]
+  - x86_64-apple-darwin13.4.0      # [osx and x86_64]
+  - arm64-apple-darwin20.0.0       # [osx and arm64]
+  - x86_64-pc-windows-msvc   # [win and x86_64]
+  - arm64-pc-windows-msvc    # [win and arm64]
+# by default, osx targets contain the target version; we provide a configuration file
+# without the target version to allow `-arch x86_64 -arch arm64` etc.
+# see also: https://github.com/conda-forge/conda-forge.github.io/issues/2695
+TARGET_NO_VER:
+  - x86_64-conda-linux-gnu   # [linux and x86_64]
+  - aarch64-conda-linux-gnu  # [linux and aarch64]
+  - ppc64le-conda-linux-gnu  # [linux and ppc64le]
+  - x86_64-apple-darwin      # [osx and x86_64]
+  - arm64-apple-darwin       # [osx and arm64]
+  - x86_64-pc-windows-msvc   # [win and x86_64]
+  - arm64-pc-windows-msvc    # [win and arm64]
+
 # Starting from LLVM 14, the ABI of libclang doesn't necessarily
 # match the major version anymore - cf. #170 and
 # https://github.com/llvm/llvm-project/issues/54004
