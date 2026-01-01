@@ -11,6 +11,9 @@ rm -rf include/clang-c
 rm -rf include/clang-tidy
 rm -rf lib/cmake/clang/
 rm -rf lib/lib*.a
+rm -rf lib/lib*.so.*
+rm -rf lib/lib*.dylib
+rm -rf lib/clang
 
 MAJOR_VERSION=$(echo ${PKG_VERSION} | cut -f1 -d".")
 for f in ${PREFIX}/bin/clang-*; do
@@ -30,3 +33,10 @@ done
 rm ${PREFIX}/bin/clang-${MAJOR_VERSION}
 rm ${PREFIX}/bin/clang-cpp-${MAJOR_VERSION}
 rm ${PREFIX}/bin/clang-cl-${MAJOR_VERSION}
+rm ${PREFIX}/bin/clang-format-${MAJOR_VERSION}
+rm ${PREFIX}/bin/clang++-${MAJOR_VERSION}
+rm ${PREFIX}/bin/clang
+rm ${PREFIX}/bin/clang-cpp
+rm ${PREFIX}/bin/clang-cl
+rm ${PREFIX}/bin/clang-format
+rm ${PREFIX}/bin/clang++
