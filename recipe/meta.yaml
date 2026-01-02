@@ -611,7 +611,6 @@ outputs:
         - libcxx-devel {{ maj_min }}             # [osx]
     test:
       requires:
-        - {{ compiler("cxx") }}
         - gxx_impl_{{ target_platform }}  # [win64]
       files:
         - mytest.cxx

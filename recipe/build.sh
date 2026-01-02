@@ -87,13 +87,19 @@ done
 
 rm ${PREFIX}/bin/clang++
 rm ${PREFIX}/bin/clang
+rm ${PREFIX}/bin/clang-cpp
+rm ${PREFIX}/bin/clang-cl
 
-ln -s ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/clang
-ln -s ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/clang++
-ln -s ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/clang++-${MAJOR_VERSION}
-ln -s ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/${TARGET}-clang++
-ln -s ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/${TARGET}-clang
-ln -s ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/${TARGET}-clang-cpp
+ln -sf ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/clang
+ln -sf ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/clang++
+ln -sf ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/clang-cl
+ln -sf ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/clang-cpp
+ln -sf ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/clang++-${MAJOR_VERSION}
+ln -sf ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/clang-cl-${MAJOR_VERSION}
+ln -sf ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/clang-cpp-${MAJOR_VERSION}
+ln -sf ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/${TARGET}-clang++
+ln -sf ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/${TARGET}-clang
+ln -sf ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/${TARGET}-clang-cpp
 
 if [[ ! -d $PREFIX/lib/clang/${MAJOR_VERSION}/include ]]; then
   echo "$PREFIX/lib/clang/${MAJOR_VERSION}/include not found"
