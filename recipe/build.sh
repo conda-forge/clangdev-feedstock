@@ -85,6 +85,11 @@ for f in ${PREFIX}/bin/clang-*; do
   ln -s ${PREFIX}/bin/$(basename $f)-${MAJOR_VERSION} $f;
 done
 
+rm ${PREFIX}/bin/clang++
+rm ${PREFIX}/bin/clang
+
+ln -s ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/clang
+ln -s ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/clang++
 ln -s ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/clang++-${MAJOR_VERSION}
 ln -s ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/${TARGET}-clang++
 ln -s ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/${TARGET}-clang

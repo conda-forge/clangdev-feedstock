@@ -397,6 +397,8 @@ outputs:
       - lib/clang                                    # [unix]
       - bin/clang-{{ major_version }}                # [unix]
       - bin/clang++-{{ major_version }}              # [unix]
+      - bin/clang-cl-{{ major_version }}             # [unix]
+      - bin/clang-cpp-{{ major_version }}            # [unix]
       - Library/lib/clang                            # [win]
       - Library/bin/clang-{{ major_version }}.exe    # [win]
       - Library/bin/clang++-{{ major_version }}.exe  # [win]
