@@ -463,9 +463,9 @@ outputs:
     files:
       - bin/{{ TARGET }}-clang
       - bin/{{ TARGET }}-clang-cpp
-      # we add configuration files for with_cfg only.
-      # the linux --sysroot argument is added for non cfg builds as well
-      # as the file bin/<TARGET_NO_VER>.cfg is in the sysroot package
+      # we add configuration files for with_cfg only. `_NO_VER` is only relevant on osx.
+      # on linux, the --sysroot argument is added for non-cfg builds as well,
+      # through the file bin/<TARGET>.cfg that's present in the sysroot package
       - bin/{{ TARGET_NO_VER }}-clang.cfg       # [with_cfg]
       - bin/{{ TARGET_NO_VER }}-clang-cl.cfg    # [with_cfg]
       - bin/{{ TARGET_NO_VER }}-clang-cpp.cfg   # [with_cfg]
