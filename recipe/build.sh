@@ -106,6 +106,7 @@ ln -sf $PREFIX/include/omp.h $PREFIX/lib/clang/${MAJOR_VERSION}/include/
 for driver in clang clang++ clang-cpp; do
   echo '-isystem <CFGDIR>/../include'                    > ${PREFIX}/bin/${TARGET_NO_VER}-${driver}.cfg
 done
+# technically the flang cfg files should be in flang, but it's easier to consolidate them here.
 for driver in clang clang++ flang; do
   echo '$-Wl,-L,<CFGDIR>/../lib'                        >> ${PREFIX}/bin/${TARGET_NO_VER}-${driver}.cfg
   echo '$-Wl,-rpath,<CFGDIR>/../lib'                    >> ${PREFIX}/bin/${TARGET_NO_VER}-${driver}.cfg

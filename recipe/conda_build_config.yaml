@@ -11,6 +11,9 @@ TARGET:
   - arm64-apple-darwin20.0.0       # [osx and arm64]
   - x86_64-pc-windows-msvc   # [win and x86_64]
   - arm64-pc-windows-msvc    # [win and arm64]
+# by default, osx targets contain the target version; we provide a configuration file
+# without the target version to allow `-arch x86_64 -arch arm64` etc.
+# see also: https://github.com/conda-forge/conda-forge.github.io/issues/2695
 TARGET_NO_VER:
   - x86_64-conda-linux-gnu   # [linux and x86_64]
   - aarch64-conda-linux-gnu  # [linux and aarch64]
