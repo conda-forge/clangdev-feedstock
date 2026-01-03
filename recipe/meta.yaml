@@ -296,6 +296,8 @@ outputs:
         - llvm {{ version }}
         - zlib                      # [win]
         - zstd                      # [win]
+        # only for link-check; conda-build raises false positive warning otherwise
+        - {{ pin_subpackage("libclang-cpp" ~ maj_min, exact=True) }}  # [unix]
       run:
         - compiler-rt{{ major_version }} {{ version }}
         - {{ pin_subpackage("libclang-cpp" ~ maj_min, exact=True) }}  # [unix]
@@ -497,6 +499,8 @@ outputs:
         # Use the same requirements as the top-level requirements, but only
         # the ones required for run_exports
         - llvm {{ version }}
+        # only for link-check; conda-build raises false positive warning otherwise
+        - {{ pin_subpackage("libclang-cpp" ~ maj_min, max_pin="x.x") }}   # [unix]
       run:
         - {{ pin_subpackage("libclang-cpp" ~ maj_min, max_pin="x.x") }}   # [unix]
         # we need to do this manually because clang_bootstrap has no run-export
@@ -581,11 +585,13 @@ outputs:
         - libxml2-devel
         - zlib                      # [win]
         - zstd                      # [win]
+        # only for link-check; conda-build raises false positive warning otherwise
+        - {{ pin_subpackage("libclang" ~ libclang_soversion, max_pin=None) }}
+        - {{ pin_subpackage("libclang-cpp" ~ maj_min, max_pin="x.x") }}         # [unix]
       run:
-        - ucrt                                          # [win]
         - {{ pin_subpackage("clang-format", exact=True) }}
         - {{ pin_subpackage("libclang" ~ libclang_soversion, max_pin=None) }}
-        - {{ pin_subpackage("libclang-cpp" ~ maj_min, max_pin="x.x") }}   # [unix]
+        - {{ pin_subpackage("libclang-cpp" ~ maj_min, max_pin="x.x") }}         # [unix]
         # we need to do this manually because clang_bootstrap has no run-export
         - libcxx >={{ version }}    # [osx]
       run_constrained:
