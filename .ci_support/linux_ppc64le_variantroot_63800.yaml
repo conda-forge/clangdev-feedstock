@@ -1,3 +1,7 @@
+TARGET:
+- ppc64le-conda-linux-gnu
+TARGET_NO_VER:
+- ppc64le-conda-linux-gnu
 c_stdlib:
 - sysroot
 c_stdlib_version:
@@ -22,6 +26,9 @@ target_platform:
 - linux-ppc64le
 variant:
 - root_63800
+with_cfg:
+- false
+- true
 zlib:
 - '1'
 zstd:

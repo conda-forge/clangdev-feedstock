@@ -1,7 +1,7 @@
 {% set version = "20.1.8" %}
 {% set major_version = version.split(".")[0] %}
 {% set tail_version = version.split(".")[-1] %}
-{% set build_number = 5 %}
+{% set build_number = 6 %}
 
 # always includes minor as of v18, see https://github.com/llvm/llvm-project/issues/76273
 {% set maj_min = major_version ~ "." ~ version.split(".")[1] %}
@@ -119,8 +119,19 @@ requirements:
 
 outputs:
   - name: clangdev
-    script: install_clangdev.sh  # [unix]
-    script: install_clangdev.bat  # [win]
+    files:
+      - include/clang-c                    # [unix]
+      - include/clang-tidy                 # [unix]
+      - include/clang                      # [unix]
+      - lib/cmake/clang                    # [unix]
+      - lib/libclang*.a                    # [unix]
+      - lib/libfindAllSymbols.a            # [unix]
+      - Library/include/clang-c            # [win]
+      - Library/include/clang-tidy         # [win]
+      - Library/include/clang              # [win]
+      - Library/lib/cmake/clang            # [win]
+      - Library/lib/clang*.lib             # [win]
+      - Library/lib/findAllSymbols.lib     # [win]
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
@@ -139,11 +150,6 @@ outputs:
         - make   # [unix]
         - llvmdev {{ version }}     # [build_platform != target_platform]
       host:
-        - {{ pin_subpackage("clang", exact=True) }}
-        - {{ pin_subpackage("clangxx", exact=True) }}
-        - {{ pin_subpackage("clang-tools", exact=True) }}
-        - {{ pin_subpackage("libclang", exact=True) }}
-        - {{ pin_subpackage("libclang-cpp", exact=True) }}
         # cannot pin to `cxx_compiler_version` here,
         # because clangxx pins libcxx-devel to `maj_min`
         - libcxx-devel {{ maj_min }}    # [osx]
@@ -152,8 +158,8 @@ outputs:
         - zlib
         - zstd
       run:
-        - {{ pin_subpackage("clang", exact=True) }}
-        - {{ pin_subpackage("clangxx", exact=True) }}
+        - clang {{ version }} {{ variant }}_*_{{ build_number }}
+        - clangxx {{ version }} {{ variant }}_*_{{ build_number }}
         - {{ pin_subpackage("clang-tools", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
         - {{ pin_subpackage("libclang-cpp", exact=True) }}
@@ -189,7 +195,6 @@ outputs:
         - '%LIBRARY_BIN%/clang -v -c mytest.c'  # [win]
 
   - name: libclang-cpp{{ maj_min }}
-    script: install_libclang_cpp.sh  # [unix]
     files:
       - lib/libclang-cpp.so.{{ sover }}     # [linux]
       - lib/libclang-cpp.{{ sover }}.dylib  # [osx]
@@ -236,10 +241,10 @@ outputs:
 
   - name: libclang-cpp
     # note that this is just an empty wrapper on windows
-    script: install_libclang_cpp.sh  # [unix]
-    files:                      # [unix]
+    files:
       - lib/libclang-cpp.so     # [linux]
       - lib/libclang-cpp.dylib  # [osx]
+      - Library/bin/clang-cpp.dll  # [win]
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
@@ -282,8 +287,6 @@ outputs:
         - if exist %LIBRARY_BIN%\libclang-cpp.dll exit 1          # [win]
 
   - name: libclang{{ libclang_soversion }}
-    script: install_libclang.sh  # [unix]
-    script: install_libclang.bat  # [win]
     files:
       - Library/bin/libclang-{{ libclang_soversion }}.dll   # [win]
       - lib/libclang.so.{{ libclang_soversion }}            # [linux]
@@ -311,7 +314,6 @@ outputs:
         - llvmdev {{ version }}     # [build_platform != target_platform]
       host:
         - llvm {{ version }}
-        - {{ pin_subpackage("clang", exact=True) }}
         # Use the same requirements as the top-level requirements
         - libcxx-devel {{ cxx_compiler_version }}   # [osx]
         - llvmdev {{ version }}
@@ -347,8 +349,6 @@ outputs:
         {% endif %}
 
   - name: libclang
-    script: install_libclang.sh  # [unix]
-    script: install_libclang.bat  # [win]
     files:
       - Library/lib/libclang.lib  # [win]
       - lib/libclang.so           # [linux]
@@ -376,7 +376,6 @@ outputs:
         - llvmdev {{ version }}     # [build_platform != target_platform]
       host:
         - llvm {{ version }}
-        - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("libclang" ~ libclang_soversion, exact=True) }}
         # Use the same requirements as the top-level requirements
         - libcxx-devel {{ cxx_compiler_version }}   # [osx]
@@ -395,12 +394,12 @@ outputs:
         - if not exist %LIBRARY_LIB%\libclang.lib exit 1    # [win]
 
   - name: clang-{{ major_version }}
-    script: install_clang.sh  # [unix]
-    script: install_clang.bat  # [win]
     files:
       - lib/clang                                    # [unix]
       - bin/clang-{{ major_version }}                # [unix]
       - bin/clang++-{{ major_version }}              # [unix]
+      - bin/clang-cl-{{ major_version }}             # [unix]
+      - bin/clang-cpp-{{ major_version }}            # [unix]
       - Library/lib/clang                            # [win]
       - Library/bin/clang-{{ major_version }}.exe    # [win]
       - Library/bin/clang++-{{ major_version }}.exe  # [win]
@@ -460,13 +459,61 @@ outputs:
         - if exist %LIBRARY_BIN%\clang-cl.exe exit 1    # [win]
         - if exist %LIBRARY_BIN%\clang-cpp.exe exit 1   # [win]
 
-  - name: clang
-    script: install_clang_symlinks.sh  # [unix]
-    script: install_clang_symlinks.bat  # [win]
+  - name: clang_impl_{{ target_platform }}
+    files:
+      - bin/{{ TARGET }}-clang
+      - bin/{{ TARGET }}-clang-cpp
+      # we add configuration files for with_cfg only. `_NO_VER` is only relevant on osx.
+      # on linux, the --sysroot argument is added for non-cfg builds as well,
+      # through the file bin/<TARGET>.cfg that's present in the sysroot package
+      - bin/{{ TARGET_NO_VER }}-clang.cfg       # [with_cfg]
+      - bin/{{ TARGET_NO_VER }}-clang-cl.cfg    # [with_cfg]
+      - bin/{{ TARGET_NO_VER }}-clang-cpp.cfg   # [with_cfg]
+      # technically the flang cfg files should be in flang, but it's easier to consolidate them here.
+      - bin/{{ TARGET_NO_VER }}-flang.cfg       # [with_cfg]
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
-      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+        - clang_nocfg  # [not with_cfg]
+      string: {{ variant }}_cfg_h{{ PKG_HASH }}_{{ build_number }}    # [with_cfg]
+      string: {{ variant }}_nocfg_h{{ PKG_HASH }}_{{ build_number }}  # [not with_cfg]
+      skip: true  # [win]
+    requirements:
+      host:
+        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+      run:
+        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+        - compiler-rt_{{ target_platform }}
+        - compiler-rt {{ version }}.*
+        - binutils_impl_{{ target_platform }}  # [linux]
+        - sysroot_{{ target_platform }}        # [linux]
+        - libgcc-devel_{{ target_platform }}   # [linux]
+        - llvm-tools {{ version }}.*           # [osx]
+        - cctools_impl_{{ target_platform }}   # [osx]
+        - ld64_{{ target_platform }} * llvm{{ maj_min.replace(".", "_") }}_*    # [osx]
+        - ld64                                 # [osx]
+        - llvm-openmp >={{ version }}
+    test:
+      commands:
+        - x86_64-conda-linux-gnu-clang --version         # [linux64]
+        - x86_64-conda-linux-gnu-clang-cpp --version     # [linux64]
+        - x86_64-apple-darwin13.4.0-clang --version      # [osx and x86_64]
+        - x86_64-apple-darwin13.4.0-clang-cpp --version  # [osx and x86_64]
+
+  - name: clang
+    files:
+      - bin/clang                   # [unix]
+      - bin/clang-cl                # [unix]
+      - bin/clang-cpp               # [unix]
+      - Library/bin/clang.exe       # [win]
+      - Library/bin/clang-cl.exe    # [win]
+      - Library/bin/clang-cpp.exe   # [win]
+    build:
+      track_features:
+        - root         # [variant and variant.startswith("root_")]
+        - clang_nocfg  # [not with_cfg]
+      string: {{ variant }}_cfg_h{{ PKG_HASH }}_{{ build_number }}    # [with_cfg]
+      string: {{ variant }}_nocfg_h{{ PKG_HASH }}_{{ build_number }}  # [not with_cfg]
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
         - libxml2-devel
@@ -490,19 +537,57 @@ outputs:
         - sysroot_{{ target_platform }}        # [linux]
         - libgcc-devel_{{ target_platform }}   # [linux]
         - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+        - {{ pin_subpackage("clang_impl_" ~ target_platform, exact=True) }}     # [unix]
     test:
       commands:
         - clang --version
         - clang-cl --version
         - clang-cpp --version
 
-  - name: clangxx
-    script: install_clangxx.sh  # [unix]
-    script: install_clangxx.bat  # [win]
+  - name: clang-no-conda-cfg
+    files: []
+    build:
+      skip: true  # [with_cfg]
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+    requirements:
+      run:
+        - clang {{ version }} {{ variant }}_nocfg_*_{{ build_number }}
+
+  - name: clangxx_impl_{{ target_platform }}
+    files:
+      - bin/{{ TARGET }}-clang++
+      - bin/{{ TARGET_NO_VER }}-clang++.cfg     # [with_cfg]
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
-      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+        - clang_nocfg  # [not with_cfg]
+      string: {{ variant }}_cfg_h{{ PKG_HASH }}_{{ build_number }}    # [with_cfg]
+      string: {{ variant }}_nocfg_h{{ PKG_HASH }}_{{ build_number }}  # [not with_cfg]
+      skip: true  # [win]
+    requirements:
+      host:
+        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+      run:
+        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+        - {{ pin_subpackage("clang_impl_" ~ target_platform, exact=True) }}
+        - libstdcxx-devel_{{ target_platform }}  # [linux]
+        # only minor-pin to avoid issues when building new libcxx versions
+        - libcxx-devel {{ maj_min }}             # [osx]
+    test:
+      commands:
+        - x86_64-conda-linux-gnu-clang++ --version         # [linux64]
+        - x86_64-apple-darwin13.4.0-clang++ --version      # [osx and x86_64]
+
+  - name: clangxx
+    files:
+      - bin/clang++                   # [unix]
+      - Library/bin/clang++.exe       # [win]
+    build:
+      track_features:
+        - root         # [variant and variant.startswith("root_")]
+        - clang_nocfg  # [not with_cfg]
+      string: {{ variant }}_cfg_h{{ PKG_HASH }}_{{ build_number }}    # [with_cfg]
+      string: {{ variant }}_nocfg_h{{ PKG_HASH }}_{{ build_number }}  # [not with_cfg]
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
         - libxml2-devel
@@ -514,21 +599,21 @@ outputs:
         - {{ stdlib('c') }}         # [win]
         - {{ compiler('cxx') }}     # [win]
       host:
-        - {{ pin_subpackage("clang", exact=True) }}
-        # Use the same requirements as the top-level requirements
-        - libcxx-devel {{ cxx_compiler_version }}   # [osx]
+        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+        # cannot pin to `cxx_compiler_version` here,
+        # because clangxx_impl_ pins libcxx-devel to `maj_min`
         - llvmdev {{ version }}
         - libxml2-devel
         - zlib
         - zstd
       run:
+        - clangxx_impl_{{ target_platform }} {{ version }}.* {{ variant }}_*_{{ build_number }}   # [unix]
+        - {{ pin_subpackage("clang", exact=True) }}
         - libstdcxx-devel_{{ target_platform }}  # [linux]
         # only minor-pin to avoid issues when building new libcxx versions
         - libcxx-devel {{ maj_min }}             # [osx]
-        - {{ pin_subpackage("clang", exact=True) }}
     test:
       requires:
-        - {{ compiler("cxx") }}
         - gxx_impl_{{ target_platform }}  # [win64]
       files:
         - mytest.cxx
@@ -544,7 +629,6 @@ outputs:
         - clang++ -v mytest.cxx --target=x86_64-w64-mingw32  # [win64]
 
   - name: clang-format-{{ major_version }}
-    script: install_clang_format.sh  # [unix]
     files:
       - bin/clang-format-{{ major_version }}                # [unix]
     build:
@@ -568,10 +652,6 @@ outputs:
         - make   # [unix]
         - llvmdev {{ version }}     # [build_platform != target_platform]
       host:
-        - {{ pin_subpackage("clang", exact=True) }}
-        - {{ pin_subpackage("clangxx", exact=True) }}
-        - {{ pin_subpackage("libclang", exact=True) }}
-        - {{ pin_subpackage("libclang-cpp", exact=True) }}
         # cannot pin to `cxx_compiler_version` here,
         # because clangxx pins libcxx-devel to `maj_min`
         - libcxx-devel {{ maj_min }}    # [osx]
@@ -591,8 +671,6 @@ outputs:
         - test ! -f ${PREFIX}/bin/c-index-test                   # [unix]
 
   - name: clang-format
-    script: install_clang_format.sh  # [unix]
-    script: install_clang_format.bat  # [win]
     files:
       - bin/clang-format               # [unix]
       - Library/bin/clang-format.exe   # [win]
@@ -616,11 +694,6 @@ outputs:
         - make   # [unix]
         - llvmdev {{ version }}     # [build_platform != target_platform]
       host:
-        - {{ pin_subpackage("clang", exact=True) }}
-        - {{ pin_subpackage("clangxx", exact=True) }}
-        - {{ pin_subpackage("libclang", exact=True) }}
-        - {{ pin_subpackage("libclang-cpp", exact=True) }}
-        - {{ pin_subpackage("clang-format-" ~ major_version, exact=True) }}      # [unix]
         # cannot pin to `cxx_compiler_version` here,
         # because clangxx pins libcxx-devel to `maj_min`
         - libcxx-devel {{ maj_min }}    # [osx]
@@ -641,8 +714,42 @@ outputs:
         - if exist %LIBRARY_BIN%\c-index-test.exe exit 1         # [win]
 
   - name: clang-tools
-    script: install_clang_tools.sh  # [unix]
-    script: install_clang_tools.bat  # [win]
+    files:
+      include:
+        - bin/*                                    # [unix]
+        - lib/libear/*                             # [unix]
+        - lib/libscanbuild/*                       # [unix]
+        - libexec/*                                # [unix]
+        - share/*                                  # [unix]
+        - Library/bin/*                            # [win]
+        - Library/lib/libear/*                     # [win]
+        - Library/lib/libscanbuild/*               # [win]
+        - Library/libexec/*                        # [win]
+        - Library/share/*                          # [win]
+      exclude:
+        - bin/clang                                # [unix]
+        - bin/clang++                              # [unix]
+        - bin/clang-cl                             # [unix]
+        - bin/clang-cpp                            # [unix]
+        - bin/clang-format                         # [unix]
+        - bin/clang-{{ major_version }}            # [unix]
+        - bin/clang++-{{ major_version }}          # [unix]
+        - bin/clang-cl-{{ major_version }}         # [unix]
+        - bin/clang-cpp-{{ major_version }}        # [unix]
+        - bin/clang-format-{{ major_version }}     # [unix]
+        - bin/{{ TARGET }}-*                       # [unix]
+        - bin/*.cfg                                # [unix]
+        - Library/bin/*.dll                                    # [win]
+        - Library/bin/clang.exe                                # [win]
+        - Library/bin/clang++.exe                              # [win]
+        - Library/bin/clang-cl.exe                             # [win]
+        - Library/bin/clang-cpp.exe                            # [win]
+        - Library/bin/clang-format.exe                         # [win]
+        - Library/bin/clang-{{ major_version }}.exe            # [win]
+        - Library/bin/clang++-{{ major_version }}.exe          # [win]
+        - Library/bin/clang-cl-{{ major_version }}.exe         # [win]
+        - Library/bin/clang-cpp-{{ major_version }}.exe        # [win]
+        - Library/bin/clang-format-{{ major_version }}.exe     # [win]
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
@@ -662,11 +769,6 @@ outputs:
         - make   # [unix]
         - llvmdev {{ version }}     # [build_platform != target_platform]
       host:
-        - {{ pin_subpackage("clang", exact=True) }}
-        - {{ pin_subpackage("clangxx", exact=True) }}
-        - {{ pin_subpackage("libclang", exact=True) }}
-        - {{ pin_subpackage("libclang-cpp", exact=True) }}
-        - {{ pin_subpackage("clang-format", exact=True) }}
         # cannot pin to `cxx_compiler_version` here,
         # because clangxx pins libcxx-devel to `maj_min`
         - libcxx-devel {{ maj_min }}    # [osx]

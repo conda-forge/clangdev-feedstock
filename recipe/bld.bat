@@ -43,3 +43,11 @@ if %ERRORLEVEL% neq 0 exit 1
 
 ninja -j%CPU_COUNT%
 if %ERRORLEVEL% neq 0 exit 1
+
+ninja install
+if %ERRORLEVEL% neq 0 exit 1
+
+for /f "tokens=1 delims=." %%a in ("%PKG_VERSION%") do (
+  copy "%LIBRARY_BIN%\\clang.exe" "%LIBRARY_BIN%\\clang-%%a.exe"
+  copy "%LIBRARY_BIN%\\clang.exe" "%LIBRARY_BIN%\\clang++-%%a.exe"
+)
