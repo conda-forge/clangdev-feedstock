@@ -188,9 +188,10 @@ outputs:
   - name: libclang-cpp
     # note that this is just an empty wrapper on windows
     files:
-      - lib/libclang-cpp.so     # [linux]
-      - lib/libclang-cpp.dylib  # [osx]
-      - Library/bin/clang-cpp.dll  # [win]
+      - lib/libclang-cpp.so         # [linux]
+      - lib/libclang-cpp.dylib      # [osx]
+      # dummy value; we need a non-empty `files:` since there's no `script:`
+      - Library/bin/clang-cpp.dll   # [win]
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
