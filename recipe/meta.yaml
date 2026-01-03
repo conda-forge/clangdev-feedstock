@@ -576,8 +576,6 @@ outputs:
         - clangxx_impl_{{ target_platform }} {{ version }}.* {{ variant }}_*_{{ build_number }}   # [unix]
         - {{ pin_subpackage("clang", exact=True) }}
         - libstdcxx-devel_{{ target_platform }}  # [linux]
-        # only minor-pin to avoid issues when building new libcxx versions
-        - libcxx-devel {{ maj_min }}             # [osx]
     test:
       requires:
         - gxx_impl_{{ target_platform }}  # [win64]
