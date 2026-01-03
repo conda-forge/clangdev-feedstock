@@ -58,6 +58,7 @@ requirements:
     - zstd                      # [build_platform != target_platform]
   host:
     - libcxx-devel {{ cxx_compiler_version }}   # [osx]
+    - llvm-openmp {{ version }}
     - llvmdev {{ version }}
     - libxml2-devel
     - zlib
@@ -359,7 +360,6 @@ outputs:
         - libxml2-devel
         - zlib     # [unix]
         - zstd     # [unix]
-        - llvm-openmp
     requirements:
       build:
         - {{ stdlib('c') }}
@@ -377,7 +377,6 @@ outputs:
         - libxml2-devel
         - zlib
         - zstd
-        - llvm-openmp {{ version }}
       run:
         - compiler-rt{{ major_version }} {{ version }}
         - {{ pin_subpackage("libclang-cpp" ~ maj_min, exact=True) }}  # [unix]
