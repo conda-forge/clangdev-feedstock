@@ -345,14 +345,21 @@ outputs:
 
   - name: clang-{{ major_version }}
     files:
-      - lib/clang                                    # [unix]
-      - bin/clang-{{ major_version }}                # [unix]
-      - bin/clang++-{{ major_version }}              # [unix]
-      - bin/clang-cl-{{ major_version }}             # [unix]
-      - bin/clang-cpp-{{ major_version }}            # [unix]
-      - Library/lib/clang                            # [win]
-      - Library/bin/clang-{{ major_version }}.exe    # [win]
-      - Library/bin/clang++-{{ major_version }}.exe  # [win]
+      include:
+        - lib/clang                                     # [unix]
+        - bin/clang-{{ major_version }}                 # [unix]
+        - bin/clang++-{{ major_version }}               # [unix]
+        - bin/clang-cl-{{ major_version }}              # [unix]
+        - bin/clang-cpp-{{ major_version }}             # [unix]
+        - Library/lib/clang                             # [win]
+        - Library/bin/clang-{{ major_version }}.exe     # [win]
+        - Library/bin/clang++-{{ major_version }}.exe   # [win]
+      exclude:                                          # [win]
+        # left-overs from a world before #390 &
+        # https://github.com/conda-forge/openmp-feedstock/pull/193
+        - Library/lib/clang/18                          # [win]
+        - Library/lib/clang/19                          # [win]
+        - Library/lib/clang/20                          # [win]
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
