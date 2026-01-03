@@ -524,10 +524,7 @@ outputs:
       host:                         # [win]
         - llvm {{ version }}        # [win]
       run:
-        - {{ pin_subpackage("libclang-cpp" ~ maj_min, max_pin="x.x") }}          # [unix]
         - {{ pin_subpackage("clang-format-" ~ major_version, exact=True) }}      # [unix]
-        # we need to do this manually because clang_bootstrap has no run-export
-        - libcxx >={{ version }}    # [osx]
     test:
       commands:
         - clang-format --version
