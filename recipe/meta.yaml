@@ -492,6 +492,7 @@ outputs:
         - {{ stdlib('c') }}
         - {{ compiler('cxx') }}
       host:
+        - {{ pin_subpackage("libclang-cpp" ~ maj_min, max_pin="x.x") }}   # [unix]
         # Use the same requirements as the top-level requirements, but only
         # the ones required for run_exports
         - llvm {{ version }}
@@ -584,6 +585,7 @@ outputs:
         - {{ compiler('cxx') }}
       host:
         - {{ pin_subpackage("libclang-cpp" ~ maj_min, max_pin="x.x") }}   # [unix]
+        - {{ pin_subpackage("libclang" ~ libclang_soversion, max_pin=None) }}
         # Use the same requirements as the top-level requirements, but only
         # the ones required for run_exports
         - llvm {{ version }}
