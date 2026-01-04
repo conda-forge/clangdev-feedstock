@@ -72,3 +72,56 @@ cmake \
   ..
 
 make -j${CPU_COUNT}
+make install
+
+MAJOR_VERSION=$(echo ${PKG_VERSION} | cut -f1 -d".")
+for f in ${PREFIX}/bin/clang-*; do
+  if [[ "$(basename $f)" == "clang-${MAJOR_VERSION}" ]]; then
+    # installation also creates a versioned clang, no need to re-version it
+    continue
+  fi
+  rm -f ${PREFIX}/bin/$(basename $f)-${MAJOR_VERSION}
+  mv $f ${PREFIX}/bin/$(basename $f)-${MAJOR_VERSION};
+  ln -s ${PREFIX}/bin/$(basename $f)-${MAJOR_VERSION} $f;
+done
+
+rm ${PREFIX}/bin/clang++
+rm ${PREFIX}/bin/clang
+rm ${PREFIX}/bin/clang-cpp
+rm ${PREFIX}/bin/clang-cl
+
+ln -sf ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/clang
+ln -sf ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/clang++
+ln -sf ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/clang-cl
+ln -sf ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/clang-cpp
+ln -sf ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/clang++-${MAJOR_VERSION}
+ln -sf ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/clang-cl-${MAJOR_VERSION}
+ln -sf ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/clang-cpp-${MAJOR_VERSION}
+ln -sf ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/${TARGET}-clang++
+ln -sf ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/${TARGET}-clang
+ln -sf ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/${TARGET}-clang-cpp
+
+if [[ ! -d $PREFIX/lib/clang/${MAJOR_VERSION}/include ]]; then
+  echo "$PREFIX/lib/clang/${MAJOR_VERSION}/include not found"
+  exit 1
+fi
+# Make sure omp.h from conda environment is found by clang
+ln -sf $PREFIX/include/omp.h $PREFIX/lib/clang/${MAJOR_VERSION}/include/
+
+# cfg files
+for driver in clang clang++ clang-cpp; do
+  echo '-isystem <CFGDIR>/../include'                    > ${PREFIX}/bin/${TARGET_NO_VER}-${driver}.cfg
+done
+# technically the flang cfg files should be in flang, but it's easier to consolidate them here.
+for driver in clang clang++ flang; do
+  echo '$-Wl,-L,<CFGDIR>/../lib'                        >> ${PREFIX}/bin/${TARGET_NO_VER}-${driver}.cfg
+  echo '$-Wl,-rpath,<CFGDIR>/../lib'                    >> ${PREFIX}/bin/${TARGET_NO_VER}-${driver}.cfg
+  if [[ "${target_platform}" == "linux-"* ]]; then
+    echo '$-Wl,-rpath-link,<CFGDIR>/../lib'             >> ${PREFIX}/bin/${TARGET_NO_VER}-${driver}.cfg
+  fi
+done
+if [[ "${target_platform}" == "linux-"* ]]; then
+  for driver in clang clang++ flang clang-cpp; do
+    echo "--sysroot=<CFGDIR>/../${TARGET}/sysroot"      >> ${PREFIX}/bin/${TARGET_NO_VER}-${driver}.cfg
+  done
+fi
