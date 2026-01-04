@@ -90,9 +90,7 @@ outputs:
       host:
         # Use the same requirements as the top-level requirements
         # these deps are added because of the static libraries
-        - libcxx-devel {{ cxx_compiler_version }}   # [osx]
-        - llvmdev {{ version }}
-        - libxml2-devel
+        - llvm {{ version }}
         - zlib
         - zstd
       run:
@@ -149,9 +147,6 @@ outputs:
         - {{ compiler('cxx') }}
       host:
         - llvm {{ version }}
-        # Use the same requirements as the top-level requirements
-        - libcxx-devel {{ cxx_compiler_version }}   # [osx]
-        - llvmdev {{ version }}
       run:
         # we need to do this manually because clang_bootstrap has no run-export
         - libcxx >={{ version }}    # [osx]
@@ -212,9 +207,7 @@ outputs:
       host:
         # Use the same requirements as the top-level requirements, but only
         # the ones required for run_exports
-        - libcxx-devel {{ cxx_compiler_version }}   # [osx]
         - llvm {{ version }}
-        - llvmdev {{ version }}
         - zlib   # [win]
         - zstd   # [win]
       run:
@@ -287,18 +280,13 @@ outputs:
       build:
         - {{ stdlib('c') }}
         - {{ compiler('cxx') }}
-        - cmake
-        - ninja                     # [win]
-        - make                      # [unix]
-        - llvmdev {{ version }}     # [build_platform != target_platform]
       host:
         - {{ pin_subpackage("libclang-cpp" ~ maj_min, exact=True) }}  # [unix]
         # Use the same requirements as the top-level requirements, but only
         # the ones required for run_exports
-        - libcxx-devel {{ cxx_compiler_version }}   # [osx]
         - llvm {{ version }}
-        - zlib     # [win]
-        - zstd     # [win]
+        - zlib                      # [win]
+        - zstd                      # [win]
       run:
         - compiler-rt{{ major_version }} {{ version }}
         - {{ pin_subpackage("libclang-cpp" ~ maj_min, exact=True) }}  # [unix]
@@ -510,8 +498,6 @@ outputs:
         - {{ pin_subpackage("libclang-cpp" ~ maj_min, max_pin="x.x") }}   # [unix]
         # Use the same requirements as the top-level requirements, but only
         # the ones required for run_exports
-        - libcxx-devel {{ cxx_compiler_version }}    # [osx]
-        - llvmdev {{ version }}
         - llvm {{ version }}
       run:
         - {{ pin_subpackage("libclang-cpp" ~ maj_min, max_pin="x.x") }}   # [unix]
@@ -605,12 +591,10 @@ outputs:
         - {{ pin_subpackage("libclang" ~ libclang_soversion, max_pin=None) }}
         # Use the same requirements as the top-level requirements, but only
         # the ones required for run_exports
-        - libcxx-devel {{ cxx_compiler_version }}    # [osx]
-        - llvmdev {{ version }}
         - llvm {{ version }}
         - libxml2-devel
-        - zlib            # [win]
-        - zstd            # [win]
+        - zlib                      # [win]
+        - zstd                      # [win]
       run:
         - ucrt                                          # [win]
         - {{ pin_subpackage("clang-format", exact=True) }}
