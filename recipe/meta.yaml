@@ -62,6 +62,7 @@ requirements:
     - libxml2-devel
     - zlib
     - zstd
+    - llvm-openmp {{ version }}  # [win]
 
 outputs:
   - name: clangdev
