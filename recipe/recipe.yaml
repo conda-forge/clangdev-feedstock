@@ -75,6 +75,8 @@ outputs:
         - zstd
         - if: osx
           then: libcxx-devel ${{ cxx_compiler_version }}.*
+        - if: win
+          then: llvm-openmp ==${{ version }}
 
   - package:
       name: clangdev
