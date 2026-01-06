@@ -1,7 +1,7 @@
 {% set version = "21.1.7" %}
 {% set major_version = version.split(".")[0] %}
 {% set tail_version = version.split(".")[-1] %}
-{% set build_number = 3 %}
+{% set build_number = 4 %}
 
 # always includes minor as of v18, see https://github.com/llvm/llvm-project/issues/76273
 {% set maj_min = major_version ~ "." ~ version.split(".")[1] %}
@@ -341,8 +341,8 @@ outputs:
         - if not exist %LIBRARY_LIB%\libclang.lib exit 1    # [win]
 
   - name: clang-{{ major_version }}
-    script: install_clang.sh  # [unix]
-    script: install_clang.bat  # [win]
+    script: install_clang_maj.sh  # [unix]
+    script: install_clang_maj.bat  # [win]
     files:
       - lib/clang                                    # [unix]
       - bin/clang-{{ major_version }}                # [unix]
@@ -414,13 +414,11 @@ outputs:
         - if exist %LIBRARY_BIN%\clang-cpp.exe exit 1   # [win]
 
   - name: clang_impl_{{ target_platform }}
-    script: install_clang_impl.sh
+    script: install_clang_symlinks.sh
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
-        - clang_nocfg  # [not with_cfg]
-      string: {{ variant }}_cfg_h{{ PKG_HASH }}_{{ build_number }}    # [with_cfg]
-      string: {{ variant }}_nocfg_h{{ PKG_HASH }}_{{ build_number }}  # [not with_cfg]
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       skip: true  # [win]
     requirements:
       host:
@@ -432,11 +430,8 @@ outputs:
         - binutils_impl_{{ target_platform }}  # [linux]
         - sysroot_{{ target_platform }}        # [linux]
         - libgcc-devel_{{ target_platform }}   # [linux]
-        - llvm-tools {{ version }}.*           # [osx]
         - cctools_impl_{{ target_platform }}   # [osx]
         - ld64_{{ target_platform }} * llvm{{ maj_min.replace(".", "_") }}_*    # [osx]
-        - ld64                                 # [osx]
-        - llvm-openmp >={{ version }}
     test:
       commands:
         - x86_64-conda-linux-gnu-clang --version         # [linux64]
@@ -472,13 +467,15 @@ outputs:
         - zlib
         - zstd
       run:
-        - binutils_impl_{{ target_platform }}  # [linux]
+        - binutils                             # [linux]
         - sysroot_{{ target_platform }}        # [linux]
         - libgcc-devel_{{ target_platform }}   # [linux]
         - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
         - {{ pin_subpackage("clang_impl_" ~ target_platform, exact=True) }}     # [unix]
         - ld64_{{ target_platform }} * llvm{{ maj_min.replace(".", "_") }}_*    # [osx]
+        - llvm-tools {{ version }}.*           # [osx]
         - ld64                                 # [osx]
+        - cctools                              # [osx]
         - llvm-openmp >={{ version }}
     test:
       commands:
@@ -498,9 +495,7 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
-        - clang_nocfg  # [not with_cfg]
-      string: {{ variant }}_cfg_h{{ PKG_HASH }}_{{ build_number }}    # [with_cfg]
-      string: {{ variant }}_nocfg_h{{ PKG_HASH }}_{{ build_number }}  # [not with_cfg]
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       skip: true  # [win]
     requirements:
       host:

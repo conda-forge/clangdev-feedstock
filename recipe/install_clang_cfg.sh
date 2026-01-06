@@ -1,5 +1,3 @@
-source ${RECIPE_DIR}/install_clang_symlinks.sh
-
 if [[ "${target_platform}" == "linux-64" ]]; then
   TARGET=x86_64-conda-linux-gnu
 elif [[ "${target_platform}" == "linux-"* ]]; then
@@ -30,10 +28,9 @@ if [[ "${with_cfg}" == "true" ]]; then
       echo '$-Wl,-rpath-link,<CFGDIR>/../lib'             >> ${PREFIX}/bin/${TARGET}-${driver}.cfg
     fi
   done
-fi
-
-if [[ "${target_platform}" == "linux-"* ]]; then
-  for driver in clang clang++ flang clang-cpp; do
-    echo "--sysroot=<CFGDIR>/../${TARGET}/sysroot"        >> ${PREFIX}/bin/${TARGET}-${driver}.cfg
-  done
+  if [[ "${target_platform}" == "linux-"* ]]; then
+    for driver in clang clang++ flang clang-cpp; do
+      echo "--sysroot=<CFGDIR>/../${TARGET}/sysroot"      >> ${PREFIX}/bin/${TARGET}-${driver}.cfg
+    done
+  fi
 fi
