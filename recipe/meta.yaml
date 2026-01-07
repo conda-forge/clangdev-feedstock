@@ -98,8 +98,8 @@ outputs:
         - zlib
         - zstd
       run:
-        - {{ pin_subpackage("clang", exact=True) }}
-        - {{ pin_subpackage("clangxx", exact=True) }}
+        - clang {{ version }} *_{{ build_number }}
+        - clangxx {{ version }} *_{{ build_number }}
         - {{ pin_subpackage("clang-tools", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
         - {{ pin_subpackage("libclang-cpp", exact=True) }}
@@ -341,8 +341,8 @@ outputs:
         - if not exist %LIBRARY_LIB%\libclang.lib exit 1    # [win]
 
   - name: clang-{{ major_version }}
-    script: install_clang.sh  # [unix]
-    script: install_clang.bat  # [win]
+    script: install_clang_maj.sh  # [unix]
+    script: install_clang_maj.bat  # [win]
     files:
       - lib/clang                                    # [unix]
       - bin/clang-{{ major_version }}                # [unix]
@@ -430,11 +430,8 @@ outputs:
         - binutils_impl_{{ target_platform }}  # [linux]
         - sysroot_{{ target_platform }}        # [linux]
         - libgcc-devel_{{ target_platform }}   # [linux]
-        - llvm-tools {{ version }}.*           # [osx]
         - cctools_impl_{{ target_platform }}   # [osx]
         - ld64_{{ target_platform }} * llvm{{ maj_min.replace(".", "_") }}_*    # [osx]
-        - ld64                                 # [osx]
-        - llvm-openmp >={{ version }}
     test:
       commands:
         - x86_64-conda-linux-gnu-clang --version         # [linux64]
@@ -448,7 +445,9 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
-      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+        - clang_nocfg  # [not with_cfg]
+      string: {{ variant }}_cfg_h{{ PKG_HASH }}_{{ build_number }}    # [with_cfg]
+      string: {{ variant }}_nocfg_h{{ PKG_HASH }}_{{ build_number }}  # [not with_cfg]
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
         - libxml2-devel
@@ -468,13 +467,15 @@ outputs:
         - zlib
         - zstd
       run:
-        - binutils_impl_{{ target_platform }}  # [linux]
+        - binutils                             # [linux]
         - sysroot_{{ target_platform }}        # [linux]
         - libgcc-devel_{{ target_platform }}   # [linux]
         - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
         - {{ pin_subpackage("clang_impl_" ~ target_platform, exact=True) }}     # [unix]
         - ld64_{{ target_platform }} * llvm{{ maj_min.replace(".", "_") }}_*    # [osx]
+        - llvm-tools {{ version }}.*           # [osx]
         - ld64                                 # [osx]
+        - cctools                              # [osx]
         - llvm-openmp >={{ version }}
     test:
       commands:
@@ -516,7 +517,9 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
-      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+        - clang_nocfg  # [not with_cfg]
+      string: {{ variant }}_cfg_h{{ PKG_HASH }}_{{ build_number }}    # [with_cfg]
+      string: {{ variant }}_nocfg_h{{ PKG_HASH }}_{{ build_number }}  # [not with_cfg]
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
         - libxml2-devel
@@ -585,6 +588,7 @@ outputs:
         - make   # [unix]
         - llvmdev {{ version }}     # [build_platform != target_platform]
       host:
+        # it does not matter whether we use cfg or nocfg clang{,xx} in host
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clangxx", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
@@ -633,6 +637,7 @@ outputs:
         - make   # [unix]
         - llvmdev {{ version }}     # [build_platform != target_platform]
       host:
+        # it does not matter whether we use cfg or nocfg clang{,xx} in host
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clangxx", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}
@@ -679,6 +684,7 @@ outputs:
         - make   # [unix]
         - llvmdev {{ version }}     # [build_platform != target_platform]
       host:
+        # it does not matter whether we use cfg or nocfg clang{,xx} in host
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clangxx", exact=True) }}
         - {{ pin_subpackage("libclang", exact=True) }}

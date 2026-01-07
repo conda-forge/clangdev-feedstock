@@ -20,6 +20,7 @@ if [[ "${PKG_NAME}" == "clang" ]]; then
   ln -s "${PREFIX}/bin/clang-${maj_version}" "${PREFIX}/bin/clang-cl"
   ln -s "${PREFIX}/bin/clang-${maj_version}" "${PREFIX}/bin/clang-cpp"
   ln -s "${PREFIX}/bin/clang-${maj_version}" "${PREFIX}/bin/clang"
+  source ${RECIPE_DIR}/install_clang_cfg.sh
 elif [[ "${PKG_NAME}" == "clangxx" ]]; then
   ln -s "${PREFIX}/bin/clang-${maj_version}"  ${PREFIX}/bin/clang++
 elif [[ "${PKG_NAME}" == "clangxx_impl_"* ]]; then
