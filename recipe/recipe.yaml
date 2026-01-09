@@ -829,6 +829,9 @@ outputs:
               - Library/lib/libscanbuild/*
               - Library/libexec/*
               - Library/share/*
+          - if: osx
+            # osx-specifc, see #420
+            then: lib/libClangdXPCLib*
         exclude:
           - if: unix
             then:
