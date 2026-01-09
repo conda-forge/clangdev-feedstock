@@ -107,8 +107,10 @@ outputs:
       requires:
         - {{ compiler('cxx') }}
         - cmake
+        - ninja
       files:
         - mytest.c
+        - cmake_test/
       commands:
         # static library
         - test -f $PREFIX/lib/libclangAST.a                         # [unix]
@@ -130,6 +132,11 @@ outputs:
         # basic compilation
         - $PREFIX/bin/clang -v -c mytest.c      # [unix]
         - '%LIBRARY_BIN%/clang -v -c mytest.c'  # [win]
+
+        # ensure CMake metadata is correct & working
+        - cd cmake_test
+        - cmake -GNinja $CMAKE_ARGS .   # [unix]
+        - cmake -GNinja %CMAKE_ARGS% .  # [win]
 
   - name: libclang-cpp{{ maj_min }}
     files:
