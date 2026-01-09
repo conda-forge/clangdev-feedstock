@@ -142,9 +142,11 @@ outputs:
           run:
             - ${{ compiler('cxx') }}
             - cmake
+            - ninja
         files:
           recipe:
             - mytest.c
+            - cmake_test/*
         script:
           - if: unix
             then:
@@ -156,6 +158,11 @@ outputs:
               - $PREFIX/bin/clang -v -c mytest.c
             else:
               - '%LIBRARY_BIN%/clang -v -c mytest.c'
+          # ensure CMake metadata is correct & working
+          - cd cmake_test
+          - if: unix
+            then: cmake -GNinja $CMAKE_ARGS .
+            else: 'cmake -GNinja %CMAKE_ARGS% .'
 
   - package:
       name: libclang-cpp${{ maj_min }}
