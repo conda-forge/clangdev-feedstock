@@ -648,6 +648,8 @@ outputs:
         - lib/libscanbuild/*                       # [unix]
         - libexec/*                                # [unix]
         - share/*                                  # [unix]
+        # osx-specifc, see #420
+        - lib/libClangdXPCLib*                     # [osx]
         - Library/bin/*                            # [win]
         - Library/lib/libear/*                     # [win]
         - Library/lib/libscanbuild/*               # [win]
