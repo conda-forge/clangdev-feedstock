@@ -470,7 +470,7 @@ outputs:
         - zstd                      # [win]
       run:
         - clangxx_impl_{{ target_platform }} {{ version }}.* {{ variant }}_*_{{ build_number }}   # [unix]
-        - {{ pin_subpackage("clang", exact=True) }}
+        - clang {{ version }}.* {{ variant }}_*_{{ build_number }}
         - libstdcxx-devel_{{ target_platform }}  # [linux]
     test:
       requires:
