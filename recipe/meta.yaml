@@ -334,20 +334,10 @@ outputs:
     files:
       - bin/{{ TARGET }}-clang
       - bin/{{ TARGET }}-clang-cpp
-      # we add configuration files for with_cfg only. `_NO_VER` is only relevant on osx.
-      # on linux, the --sysroot argument is added for non-cfg builds as well,
-      # through the file bin/<TARGET>.cfg that's present in the sysroot package
-      - bin/{{ TARGET_NO_VER }}-clang.cfg       # [with_cfg]
-      - bin/{{ TARGET_NO_VER }}-clang-cl.cfg    # [with_cfg]
-      - bin/{{ TARGET_NO_VER }}-clang-cpp.cfg   # [with_cfg]
-      # technically the flang cfg files should be in flang, but it's easier to consolidate them here.
-      - bin/{{ TARGET_NO_VER }}-flang.cfg       # [with_cfg]
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
-        - clang_nocfg  # [unix and not with_cfg]
-      string: {{ variant }}_cfg_h{{ PKG_HASH }}_{{ build_number }}    # [with_cfg]
-      string: {{ variant }}_nocfg_h{{ PKG_HASH }}_{{ build_number }}  # [not with_cfg]
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       skip: true  # [win]
     requirements:
       run:
@@ -374,6 +364,16 @@ outputs:
       - Library/bin/clang.exe       # [win]
       - Library/bin/clang-cl.exe    # [win]
       - Library/bin/clang-cpp.exe   # [win]
+      # we add configuration files for with_cfg only. `_NO_VER` is only relevant on osx.
+      # on linux, the --sysroot argument is added for non-cfg builds as well,
+      # through the file bin/<TARGET>.cfg that's present in the sysroot package
+      - bin/{{ TARGET_NO_VER }}-clang.cfg       # [with_cfg]
+      - bin/{{ TARGET_NO_VER }}-clang-cl.cfg    # [with_cfg]
+      - bin/{{ TARGET_NO_VER }}-clang-cpp.cfg   # [with_cfg]
+      # technically the flang cfg files should be in flang, but it's easier to consolidate them here.
+      - bin/{{ TARGET_NO_VER }}-flang.cfg       # [with_cfg]
+      - bin/cc                     # [with_cfg]
+      - bin/cpp                    # [with_cfg]
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
@@ -425,13 +425,10 @@ outputs:
   - name: clangxx_impl_{{ target_platform }}
     files:
       - bin/{{ TARGET }}-clang++
-      - bin/{{ TARGET_NO_VER }}-clang++.cfg     # [with_cfg]
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
-        - clang_nocfg  # [unix and not with_cfg]
-      string: {{ variant }}_cfg_h{{ PKG_HASH }}_{{ build_number }}    # [with_cfg]
-      string: {{ variant }}_nocfg_h{{ PKG_HASH }}_{{ build_number }}  # [not with_cfg]
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       skip: true  # [win]
     requirements:
       run:
@@ -449,6 +446,8 @@ outputs:
     files:
       - bin/clang++                   # [unix]
       - Library/bin/clang++.exe       # [win]
+      - bin/{{ TARGET_NO_VER }}-clang++.cfg     # [with_cfg]
+      - bin/c++                       # [with_cfg]
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
