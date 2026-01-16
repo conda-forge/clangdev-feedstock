@@ -2,6 +2,10 @@ MACOSX_DEPLOYMENT_TARGET:
 - '10.13'
 MACOSX_SDK_VERSION:
 - '10.13'
+TARGET:
+- x86_64-apple-darwin13.4.0
+TARGET_NO_VER:
+- x86_64-apple-darwin
 c_stdlib:
 - macosx_deployment_target
 c_stdlib_version:
