@@ -52,11 +52,6 @@ fi
 if [[ "$variant" == "root"* ]]; then
   # Cling needs some minor patches to the LLVM sources
   sed -i.bak "s@LLVM_LINK_LLVM_DYLIB yes@LLVM_LINK_LLVM_DYLIB no@g" "${PREFIX}/lib/cmake/llvm/LLVMConfig.cmake"
-  if [[ "${target_platform}" = linux* ]]; then
-    default_sysroot=$PREFIX/$(echo $CONDA_BUILD_SYSROOT | sed "s@$BUILD_PREFIX@@")
-    echo "Setting -DDEFAULT_SYSROOT=${default_sysroot}"
-    CMAKE_ARGS="$CMAKE_ARGS -DDEFAULT_SYSROOT=${default_sysroot}"
-  fi
 fi
 
 mkdir build
