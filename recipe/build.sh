@@ -49,6 +49,11 @@ if [[ "$target_platform" == "linux-ppc64le" ]]; then
   CXXFLAGS="$(echo $CXXFLAGS | sed 's/-fno-plt //g')"
 fi
 
+if [[ "$variant" == "root"* ]]; then
+  # See https://github.com/conda-forge/llvmdev-feedstock/issues/357 and https://github.com/conda-forge/clangdev-feedstock/pull/134#discussion_r615227892 for context.
+  sed -i.bak "s@LLVM_LINK_LLVM_DYLIB yes@LLVM_LINK_LLVM_DYLIB no@g" "${PREFIX}/lib/cmake/llvm/LLVMConfig.cmake"
+fi
+
 mkdir build
 cd build
 

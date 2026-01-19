@@ -4,6 +4,7 @@ azure:
       CONDA_BLD_PATH: C:\\bld\\
       MINIFORGE_HOME: C:\Miniforge
       SET_PAGEFILE: 'True'
+  free_disk_space: True
 bot:
   abi_migration_branches:
   - 18.x
