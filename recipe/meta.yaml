@@ -189,8 +189,13 @@ outputs:
         - libcxx >={{ version }}    # [osx]
     test:
       requires:
-        - {{ compiler('cxx') }}
         - cmake
+        - {{ compiler('cxx') }}   # [unix]
+        # Building clang needs vs2022, but testing clang 18 needs
+        # an older version of vs2022 as newer versions of vs2022
+        # require clang>=19 in the STL headers. CI images only have
+        # the newest version of vs2022, so fall back to vs2019
+        - vs2019_win-64           # [win and x86_64]
       files:
         - mytest.c
       commands:
@@ -558,7 +563,12 @@ outputs:
         - {{ pin_subpackage("clang", exact=True) }}
     test:
       requires:
-        - {{ compiler("cxx") }}
+        - {{ compiler('cxx') }}   # [unix]
+        # Building clang needs vs2022, but testing clang 18 needs
+        # an older version of vs2022 as newer versions of vs2022
+        # require clang>=19 in the STL headers. CI images only have
+        # the newest version of vs2022, so fall back to vs2019
+        - vs2019_win-64           # [win and x86_64]
       files:
         - mytest.cxx
       commands:
