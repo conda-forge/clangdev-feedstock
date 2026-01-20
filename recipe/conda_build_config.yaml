@@ -3,6 +3,9 @@ c_compiler:          # [osx]
 cxx_compiler:        # [osx]
   - clang_bootstrap  # [osx]
 
+github_actions_labels:                          # [win]
+  - self-hosted@cirun-azure-windows-2xlarge-ng  # [win]
+
 # Starting from LLVM 14, the ABI of libclang doesn't necessarily
 # match the major version anymore - cf. #170 and
 # https://github.com/llvm/llvm-project/issues/54004
