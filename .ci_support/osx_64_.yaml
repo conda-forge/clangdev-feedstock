@@ -7,25 +7,30 @@ c_stdlib:
 c_stdlib_version:
 - '10.13'
 channel_sources:
-- conda-forge/label/llvm_rc,conda-forge
+- conda-forge
 channel_targets:
-- conda-forge llvm_rc
+- conda-forge main
 cxx_compiler:
 - clang_bootstrap
 cxx_compiler_version:
 - '19'
 libclang_soversion:
 - '13'
-libxml2:
-- '2.13'
+libxml2_devel:
+- '2.14'
+llvm_openmp:
+- '19'
 macos_machine:
 - x86_64-apple-darwin13.4.0
 python_min:
-- '3.9'
+- '3.10'
 target_platform:
 - osx-64
 variant:
 - default
+with_cfg:
+- false
+- true
 zlib:
 - '1'
 zstd:
