@@ -30,7 +30,6 @@ source:
       - patches/0003-clang-add-conda-specific-env-var-CONDA_BUILD_SYSROOT.patch
       - patches/0004-Fix-normalizeProgramName-s-handling-of-dots-outside-.patch
       - patches/0005-Set-VERSION-in-osx-as-well.patch
-      - patches/0006-Fix-crosscompiling-LLVM-tools.patch
       - patches/0007-set-libclang-SOVERSION-unconditionally.patch
       - patches/0008-Make-PIE-default-on-macOS-too.patch
       - patches/0009-Find-ROCm-device-library-in-conda-layout.patch
