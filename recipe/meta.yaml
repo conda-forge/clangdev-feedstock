@@ -41,6 +41,8 @@ source:
 
 build:
   number: {{ build_number }}
+  # debug
+  skip: true  # [not win]
 
 requirements:
   build:
