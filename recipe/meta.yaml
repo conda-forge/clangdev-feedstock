@@ -737,6 +737,8 @@ outputs:
         - clang.cindex
       commands:
         - cd clang/bindings/python
+        # see https://github.com/llvm/llvm-project/issues/177832
+        - rm -f tests/cindex/test_enums.py
         - python -m unittest discover -v
 
 about:
