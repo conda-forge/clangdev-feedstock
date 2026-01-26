@@ -13,6 +13,10 @@ libclang_soversion:
 variant:
   - default
 
+with_cfg:
+  - true    # [unix]
+  - false
+
 channel_targets:
   - conda-forge llvm_rc
 
