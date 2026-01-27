@@ -42,7 +42,7 @@ source:
 build:
   number: {{ build_number }}
   # DEBUG
-  skip: true  # [not win]
+  skip: true  # [not linux64]
 
 requirements:
   build:
@@ -738,8 +738,11 @@ outputs:
         - clang.cindex
       commands:
         - cd clang/bindings/python
-        # see https://github.com/llvm/llvm-project/issues/177832
-        - rm -f tests/cindex/test_enums.py
+        - ls -l $SRC_DIR/clang/bindings/python/tests
+        - echo "absolute traversal"
+        - ls -l $SRC_DIR/clang/include/clang-c
+        - echo "relative traversal"
+        - ls -l ../../include/clang-c
         - python -m unittest discover -v
 
 about:
