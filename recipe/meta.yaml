@@ -733,6 +733,7 @@ outputs:
       source_files:
         - clang/bindings/python/tests
         - clang/bindings/python/examples/cindex
+        - clang/include/clang-c
       imports:
         - clang
         - clang.cindex
