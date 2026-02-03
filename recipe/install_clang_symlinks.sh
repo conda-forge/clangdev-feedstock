@@ -21,13 +21,13 @@ if [[ "${PKG_NAME}" == "clang" ]]; then
   ln -s "${PREFIX}/bin/clang-${maj_version}" "${PREFIX}/bin/clang-cpp"
   ln -s "${PREFIX}/bin/clang-${maj_version}" "${PREFIX}/bin/clang"
   source ${RECIPE_DIR}/install_clang_cfg.sh
-  if [[ "${with_cfg}" == "true" ]]; then
+  if [[ "${with_cfg}" == "true" && "${target_platform}" == "osx-"* ]]; then
     ln -s "${PREFIX}/bin/clang-${maj_version}" "${PREFIX}/bin/cc"
     ln -s "${PREFIX}/bin/clang-${maj_version}" "${PREFIX}/bin/cpp"
   fi
 elif [[ "${PKG_NAME}" == "clangxx" ]]; then
   ln -s "${PREFIX}/bin/clang-${maj_version}"  ${PREFIX}/bin/clang++
-  if [[ "${with_cfg}" == "true" ]]; then
+  if [[ "${with_cfg}" == "true" && "${target_platform}" == "osx-"* ]]; then
     ln -s "${PREFIX}/bin/clang-${maj_version}" "${PREFIX}/bin/c++"
   fi
 elif [[ "${PKG_NAME}" == "clangxx_impl_"* ]]; then
