@@ -109,14 +109,14 @@ Current release info
 Installing clangdev
 ===================
 
-Installing `clangdev` from the `conda-forge/label/llvm_rc` channel can be achieved by adding `conda-forge/label/llvm_rc` to your channels with:
+Installing `clangdev` from the `conda-forge` channel can be achieved by adding `conda-forge` to your channels with:
 
 ```
-conda config --add channels conda-forge/label/llvm_rc
+conda config --add channels conda-forge
 conda config --set channel_priority strict
 ```
 
-Once the `conda-forge/label/llvm_rc` channel has been enabled, `clang, clang-22, clang-format, clang-format-22, clang-tools, clang_impl_linux-64, clang_impl_linux-aarch64, clang_impl_linux-ppc64le, clang_impl_osx-64, clang_impl_osx-arm64, clangdev, clangxx, clangxx_impl_linux-64, clangxx_impl_linux-aarch64, clangxx_impl_linux-ppc64le, clangxx_impl_osx-64, clangxx_impl_osx-arm64, libclang, libclang-cpp, libclang-cpp22.1, libclang13, python-clang` can be installed with `conda`:
+Once the `conda-forge` channel has been enabled, `clang, clang-22, clang-format, clang-format-22, clang-tools, clang_impl_linux-64, clang_impl_linux-aarch64, clang_impl_linux-ppc64le, clang_impl_osx-64, clang_impl_osx-arm64, clangdev, clangxx, clangxx_impl_linux-64, clangxx_impl_linux-aarch64, clangxx_impl_linux-ppc64le, clangxx_impl_osx-64, clangxx_impl_osx-arm64, libclang, libclang-cpp, libclang-cpp22.1, libclang13, python-clang` can be installed with `conda`:
 
 ```
 conda install clang clang-22 clang-format clang-format-22 clang-tools clang_impl_linux-64 clang_impl_linux-aarch64 clang_impl_linux-ppc64le clang_impl_osx-64 clang_impl_osx-arm64 clangdev clangxx clangxx_impl_linux-64 clangxx_impl_linux-aarch64 clangxx_impl_linux-ppc64le clangxx_impl_osx-64 clangxx_impl_osx-arm64 libclang libclang-cpp libclang-cpp22.1 libclang13 python-clang
@@ -131,26 +131,26 @@ mamba install clang clang-22 clang-format clang-format-22 clang-tools clang_impl
 It is possible to list all of the versions of `clang` available on your platform with `conda`:
 
 ```
-conda search clang --channel conda-forge/label/llvm_rc
+conda search clang --channel conda-forge
 ```
 
 or with `mamba`:
 
 ```
-mamba search clang --channel conda-forge/label/llvm_rc
+mamba search clang --channel conda-forge
 ```
 
 Alternatively, `mamba repoquery` may provide more information:
 
 ```
 # Search all versions available on your platform:
-mamba repoquery search clang --channel conda-forge/label/llvm_rc
+mamba repoquery search clang --channel conda-forge
 
 # List packages depending on `clang`:
-mamba repoquery whoneeds clang --channel conda-forge/label/llvm_rc
+mamba repoquery whoneeds clang --channel conda-forge
 
 # List dependencies of `clang`:
-mamba repoquery depends clang --channel conda-forge/label/llvm_rc
+mamba repoquery depends clang --channel conda-forge
 ```
 
 
