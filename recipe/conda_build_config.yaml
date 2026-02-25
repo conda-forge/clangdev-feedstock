@@ -16,3 +16,9 @@ variant:
 with_cfg:
   - true    # [unix]
   - false
+
+channel_targets:
+  - conda-forge llvm_rc
+
+channel_sources:
+  - conda-forge/label/llvm_rc,conda-forge

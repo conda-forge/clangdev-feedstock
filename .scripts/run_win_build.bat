@@ -62,7 +62,7 @@ if EXIST LICENSE.txt (
     echo Copying feedstock license
     copy LICENSE.txt "recipe\\recipe-scripts-license.txt"
 )
-if NOT [%HOST_PLATFORM%] == [%BUILD_PLATFORM%] (
+if [%HOST_PLATFORM%] == [%BUILD_PLATFORM%] (
     if [%CROSSCOMPILING_EMULATOR%] == [] (
         set "EXTRA_CB_OPTIONS=%EXTRA_CB_OPTIONS% --no-test"
     )
