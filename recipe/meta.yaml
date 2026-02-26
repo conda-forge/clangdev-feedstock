@@ -614,7 +614,12 @@ outputs:
         - zlib
         - zstd
       run:
-        - clangxx_impl_{{ target_platform }} {{ version }}.* {{ variant }}_*_{{ build_number }}   # [unix]
+        # we'd like to do the equivalent of pin_subpackage here (modulo cfg/nocfg); however,
+        # https://github.com/conda-forge/clang-compiler-activation-feedstock now depends on
+        # being able to co-install `clangxx_impl_{{ cross_target_platform }}` (built on that
+        # feedstock) with a `clangxx` from here (to have the symlinks available also for the
+        # bootstrap compilers), so we can't pin the build number either
+        - clangxx_impl_{{ target_platform }} {{ version }}.* {{ variant }}_*    # [unix]
         - {{ pin_subpackage("clang", exact=True) }}
         - libstdcxx-devel_{{ target_platform }}  # [linux]
         # only minor-pin to avoid issues when building new libcxx versions
