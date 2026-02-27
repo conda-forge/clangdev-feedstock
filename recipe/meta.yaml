@@ -1,7 +1,7 @@
 {% set version = "20.1.8" %}
 {% set major_version = version.split(".")[0] %}
 {% set tail_version = version.split(".")[-1] %}
-{% set build_number = 10 %}
+{% set build_number = 11 %}
 
 # always includes minor as of v18, see https://github.com/llvm/llvm-project/issues/76273
 {% set maj_min = major_version ~ "." ~ version.split(".")[1] %}
@@ -489,7 +489,9 @@ outputs:
       host:
         - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
       run:
-        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+        # cannot use exact pins on osx due to separation of compiler activation; see #437
+        - clang-{{ major_version }} {{ version }}.* {{ variant }}_*     # [osx]
+        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}    # [not osx]
         - compiler-rt_{{ target_platform }}
         - compiler-rt {{ version }}.*
         - binutils_impl_{{ target_platform }}  # [linux]
@@ -532,9 +534,7 @@ outputs:
         - {{ stdlib('c') }}         # [win]
         - {{ compiler('cxx') }}     # [win]
       host:
-        # cannot use exact pins on osx due to separation of compiler activation; see #437
-        - clang-{{ major_version }} {{ version }}.* {{ variant }}_*     # [osx]
-        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}    # [not osx]
+        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
         # Use the same requirements as the top-level requirements
         - libcxx-devel {{ cxx_compiler_version }}   # [osx]
         - llvmdev {{ version }}
@@ -545,7 +545,9 @@ outputs:
         - binutils_impl_{{ target_platform }}  # [linux]
         - sysroot_{{ target_platform }}        # [linux]
         - libgcc-devel_{{ target_platform }}   # [linux]
-        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+        # cannot use exact pins on osx due to separation of compiler activation; see #437
+        - clang-{{ major_version }} {{ version }}.* {{ variant }}_*             # [osx]
+        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}            # [not osx]
         - {{ pin_subpackage("clang_impl_" ~ target_platform, exact=True) }}     # [unix]
     test:
       commands:
@@ -577,7 +579,9 @@ outputs:
       host:
         - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
       run:
-        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+        # cannot use exact pins on osx due to separation of compiler activation; see #437
+        - clang-{{ major_version }} {{ version }}.* {{ variant }}_*     # [osx]
+        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}    # [not osx]
         - {{ pin_subpackage("clang_impl_" ~ target_platform, exact=True) }}
         - libstdcxx-devel_{{ target_platform }}  # [linux]
         # only minor-pin to avoid issues when building new libcxx versions
