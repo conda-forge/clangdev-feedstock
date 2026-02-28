@@ -341,7 +341,9 @@ outputs:
       skip: true  # [win]
     requirements:
       run:
-        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+        # cannot use exact pins on osx due to separation of compiler activation; see #437
+        - clang-{{ major_version }} {{ version }}.* {{ variant }}_*     # [osx]
+        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}    # [not osx]
         - compiler-rt_{{ target_platform }}
         - compiler-rt {{ version }}.*
         - binutils_impl_{{ target_platform }}  # [linux]
@@ -394,7 +396,9 @@ outputs:
         - binutils                             # [linux]
         - sysroot_{{ target_platform }}        # [linux]
         - libgcc-devel_{{ target_platform }}   # [linux]
-        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+        # cannot use exact pins on osx due to separation of compiler activation; see #437
+        - clang-{{ major_version }} {{ version }}.* {{ variant }}_*             # [osx]
+        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}            # [not osx]
         - {{ pin_subpackage("clang_impl_" ~ target_platform, exact=True) }}     # [unix]
         - ld64_{{ target_platform }} * llvm{{ maj_min.replace(".", "_") }}_*    # [osx]
         - llvm-tools {{ version }}.*           # [osx]
@@ -433,7 +437,9 @@ outputs:
       skip: true  # [win]
     requirements:
       run:
-        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+        # cannot use exact pins on osx due to separation of compiler activation; see #437
+        - clang-{{ major_version }} {{ version }}.* {{ variant }}_*     # [osx]
+        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}    # [not osx]
         - {{ pin_subpackage("clang_impl_" ~ target_platform, exact=True) }}
         - libstdcxx-devel_{{ target_platform }}  # [linux]
         # only minor-pin to avoid issues when building new libcxx versions
@@ -467,7 +473,12 @@ outputs:
         - zlib                      # [win]
         - zstd                      # [win]
       run:
-        - clangxx_impl_{{ target_platform }} {{ version }}.* {{ variant }}_*_{{ build_number }}   # [unix]
+        # we'd like to do the equivalent of pin_subpackage here (modulo cfg/nocfg); however,
+        # https://github.com/conda-forge/clang-compiler-activation-feedstock now depends on
+        # being able to co-install `clangxx_impl_{{ cross_target_platform }}` (built on that
+        # feedstock) with a `clangxx` from here (to have the symlinks available also for the
+        # bootstrap compilers), so we can't pin the build number either
+        - clangxx_impl_{{ target_platform }} {{ version }}.* {{ variant }}_*    # [unix]
         - {{ pin_subpackage("clang", exact=True) }}
         - libstdcxx-devel_{{ target_platform }}  # [linux]
         # only minor-pin to avoid issues when building new libcxx versions
