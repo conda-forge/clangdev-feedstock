@@ -462,7 +462,10 @@ outputs:
         down_prioritize_variant: ${{ 0 if variant == "default" else 1 }}
     requirements:
       run:
-        - ${{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+        # cannot use exact pins on osx due to separation of compiler activation; see #437
+        - if: osx
+          then: clang-${{ major_version }} ==${{ version }} ${{ variant }}_*
+          else: ${{ pin_subpackage("clang-" ~ major_version, exact=True) }}
         - compiler-rt_${{ target_platform }}
         - compiler-rt ${{ version }}.*
         - if: linux
@@ -546,7 +549,10 @@ outputs:
             - zlib
             - zstd
       run:
-        - ${{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+        # cannot use exact pins on osx due to separation of compiler activation; see #437
+        - if: osx
+          then: clang-${{ major_version }} ==${{ version }} ${{ variant }}_*
+          else: ${{ pin_subpackage("clang-" ~ major_version, exact=True) }}
         - llvm-openmp >=${{ version }}
         - if: unix
           then: ${{ pin_subpackage("clang_impl_" ~ target_platform, exact=True) }}
@@ -603,8 +609,11 @@ outputs:
         down_prioritize_variant: ${{ 0 if variant == "default" else 1 }}
     requirements:
       run:
+        # cannot use exact pins on osx due to separation of compiler activation; see #437
+        - if: osx
+          then: clang-${{ major_version }} ==${{ version }} ${{ variant }}_*
+          else: ${{ pin_subpackage("clang-" ~ major_version, exact=True) }}
         - ${{ pin_subpackage("clang_impl_" ~ target_platform, exact=True) }}
-        - ${{ pin_subpackage("clang-" ~ major_version, exact=True) }}
         - ${{ pin_subpackage("clang-scan-deps", exact=True) }}
         - if: linux
           then: libstdcxx-devel_${{ target_platform }}
@@ -659,7 +668,12 @@ outputs:
       run:
         - ${{ pin_subpackage("clang", exact=True) }}
         - if: unix
-          then: ${{ pin_subpackage("clangxx_impl_" ~ target_platform, exact=True) }}
+          # we'd like to do the equivalent of pin_subpackage here (modulo cfg/nocfg); however,
+          # https://github.com/conda-forge/clang-compiler-activation-feedstock now depends on
+          # being able to co-install `clangxx_impl_${{ cross_target_platform }}` (built on that
+          # feedstock) with a `clangxx` from here (to have the symlinks available also for the
+          # bootstrap compilers), so we can't pin the build number either
+          then: clangxx_impl_${{ target_platform }} ==${{ version }} ${{ variant }}_*
         - if: linux
           then: libstdcxx-devel_${{ target_platform }}
         - if: osx
