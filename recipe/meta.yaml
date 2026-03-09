@@ -423,6 +423,8 @@ outputs:
     build:
       skip: true  # [with_cfg]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+      track_features:
+        - root         # [variant and variant.startswith("root_")]
     requirements:
       run:
         - clang {{ version }} {{ variant }}_nocfg_*_{{ build_number }}
@@ -634,8 +636,8 @@ outputs:
       noarch: python
       # Building this output using this recipe is only supported on unix
       # It can still be installed on Windows as it is marked as `noarch: python`
-      skip: true  # [not linux64]
-      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+      skip: true  # [not (linux64 and variant == "default")]
+      string: h{{ PKG_HASH }}_{{ build_number }}
     script: build_python_bindings.sh
     requirements:
       host:
