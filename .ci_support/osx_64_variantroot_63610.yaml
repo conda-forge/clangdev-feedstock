@@ -19,13 +19,13 @@ libclang_soversion:
 libxml2_devel:
 - '2.14'
 macos_machine:
-- arm64-apple-darwin20.0.0
+- x86_64-apple-darwin13.4.0
 python_min:
 - '3.10'
 target_platform:
-- osx-arm64
+- osx-64
 variant:
-- root_63606
+- root_63610
 zlib:
 - '1'
 zstd:
