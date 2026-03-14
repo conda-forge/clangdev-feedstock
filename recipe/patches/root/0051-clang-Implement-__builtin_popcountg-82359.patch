@@ -1,0 +1,90 @@
+From 1d884a893569ca07330e9d6656ec2e04419bdfac Mon Sep 17 00:00:00 2001
+From: OverMighty <its.overmighty@gmail.com>
+Date: Mon, 26 Feb 2024 21:59:42 +0000
+Subject: [PATCH 51/53] [clang] Implement __builtin_popcountg (#82359)
+
+Fixes #82058.
+
+(cherry picked from commit 21d83324fbdbd91de0115d48f3b55979f57807b7)
+---
+ clang/include/clang/Basic/Builtins.def |  3 +++
+ clang/lib/CodeGen/CGBuiltin.cpp        |  5 +++++
+ clang/lib/Sema/SemaChecking.cpp        | 26 ++++++++++++++++++++++++++
+ 3 files changed, 34 insertions(+)
+
+diff --git a/clang/include/clang/Basic/Builtins.def b/clang/include/clang/Basic/Builtins.def
+index 4dcbaf8a7..96ad69c58 100644
+--- a/clang/include/clang/Basic/Builtins.def
++++ b/clang/include/clang/Basic/Builtins.def
+@@ -530,6 +530,9 @@ BUILTIN(__builtin_parityll, "iULLi", "ncE")
+ BUILTIN(__builtin_popcount  , "iUi"  , "ncE")
+ BUILTIN(__builtin_popcountl , "iULi" , "ncE")
+ BUILTIN(__builtin_popcountll, "iULLi", "ncE")
++#if defined(MAC_SDK_WORKAROUND)
++BUILTIN(__builtin_popcountg  , "i."  , "nc")
++#endif
+ BUILTIN(__builtin_clrsb  , "ii"  , "ncE")
+ BUILTIN(__builtin_clrsbl , "iLi" , "ncE")
+ BUILTIN(__builtin_clrsbll, "iLLi", "ncE")
+diff --git a/clang/lib/CodeGen/CGBuiltin.cpp b/clang/lib/CodeGen/CGBuiltin.cpp
+index 44ddd2428..b79d89c70 100644
+--- a/clang/lib/CodeGen/CGBuiltin.cpp
++++ b/clang/lib/CodeGen/CGBuiltin.cpp
+@@ -3219,7 +3219,12 @@ RValue CodeGenFunction::EmitBuiltinExpr(const GlobalDecl GD, unsigned BuiltinID,
+   case Builtin::BI__popcnt64:
+   case Builtin::BI__builtin_popcount:
+   case Builtin::BI__builtin_popcountl:
++#if defined(MAC_SDK_WORKAROUND)
++  case Builtin::BI__builtin_popcountll:
++  case Builtin::BI__builtin_popcountg: {
++#else
+   case Builtin::BI__builtin_popcountll: {
++#endif
+     Value *ArgValue = EmitScalarExpr(E->getArg(0));
+ 
+     llvm::Type *ArgType = ArgValue->getType();
+diff --git a/clang/lib/Sema/SemaChecking.cpp b/clang/lib/Sema/SemaChecking.cpp
+index 09b7e1c62..a45f81a54 100644
+--- a/clang/lib/Sema/SemaChecking.cpp
++++ b/clang/lib/Sema/SemaChecking.cpp
+@@ -2143,6 +2143,25 @@ static bool checkFPMathBuiltinElementType(Sema &S, SourceLocation Loc,
+   return false;
+ }
+ 
++#if defined(MAC_SDK_WORKAROUND)
++/// Checks that __builtin_popcountg was called with a single argument, which is
++/// an integer.
++static bool SemaBuiltinPopcountg(Sema &S, CallExpr *TheCall) {
++  if (checkArgCount(S, TheCall, 1))
++    return true;
++
++  Expr *Arg = TheCall->getArg(0);
++  QualType ArgTy = Arg->getType();
++
++  if (!ArgTy->isIntegerType()) {
++    S.Diag(Arg->getBeginLoc(), diag::err_builtin_invalid_arg_type)
++        << 1 << /*integer ty*/ 7 << ArgTy;
++    return true;
++  }
++  return false;
++}
++#endif
++
+ ExprResult
+ Sema::CheckBuiltinFunctionCall(FunctionDecl *FDecl, unsigned BuiltinID,
+                                CallExpr *TheCall) {
+@@ -2900,7 +2919,14 @@ Sema::CheckBuiltinFunctionCall(FunctionDecl *FDecl, unsigned BuiltinID,
+            diag::err_hip_invalid_args_builtin_mangled_name);
+       return ExprError();
+     }
++    break;
+   }
++#if defined(MAC_SDK_WORKAROUND)
++  case Builtin::BI__builtin_popcountg:
++    if (SemaBuiltinPopcountg(*this, TheCall))
++      return ExprError();
++    break;
++#endif
+   }
+ 
+   // Since the target specific builtins for each arch overlap, only check those

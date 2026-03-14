@@ -1,6 +1,6 @@
 {% set version = "18.1.8" %}
 {% set major_version = version.split(".")[0] %}
-{% set build_number = 17 %}
+{% set build_number = 18 %}
 
 # always includes minor as of v18, see https://github.com/llvm/llvm-project/issues/76273
 {% set minor_aware_ext = major_version ~ "." ~ version.split(".")[1] %}
@@ -82,6 +82,10 @@ source:
       - patches/root/0047-Disable-validation-of-transent-files.patch
       - patches/root/0048-Import-various-changes-to-the-global-module-index.patch
       - patches/root/0049-PR137806-clang-Forward-TPL-of-NestedNameSpecifier.patch
+      - patches/root/0050-Clang-libc-Implement-__is_nothrow_convertible-and-us.patch
+      - patches/root/0051-clang-Implement-__builtin_popcountg-82359.patch
+      - patches/root/0052-Clang-Implement-constexpr-support-for-__builtin_popc.patch
+      - patches/root/0053-clang-Implement-__builtin_-clzg-ctzg-83431.patch
 {% endif %}
 {% if variant and variant.startswith("cling_") %}
       - patches/cling/0001-UPSTREAM-ORC-Preserve-order-of-constructors-with-sam.patch
