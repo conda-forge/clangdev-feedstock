@@ -1,4 +1,4 @@
-{% set version = "22.1.0" %}
+{% set version = "22.1.2" %}
 {% set major_version = version.split(".")[0] %}
 {% set tail_version = version.split(".")[-1] %}
 {% set build_number = 0 %}
@@ -23,7 +23,7 @@ package:
 
 source:
   - url: https://github.com/llvm/llvm-project/archive/refs/tags/llvmorg-{{ version.replace(".rc", "-rc") }}.tar.gz
-    sha256: 933765a1c2cd518d95a9033a92d88d7109a79aefa4609247c31f28b8bc8dd96e
+    sha256: a252efd7a4a268d2cc5145b17adcaa82757fdee1d06d748b4c24137807710ecb
     patches:
       - patches/0001-Find-conda-gcc-installation.patch
       - patches/0002-Fix-sysroot-detection-for-linux.patch
@@ -182,7 +182,7 @@ outputs:
   - name: libclang-cpp
     # note that this is just an empty wrapper on windows
     script: install_libclang_cpp.sh  # [unix]
-    files:                      # [unix]
+    files:   # [unix]
       - lib/libclang-cpp.so     # [linux]
       - lib/libclang-cpp.dylib  # [osx]
     build:
@@ -445,7 +445,7 @@ outputs:
       track_features:
         - root         # [variant and variant.startswith("root_")]
         - clang_nocfg  # [unix and not with_cfg]
-      string: {{ variant }}_cfg_h{{ PKG_HASH }}_{{ build_number }}    # [with_cfg]
+      string: {{ variant }}_cfg_h{{ PKG_HASH }}_{{ build_number }}  # [with_cfg]
       string: {{ variant }}_nocfg_h{{ PKG_HASH }}_{{ build_number }}  # [not with_cfg]
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
@@ -454,7 +454,7 @@ outputs:
         - zstd     # [unix]
     requirements:
       # for run-exports
-      build:                        # [win]
+      build:   # [win]
         - {{ stdlib('c') }}         # [win]
         - {{ compiler('cxx') }}     # [win]
       host:
@@ -517,7 +517,7 @@ outputs:
       track_features:
         - root         # [variant and variant.startswith("root_")]
         - clang_nocfg  # [unix and not with_cfg]
-      string: {{ variant }}_cfg_h{{ PKG_HASH }}_{{ build_number }}    # [with_cfg]
+      string: {{ variant }}_cfg_h{{ PKG_HASH }}_{{ build_number }}  # [with_cfg]
       string: {{ variant }}_nocfg_h{{ PKG_HASH }}_{{ build_number }}  # [not with_cfg]
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
@@ -526,7 +526,7 @@ outputs:
         - zstd     # [unix]
     requirements:
       # for run-exports
-      build:                        # [win]
+      build:   # [win]
         - {{ stdlib('c') }}         # [win]
         - {{ compiler('cxx') }}     # [win]
       host:
