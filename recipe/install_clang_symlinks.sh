@@ -3,6 +3,8 @@ set -ex
 
 if [[ "${target_platform}" == "linux-64" ]]; then
   TARGET=x86_64-conda-linux-gnu
+elif [[ "${target_platform}" == "linux-ppc64le" ]]; then
+  TARGET=powerpc64le-conda-linux-gnu
 elif [[ "${target_platform}" == "linux-"* ]]; then
   TARGET=${target_platform/linux-/}-conda-linux-gnu
 elif [[ "${target_platform}" == "osx-64" ]]; then
