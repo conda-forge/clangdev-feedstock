@@ -7,7 +7,7 @@ channel_targets:
 cxx_compiler:
 - vs2022
 github_actions_labels:
-- self-hosted@cirun-azure-windows-2xlarge
+- blacksmith-8vcpu-windows-2025
 libclang_soversion:
 - '13'
 libxml2_devel:
