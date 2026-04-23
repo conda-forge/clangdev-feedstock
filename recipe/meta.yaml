@@ -425,7 +425,7 @@ outputs:
         - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
       run:
         - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
-        - compiler-rt_{{ target_platform }}
+        - compiler-rt_{{ target_platform }} {{ version }}.*
         - compiler-rt {{ version }}.*
         - binutils_impl_{{ target_platform }}  # [linux]
         - sysroot_{{ target_platform }}        # [linux]
