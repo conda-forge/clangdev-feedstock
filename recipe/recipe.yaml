@@ -466,8 +466,8 @@ outputs:
         - if: osx
           then: clang-${{ major_version }} ==${{ version }} ${{ variant }}_*
           else: ${{ pin_subpackage("clang-" ~ major_version, exact=True) }}
-        - compiler-rt_${{ target_platform }}
-        - compiler-rt ${{ version }}.*
+        - compiler-rt_${{ target_platform }} ==${{ version }}
+        - compiler-rt ==${{ version }}
         - if: linux
           then:
             - binutils_impl_${{ target_platform }}
