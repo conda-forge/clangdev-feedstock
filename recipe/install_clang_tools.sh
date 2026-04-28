@@ -30,3 +30,7 @@ done
 rm ${PREFIX}/bin/clang-${MAJOR_VERSION}
 rm ${PREFIX}/bin/clang-cpp-${MAJOR_VERSION}
 rm ${PREFIX}/bin/clang-cl-${MAJOR_VERSION}
+
+# part of output "clang-scan-deps", not "clang-tools"
+rm -f ${PREFIX}/bin/clang-scan-deps
+rm -f ${PREFIX}/bin/clang-scan-deps-${MAJOR_VERSION}
