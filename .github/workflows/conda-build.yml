@@ -28,7 +28,7 @@ jobs:
             os: ubuntu
             runs_on: ['ubuntu-latest']
             DOCKER_IMAGE: quay.io/condaforge/linux-anvil-x86_64:alma9
-          - CONFIG: linux_64_variantroot_63800
+          - CONFIG: linux_64_variantroot_64000
             STORE_BUILD_ARTIFACTS: False
             UPLOAD_PACKAGES: True
             os: ubuntu
@@ -40,7 +40,7 @@ jobs:
             os: ubuntu
             runs_on: ['ubuntu-latest']
             DOCKER_IMAGE: quay.io/condaforge/linux-anvil-x86_64:alma9
-          - CONFIG: linux_aarch64_variantroot_63800
+          - CONFIG: linux_aarch64_variantroot_64000
             STORE_BUILD_ARTIFACTS: False
             UPLOAD_PACKAGES: True
             os: ubuntu
@@ -52,7 +52,7 @@ jobs:
             os: ubuntu
             runs_on: ['ubuntu-latest']
             DOCKER_IMAGE: quay.io/condaforge/linux-anvil-x86_64:alma9
-          - CONFIG: linux_ppc64le_variantroot_63800
+          - CONFIG: linux_ppc64le_variantroot_64000
             STORE_BUILD_ARTIFACTS: False
             UPLOAD_PACKAGES: True
             os: ubuntu
