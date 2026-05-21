@@ -20,3 +20,5 @@ github:
 provider:
   win: azure
 test: native_and_emulated
+workflow_settings:
+  store_build_artifacts: true
