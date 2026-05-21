@@ -1,0 +1,49 @@
+From f344622ca3901bd32924256437f2acda2ca04653 Mon Sep 17 00:00:00 2001
+From: Jonas Hahnfeld <jonas.hahnfeld@cern.ch>
+Date: Tue, 11 Jul 2023 16:52:29 +0200
+Subject: [PATCH 14/49] Add method to forget generated declarations
+
+---
+ clang/include/clang/CodeGen/ModuleBuilder.h | 1 +
+ clang/lib/CodeGen/ModuleBuilder.cpp         | 9 +++++++++
+ 2 files changed, 10 insertions(+)
+
+diff --git a/clang/include/clang/CodeGen/ModuleBuilder.h b/clang/include/clang/CodeGen/ModuleBuilder.h
+index 4a0f84ec9..b712130f3 100644
+--- a/clang/include/clang/CodeGen/ModuleBuilder.h
++++ b/clang/include/clang/CodeGen/ModuleBuilder.h
+@@ -107,6 +107,7 @@ public:
+                             const CodeGenOptions& CGO);
+ 
+   void forgetGlobal(llvm::GlobalValue* GV);
++  void forgetDecl(llvm::StringRef MangledName);
+ };
+ 
+ /// CreateLLVMCodeGen - Create a CodeGenerator instance.
+diff --git a/clang/lib/CodeGen/ModuleBuilder.cpp b/clang/lib/CodeGen/ModuleBuilder.cpp
+index b6b24cda9..b41aaa499 100644
+--- a/clang/lib/CodeGen/ModuleBuilder.cpp
++++ b/clang/lib/CodeGen/ModuleBuilder.cpp
+@@ -165,6 +165,11 @@ namespace {
+       }
+     }
+ 
++    void forgetDecl(llvm::StringRef MangledName) {
++      Builder->DeferredDecls.erase(MangledName);
++      Builder->Manglings.erase(MangledName);
++    }
++
+     void Initialize(ASTContext &Context) override {
+       Ctx = &Context;
+ 
+@@ -387,6 +392,10 @@ void CodeGenerator::forgetGlobal(llvm::GlobalValue* GV) {
+   static_cast<CodeGeneratorImpl*>(this)->forgetGlobal(GV);
+ }
+ 
++void CodeGenerator::forgetDecl(llvm::StringRef MangledName) {
++  static_cast<CodeGeneratorImpl*>(this)->forgetDecl(MangledName);
++}
++
+ CodeGenerator *
+ clang::CreateLLVMCodeGen(DiagnosticsEngine &Diags, llvm::StringRef ModuleName,
+                          IntrusiveRefCntPtr<llvm::vfs::FileSystem> FS,

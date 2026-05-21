@@ -1,0 +1,65 @@
+From 033057835d0a1b4bb97bbd658daf8ba6289246ed Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Wed, 7 Jan 2015 10:28:02 +0100
+Subject: [PATCH 09/49] Provide (possibly updated) CodegenOpts to StartModule.
+
+---
+ clang/include/clang/CodeGen/ModuleBuilder.h |  4 ++++
+ clang/lib/CodeGen/ModuleBuilder.cpp         | 15 ++++++++++++++-
+ 2 files changed, 18 insertions(+), 1 deletion(-)
+
+diff --git a/clang/include/clang/CodeGen/ModuleBuilder.h b/clang/include/clang/CodeGen/ModuleBuilder.h
+index 59b9840d0..8ef8c471d 100644
+--- a/clang/include/clang/CodeGen/ModuleBuilder.h
++++ b/clang/include/clang/CodeGen/ModuleBuilder.h
+@@ -100,6 +100,10 @@ public:
+   /// Create a new \c llvm::Module after calling HandleTranslationUnit. This
+   /// enable codegen in interactive processing environments.
+   llvm::Module* StartModule(llvm::StringRef ModuleName, llvm::LLVMContext &C);
++
++  llvm::Module* StartModule(llvm::StringRef ModuleName,
++                            llvm::LLVMContext& C,
++                            const CodeGenOptions& CGO);
+ };
+ 
+ /// CreateLLVMCodeGen - Create a CodeGenerator instance.
+diff --git a/clang/lib/CodeGen/ModuleBuilder.cpp b/clang/lib/CodeGen/ModuleBuilder.cpp
+index d4e0ab033..d1cb068bd 100644
+--- a/clang/lib/CodeGen/ModuleBuilder.cpp
++++ b/clang/lib/CodeGen/ModuleBuilder.cpp
+@@ -36,7 +36,7 @@ namespace {
+     IntrusiveRefCntPtr<llvm::vfs::FileSystem> FS; // Only used for debug info.
+     const HeaderSearchOptions &HeaderSearchOpts; // Only used for debug info.
+     const PreprocessorOptions &PreprocessorOpts; // Only used for debug info.
+-    const CodeGenOptions &CodeGenOpts;
++    CodeGenOptions CodeGenOpts;  // Intentionally copied in.
+ 
+     unsigned HandlingTopLevelDecls;
+ 
+@@ -148,6 +148,13 @@ namespace {
+       return M.get();
+     }
+ 
++    llvm::Module *StartModule(llvm::StringRef ModuleName,
++                              llvm::LLVMContext& C,
++                              const CodeGenOptions& CGO) {
++      CodeGenOpts = CGO;
++      return StartModule(ModuleName, C);
++    }
++
+     void Initialize(ASTContext &Context) override {
+       Ctx = &Context;
+ 
+@@ -360,6 +367,12 @@ llvm::Module *CodeGenerator::StartModule(llvm::StringRef ModuleName,
+   return static_cast<CodeGeneratorImpl*>(this)->StartModule(ModuleName, C);
+ }
+ 
++llvm::Module *CodeGenerator::StartModule(llvm::StringRef ModuleName,
++                                         llvm::LLVMContext& C,
++                                         const CodeGenOptions& CGO) {
++  return static_cast<CodeGeneratorImpl*>(this)->StartModule(ModuleName, C, CGO);
++}
++
+ CodeGenerator *
+ clang::CreateLLVMCodeGen(DiagnosticsEngine &Diags, llvm::StringRef ModuleName,
+                          IntrusiveRefCntPtr<llvm::vfs::FileSystem> FS,
