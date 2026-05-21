@@ -14,19 +14,6 @@ mv llvm-project/cmake ./cmake
 rm -rf llvm-project
 cd clang
 
-IFS='.' read -r -a PKG_VER_ARRAY <<< "${PKG_VERSION}"
-# default SOVER for tagged releases is major.minor since LLVM 18
-SOVER_EXT="${PKG_VER_ARRAY[0]}.${PKG_VER_ARRAY[1]}"
-if [[ "${PKG_VERSION}" == *dev* ]]; then
-    # otherwise with git suffix
-    SOVER_EXT="${SOVER_EXT}git"
-fi
-
-# link to versioned libLTO.dylib (which is present in libllvm<major> that
-# libclang<sover> depends on), as the unversioned symlink is only present
-# in llvmdev, which may not be present when using clang.
-sed -i.bak "s/libLTO.dylib/libLTO.${SOVER_EXT}.dylib/g" lib/Driver/ToolChains/Darwin.cpp
-
 if [[ "$CONDA_BUILD_CROSS_COMPILATION" == "1" ]]; then
   NATIVE_FLAGS="-DCMAKE_C_COMPILER=$CC_FOR_BUILD;-DCMAKE_CXX_COMPILER=$CXX_FOR_BUILD;-DCMAKE_C_FLAGS=-O2;-DCMAKE_CXX_FLAGS=-O2"
   NATIVE_FLAGS="${NATIVE_FLAGS};-DCMAKE_EXE_LINKER_FLAGS=;-DCMAKE_MODULE_LINKER_FLAGS=;-DCMAKE_SHARED_LINKER_FLAGS="
