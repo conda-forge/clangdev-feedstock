@@ -773,6 +773,8 @@ outputs:
       commands:
         - clang-check --version
         - clang-tidy --version
+        # absence of "doubly versioned" binaries
+        - test -z "$(find "${PREFIX}/bin" -name '*-{{ major_version }}-{{ major_version }}' -print)"    # [unix]
 
   - name: python-clang
     build:
