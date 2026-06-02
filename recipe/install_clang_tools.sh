@@ -17,6 +17,9 @@ for f in ${PREFIX}/bin/clang-*; do
     if [[ "$(basename $f)" == clang-format-* ]]; then
         # already got versioned in install_clang_format.sh
         continue
+    elif [[ "$(basename $f)" == clang-offload-packager-* ]]; then
+        # links to llvm-offload-binary
+        continue
     elif [[ "$(basename $f)" == "clang-${MAJOR_VERSION}" ]]; then
         # installation also creates a versioned clang, no need to re-version it
         continue
