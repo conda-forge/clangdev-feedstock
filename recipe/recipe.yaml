@@ -556,33 +556,53 @@ outputs:
           - clang-${{ major_version }} --version
           - clang++-${{ major_version }} --version
 
-  - name: clang_impl_{{ target_platform }}
-    script: install_clang_symlinks.sh
+  - package:
+      name: clang_impl_${{ target_platform }}
+    inherit: clangdev-stage
     build:
-      track_features:
-        - root         # [variant and variant.startswith("root_")]
-      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
-      skip: true  # [win]
+      skip: win
+      string: ${{ variant }}_h${{ hash }}_${{ build_number }}
+      script:
+        file: install_clang_symlinks
+      variant:
+        down_prioritize_variant: ${{ 0 if variant == "default" else 1 }}
     requirements:
       host:
-        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+        - ${{ pin_subpackage("clang-" ~ major_version, exact=True) }}
       run:
-        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
-        - compiler-rt_{{ target_platform }}
-        - compiler-rt {{ version }}.*
-        - binutils_impl_{{ target_platform }}  # [linux]
-        - sysroot_{{ target_platform }}        # [linux]
-        - libgcc-devel_{{ target_platform }}   # [linux]
-        - cctools_impl_{{ target_platform }}   # [osx]
-        - ld64_{{ target_platform }} * llvm{{ maj_min.replace(".", "_") }}_*    # [osx]
-    test:
-      commands:
-        - x86_64-conda-linux-gnu-clang --version         # [linux64]
-        - x86_64-conda-linux-gnu-clang-cpp --version     # [linux64]
-        - powerpc64le-conda-linux-gnu-clang --version    # [linux and ppc64le]
-        - powerpc64le-conda-linux-gnu-clang-cpp --version  # [linux and ppc64le]
-        - x86_64-apple-darwin13.4.0-clang --version      # [osx and x86_64]
-        - x86_64-apple-darwin13.4.0-clang-cpp --version  # [osx and x86_64]
+        - ${{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+        - compiler-rt_${{ target_platform }}
+        - compiler-rt ${{ version }}.*
+        - if: linux
+          then:
+            - binutils_impl_${{ target_platform }}
+            - libgcc-devel_${{ target_platform }}
+            - sysroot_${{ target_platform }}
+          else:
+            - cctools_impl_${{ target_platform }}
+            - ld64_${{ target_platform }} * llvm${{ maj_min|replace(".", "_") }}_*
+    tests:
+      - script:
+          - if: linux and x86_64
+            then:
+              - x86_64-conda-linux-gnu-clang --version
+              - x86_64-conda-linux-gnu-clang-cpp --version
+          - if: linux and aarch64
+            then:
+              - aarch64-conda-linux-gnu-clang --version
+              - aarch64-conda-linux-gnu-clang-cpp --version
+          - if: linux and ppc64le
+            then:
+              - powerpc64le-conda-linux-gnu-clang --version
+              - powerpc64le-conda-linux-gnu-clang-cpp --version
+          - if: osx and x86_64
+            then:
+              - x86_64-apple-darwin13.4.0-clang --version
+              - x86_64-apple-darwin13.4.0-clang-cpp --version
+          - if: osx and arm64
+            then:
+              - arm64-apple-darwin20.0.0-clang --version
+              - arm64-apple-darwin20.0.0-clang-cpp --version
 
   - name: clang
     script: install_clang_symlinks.sh  # [unix]
