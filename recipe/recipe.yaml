@@ -677,30 +677,39 @@ outputs:
           - clang-cl --version
           - clang-cpp --version
 
-  - name: clangxx_impl_{{ target_platform }}
-    script: install_clang_symlinks.sh
+  - package:
+      name: clangxx_impl_${{ target_platform }}
+    inherit: clangdev-stage
     build:
-      track_features:
-        - root         # [variant and variant.startswith("root_")]
-      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
-      skip: true  # [win]
+      skip: win
+      string: ${{ variant }}_h${{ hash }}_${{ build_number }}
+      script:
+        file: install_clang_symlinks
+      variant:
+        down_prioritize_variant: ${{ 0 if variant == "default" else 1 }}
     requirements:
       host:
-        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+        - ${{ pin_subpackage("clang-" ~ major_version, exact=True) }}
       run:
-        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
-        - {{ pin_subpackage("clang_impl_" ~ target_platform, exact=True) }}
-        - {{ pin_subpackage("clang-scan-deps", exact=True) }}
-        - libstdcxx-devel_{{ target_platform }}  # [linux]
-        # only minor-pin to avoid issues when building new libcxx versions
-        - libcxx-devel {{ maj_min }}             # [osx]
-    test:
-      commands:
-        - x86_64-conda-linux-gnu-clang++ --version          # [linux and x86_64]
-        - aarch64-conda-linux-gnu-clang++ --version         # [linux and aarch64]
-        - powerpc64le-conda-linux-gnu-clang++ --version     # [linux and ppc64le]
-        - x86_64-apple-darwin13.4.0-clang++ --version       # [osx and x86_64]
-        - arm64-apple-darwin20.0.0-clang++ --version        # [osx and arm64]
+        - ${{ pin_subpackage("clang_impl_" ~ target_platform, exact=True) }}
+        - ${{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+        - ${{ pin_subpackage("clang-scan-deps", exact=True) }}
+        - if: linux
+          then: libstdcxx-devel_${{ target_platform }}
+          # only minor-pin to avoid issues when building new libcxx versions
+          else: libcxx-devel ${{ maj_min }}.*
+    tests:
+      - script:
+          - if: linux and x86_64
+            then: x86_64-conda-linux-gnu-clang++ --version
+          - if: linux and aarch64
+            then: aarch64-conda-linux-gnu-clang++ --version
+          - if: linux and ppc64le
+            then: powerpc64le-conda-linux-gnu-clang++ --version
+          - if: osx and x86_64
+            then: x86_64-apple-darwin13.4.0-clang++ --version
+          - if: osx and arm64
+            then: arm64-apple-darwin20.0.0-clang++ --version
 
   - name: clangxx
     script: install_clang_symlinks.sh  # [unix]
