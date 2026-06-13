@@ -919,60 +919,79 @@ outputs:
       - script:
           - clang-format --version
 
-  - name: clang-scan-deps
-    script: install_clang_scan_deps.sh  # [unix]
-    files:
-      - bin/clang-scan-deps
-      - bin/clang-scan-deps-{{ major_version }}
-      - bin/x86_64-conda-linux-gnu-clang-scan-deps          # [linux and x86_64]
-      - bin/aarch64-conda-linux-gnu-clang-scan-deps         # [linux and aarch64]
-      - bin/powerpc64le-conda-linux-gnu-clang-scan-deps     # [linux and ppc64le]
-      - bin/x86_64-apple-darwin13.4.0-clang-scan-deps       # [osx and x86_64]
-      - bin/arm64-apple-darwin20.0.0-clang-scan-deps        # [osx and arm64]
+  - package:
+      name: clang-scan-deps
+    inherit: clangdev-stage
     build:
-      skip: true  # [win]
-      track_features:
-        - root         # [variant and variant.startswith("root_")]
-      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
-      ignore_run_exports_from:
-        # the build fails if it doesn't find the following, but it's not used
-        - libxml2-devel
-        - zlib
-        - zstd
+      skip: win
+      string: ${{ variant }}_h${{ hash }}_${{ build_number }}
+      script:
+        file: install_clang_scan_deps
+      files:
+        - bin/clang-scan-deps
+        - bin/clang-scan-deps-${{ major_version }}
+        - if: linux and x86_64
+          then: bin/x86_64-conda-linux-gnu-clang-scan-deps
+        - if: linux and aarch64
+          then: bin/aarch64-conda-linux-gnu-clang-scan-deps
+        - if: linux and ppc64le
+          then: bin/powerpc64le-conda-linux-gnu-clang-scan-deps
+        - if: osx and x86_64
+          then: bin/x86_64-apple-darwin13.4.0-clang-scan-deps
+        - if: osx and arm64
+          then: bin/arm64-apple-darwin20.0.0-clang-scan-deps
+      variant:
+        down_prioritize_variant: ${{ 0 if variant == "default" else 1 }}
     requirements:
       build:
         # "compiling .pyc files" fails without this
         - python >3
-        - {{ stdlib('c') }}
-        - {{ compiler('cxx') }}
+        - ${{ stdlib('c') }}
+        - ${{ compiler('cxx') }}
         - cmake
         - make
-        - llvmdev {{ version }}     # [build_platform != target_platform]
+        - if: build_platform != target_platform
+          then: llvmdev ==${{ version }}
       host:
-        - {{ pin_subpackage("libclang", exact=True) }}
-        - {{ pin_subpackage("libclang-cpp", exact=True) }}
-        # cannot pin to `cxx_compiler_version` here,
-        # because clangxx pins libcxx-devel to `maj_min`
-        - libcxx-devel {{ maj_min }}    # [osx]
-        - llvmdev {{ version }}
-        - llvm {{ version }}
+        - ${{ pin_subpackage("libclang", exact=True) }}
+        - ${{ pin_subpackage("libclang-cpp", exact=True) }}
+        - llvmdev ==${{ version }}
+        - llvm ==${{ version }}
         - libxml2-devel
         - zlib
         - zstd
+        - if: osx
+          # cannot pin to `cxx_compiler_version` here,
+          # because clangxx_impl_ pins libcxx-devel to `maj_min`
+          then: libcxx-devel ${{ maj_min }}.*
       run:
-        - {{ pin_subpackage("libclang" ~ libclang_soversion, max_pin=None) }}
-        - {{ pin_subpackage("libclang-cpp" ~ maj_min, max_pin="x.x") }}
-        # we need to do this manually because clang_bootstrap has no run-export
-        - libcxx >={{ version }}    # [osx]
-    test:
-      commands:
-        - clang-scan-deps --version
-        - clang-scan-deps-{{ major_version }} --version
-        - x86_64-conda-linux-gnu-clang-scan-deps --version          # [linux and x86_64]
-        - aarch64-conda-linux-gnu-clang-scan-deps --version         # [linux and aarch64]
-        - powerpc64le-conda-linux-gnu-clang-scan-deps --version     # [linux and ppc64le]
-        - x86_64-apple-darwin13.4.0-clang-scan-deps --version       # [osx and x86_64]
-        - arm64-apple-darwin20.0.0-clang-scan-deps --version        # [osx and arm64]
+        - ${{ pin_subpackage("libclang" ~ libclang_soversion, upper_bound=None) }}
+        - ${{ pin_subpackage("libclang-cpp" ~ maj_min, upper_bound="x.x") }}
+        - if: osx
+          # we need to do this manually because clang_bootstrap has no run-export
+          then: libcxx >=${{ version }}
+      ignore_run_exports:
+        from_package:
+          - if: unix
+            then:
+              # the build fails if it doesn't find the following, but it's not used
+              - libxml2-devel
+              - zlib
+              - zstd
+    tests:
+      - script:
+          - clang-scan-deps --version
+          - clang-scan-deps-${{ major_version }} --version
+          - if: linux and x86_64
+            then: x86_64-conda-linux-gnu-clang-scan-deps --version
+          - if: linux and aarch64
+            then: aarch64-conda-linux-gnu-clang-scan-deps --version
+          - if: linux and ppc64le
+            then: powerpc64le-conda-linux-gnu-clang-scan-deps --version
+          - if: osx and x86_64
+            then: x86_64-apple-darwin13.4.0-clang-scan-deps --version
+          - if: osx and arm64
+            then: arm64-apple-darwin20.0.0-clang-scan-deps --version
 
   - name: clang-tools
     script: install_clang_tools.sh  # [unix]
