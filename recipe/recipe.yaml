@@ -1,25 +1,23 @@
-{% set version = "22.1.8" %}
-{% set major_version = version.split(".")[0] %}
-{% set tail_version = version.split(".")[-1] %}
-{% set build_number = 2 %}
+context:
+  version: "22.1.8"
+  build_number: 3
+  # derived quanities
+  major_version: "${{ (version | split('.'))[0] }}"
+  # tail is not necessarily equal to patch version; e.g. 23.1.0.rc1
+  tail_version: "${{ (version | split('.'))[-1] }}"
+  # sover always includes minor as of v18, see https://github.com/llvm/llvm-project/issues/76273
+  maj_min: "${{ (version | split('.'))[:2] | join('.') }}"
+  # construct full sover, which contains extra suffixes for rc/dev builds
+  # as of LLVM 19, we expect an "-rcX" suffix for the release candidates
+  extra: ${{ "git" if tail_version|trim("0123456789") == "dev" else "-" ~ tail_version if tail_version not in "0123456789" else "" }}
+  sover: ${{ maj_min ~ extra }}
 
-# always includes minor as of v18, see https://github.com/llvm/llvm-project/issues/76273
-{% set maj_min = major_version ~ "." ~ version.split(".")[1] %}
+  # see https://github.com/llvm/llvm-project/blob/release/22.x/clang/tools/libclang/CMakeLists.txt#L14
+  libclang_soversion: "13"
 
-# construct full sover, which contains extra suffixes for rc/dev builds
-# as of LLVM 19, we expect an "-rcX" suffix for the release candidates
-{% set extra = "-" ~ tail_version if tail_version not in "0123456789" else "" %}
-{% set extra = "git" if tail_version|trim("0123456789") == "dev" else extra %}
-{% set sover = maj_min ~ extra %}
-
-{% if libclang_soversion is not defined %}
-# see https://github.com/llvm/llvm-project/blob/release/18.x/clang/tools/libclang/CMakeLists.txt
-{% set libclang_soversion = "13" %}
-{% endif %}
-
-package:
-  name: clang_packages
-  version: {{ version }}
+recipe:
+  name: clangdev
+  version: ${{ version }}
 
 source:
   - url: https://github.com/llvm/llvm-project/archive/refs/tags/llvmorg-{{ version.replace(".rc", "-rc") }}.tar.gz
@@ -41,7 +39,7 @@ source:
     folder: llvm-project
 
 build:
-  number: {{ build_number }}
+  number: ${{ build_number }}
 
 requirements:
   build:
@@ -826,12 +824,12 @@ outputs:
         - python -m unittest discover -v
 
 about:
-  home: http://llvm.org/
   license: Apache-2.0 WITH LLVM-exception
   license_file: clang/LICENSE.TXT
-  license_family: Apache
   summary: Development headers and libraries for Clang
-  dev_url: https://github.com/llvm/llvm-project
+  homepage: http://llvm.org/
+  repository: https://github.com/llvm/llvm-project
+  documentation: https://clang.llvm.org/
 
 extra:
   recipe-maintainers:
