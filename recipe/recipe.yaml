@@ -846,59 +846,78 @@ outputs:
       - script:
           - clang-format-${{ major_version }} --version
 
-  - name: clang-format
-    script: install_clang_format.sh  # [unix]
-    script: install_clang_format.bat  # [win]
-    files:
-      - bin/clang-format               # [unix]
-      - Library/bin/clang-format.exe   # [win]
+  - package:
+      name: clang-format
+    inherit: clangdev-stage
     build:
-      track_features:
-        - root         # [variant and variant.startswith("root_")]
-      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
-      ignore_run_exports_from:
-        # the build fails if it doesn't find the following, but it's not used
-        - libxml2-devel
-        - zlib
-        - zstd
+      string: ${{ variant }}_h${{ hash }}_${{ build_number }}
+      script:
+        file: install_clang_format
+      files:
+        - if: unix
+          then: bin/clang-format
+          else: Library/bin/clang-format.exe
+      variant:
+        down_prioritize_variant: ${{ 0 if variant == "default" else 1 }}
     requirements:
       build:
         # "compiling .pyc files" fails without this
         - python >3
-        - {{ stdlib('c') }}
-        - {{ compiler('cxx') }}
+        - ${{ stdlib('c') }}
+        - ${{ compiler('cxx') }}
         - cmake
-        - ninja  # [win]
-        - make   # [unix]
-        - llvmdev {{ version }}     # [build_platform != target_platform]
-        - libxml2-devel             # [build_platform != target_platform]
-        - zlib                      # [build_platform != target_platform]
-        - zstd                      # [build_platform != target_platform]
+        - if: unix
+          then: make
+          else: ninja
+        - if: build_platform != target_platform
+          then:
+            - llvmdev ==${{ version }}
+            - libxml2-devel
+            - zlib
+            - zstd
       host:
         # it does not matter whether we use cfg or nocfg clang{,xx} in host
-        - {{ pin_subpackage("clang", exact=True) }}
-        - {{ pin_subpackage("clangxx", exact=True) }}
-        - {{ pin_subpackage("libclang", exact=True) }}
-        - {{ pin_subpackage("libclang-cpp", exact=True) }}
-        - {{ pin_subpackage("clang-format-" ~ major_version, exact=True) }}      # [unix]
-        # cannot pin to `cxx_compiler_version` here,
-        # because clangxx pins libcxx-devel to `maj_min`
-        - libcxx-devel {{ maj_min }}    # [osx]
-        - llvmdev {{ version }}
-        - llvm {{ version }}
+        - ${{ pin_subpackage("clang", exact=True) }}
+        - ${{ pin_subpackage("clangxx", exact=True) }}
+        - ${{ pin_subpackage("libclang", exact=True) }}
+        - ${{ pin_subpackage("libclang-cpp", exact=True) }}
+        - llvmdev ==${{ version }}
+        - llvm ==${{ version }}
         - libxml2-devel
         - zlib
         - zstd
+        - if: unix
+          then: ${{ pin_subpackage("clang-format-" ~ major_version, exact=True) }}
+        - if: osx
+          # cannot pin to `cxx_compiler_version` here,
+          # because clangxx_impl_ pins libcxx-devel to `maj_min`
+          then: libcxx-devel ${{ maj_min }}.*
       run:
-        - {{ pin_subpackage("libclang-cpp" ~ maj_min, max_pin="x.x") }}          # [unix]
-        - {{ pin_subpackage("clang-format-" ~ major_version, exact=True) }}      # [unix]
-        # we need to do this manually because clang_bootstrap has no run-export
-        - libcxx >={{ version }}    # [osx]
-    test:
-      commands:
-        - clang-format --version
-        - test ! -f ${PREFIX}/bin/c-index-test                   # [unix]
-        - if exist %LIBRARY_BIN%\c-index-test.exe exit 1         # [win]
+        - ${{ pin_subpackage("clang", exact=True) }}
+        - if: unix
+          then:
+            - ${{ pin_subpackage("libclang-cpp" ~ maj_min, upper_bound="x.x") }}
+            - ${{ pin_subpackage("clang-format-" ~ major_version, exact=True) }}
+        - if: osx
+          # we need to do this manually because clang_bootstrap has no run-export
+          then: libcxx >=${{ version }}
+      ignore_run_exports:
+        from_package:
+          - if: unix
+            then:
+              # the build fails if it doesn't find the following, but it's not used
+              - libxml2-devel
+              - zlib
+              - zstd
+    tests:
+      - package_contents:
+          files:
+            not_exists:
+              - if: unix
+                then: bin/c-index-test
+                else: bin/c-index-test.exe
+      - script:
+          - clang-format --version
 
   - name: clang-scan-deps
     script: install_clang_scan_deps.sh  # [unix]
