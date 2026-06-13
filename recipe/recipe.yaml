@@ -73,78 +73,94 @@ outputs:
         - if: osx
           then: libcxx-devel ${{ cxx_compiler_version }}.*
 
-  - name: clangdev
-    script: install_clangdev.sh  # [unix]
-    script: install_clangdev.bat  # [win]
+  - package:
+      name: clangdev
+    inherit: clangdev-stage
     build:
-      track_features:
-        - root         # [variant and variant.startswith("root_")]
-      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
-      ignore_run_exports_from:
-        # the build fails if it doesn't find the following, but it's not used
-        - libxml2-devel     # [unix]
-        - zlib              # [unix]
-        - zstd              # [unix]
+      string: ${{ variant }}_h${{ hash }}_${{ build_number }}
+      script:
+        file: install_clangdev
+      variant:
+        down_prioritize_variant: ${{ 0 if variant == "default" else 1 }}
     requirements:
       build:
-        - {{ stdlib('c') }}
-        - {{ compiler('cxx') }}
+        - ${{ stdlib('c') }}
+        - ${{ compiler('cxx') }}
         - cmake
-        - ninja  # [win]
-        - make   # [unix]
-        - llvmdev {{ version }}     # [build_platform != target_platform]
-        - libxml2-devel             # [build_platform != target_platform]
-        - zlib                      # [build_platform != target_platform]
-        - zstd                      # [build_platform != target_platform]
+        - if: unix
+          then: make
+          else: ninja
+        - if: build_platform != target_platform
+          then:
+            - llvmdev ==${{ version }}
+            - libxml2-devel
+            - zlib
+            - zstd
       host:
-        - {{ pin_subpackage("clang", exact=True) }}
-        - {{ pin_subpackage("clangxx", exact=True) }}
-        - {{ pin_subpackage("clang-tools", exact=True) }}
-        - {{ pin_subpackage("libclang", exact=True) }}
-        - {{ pin_subpackage("libclang-cpp", exact=True) }}
-        # cannot pin to `cxx_compiler_version` here,
-        # because clangxx pins libcxx-devel to `maj_min`
-        - libcxx-devel {{ maj_min }}    # [osx]
-        - llvmdev {{ version }}
+        - ${{ pin_subpackage("clang", exact=True) }}
+        - ${{ pin_subpackage("clangxx", exact=True) }}
+        - ${{ pin_subpackage("clang-tools", exact=True) }}
+        - ${{ pin_subpackage("libclang", exact=True) }}
+        - ${{ pin_subpackage("libclang-cpp", exact=True) }}
+        - llvmdev ==${{ version }}
         - libxml2-devel
         - zlib
         - zstd
+        - if: osx
+          # cannot pin to `cxx_compiler_version` here,
+          # because clangxx pins libcxx-devel to `maj_min`
+          then: libcxx-devel ${{ maj_min }}.*
       run:
-        - clang {{ version }} *_{{ build_number }}
-        - clangxx {{ version }} *_{{ build_number }}
-        - {{ pin_subpackage("clang-tools", exact=True) }}
-        - {{ pin_subpackage("libclang", exact=True) }}
-        - {{ pin_subpackage("libclang-cpp", exact=True) }}
-        - llvmdev {{ version }}
-        # we need to do this manually because clang_bootstrap has no run-export
-        - libcxx >={{ version }}    # [osx]
-    test:
-      requires:
-        - {{ compiler('cxx') }}
-        - cmake
-      files:
-        - mytest.c
-      commands:
-        # static library
-        - test -f $PREFIX/lib/libclangAST.a                         # [unix]
-        - test -f $PREFIX/lib/libclangBasic.a                       # [unix]
-        - if not exist %LIBRARY_LIB%\clangAST.lib exit 1            # [win]
-        - if not exist %LIBRARY_LIB%\clangBasic.lib exit 1          # [win]
-
-        # headers
-        - test -f $PREFIX/include/clang/Config/config.h             # [unix]
-        - test -f $PREFIX/include/clang/Lex/Lexer.h                 # [unix]
-        - if not exist %LIBRARY_INC%\clang\Config\config.h exit 1   # [win]
-        - if not exist %LIBRARY_INC%\clang\Lex\Lexer.h exit 1       # [win]
-
-        # symlinks
-        - $PREFIX/bin/clang --version           # [unix]
-        - $PREFIX/bin/clang++ --version         # [unix]
-        - $PREFIX/bin/clang-check --version     # [unix]
-
-        # basic compilation
-        - $PREFIX/bin/clang -v -c mytest.c      # [unix]
-        - '%LIBRARY_BIN%/clang -v -c mytest.c'  # [win]
+        # without pin_subpackage because we want clangdev to be independent of cfg/nocfg
+        - clang ==${{ version }} *_${{ build_number }}
+        - clangxx ==${{ version }} *_${{ build_number }}
+        - ${{ pin_subpackage("clang-tools", exact=True) }}
+        - ${{ pin_subpackage("libclang", exact=True) }}
+        - ${{ pin_subpackage("libclang-cpp", exact=True) }}
+        - llvmdev ==${{ version }}
+        - if: osx
+          # we need to do this manually because clang_bootstrap has no run-export
+          then: libcxx >=${{ version }}
+      ignore_run_exports:
+        from_package:
+          - if: unix
+            then:
+              # the build fails if it doesn't find the following, but it's not used
+              - libxml2-devel
+              - zlib
+              - zstd
+    tests:
+      - package_contents:
+          include:
+            - clang/Config/config.h
+            - clang/Lex/Lexer.h
+          files:
+            # static libraries
+            - if: unix
+              then:
+                - lib/libclangAST.a
+                - lib/libclangBasic.a
+              else:
+                - Library/lib/clangAST.lib
+                - Library/lib/clangBasic.lib
+      - requirements:
+          run:
+            - ${{ compiler('cxx') }}
+            - cmake
+        files:
+          recipe:
+            - mytest.c
+        script:
+          - if: unix
+            then:
+              # symlinks
+              - $PREFIX/bin/clang --version
+              - $PREFIX/bin/clang++ --version
+              - $PREFIX/bin/clang-check --version
+              # basic compilation
+              - $PREFIX/bin/clang -v -c mytest.c
+            else:
+              - '%LIBRARY_BIN%/clang -v -c mytest.c'
 
   - name: libclang-cpp{{ maj_min }}
     script: install_libclang_cpp.sh  # [unix]
