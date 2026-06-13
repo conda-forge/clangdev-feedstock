@@ -604,56 +604,78 @@ outputs:
               - arm64-apple-darwin20.0.0-clang --version
               - arm64-apple-darwin20.0.0-clang-cpp --version
 
-  - name: clang
-    script: install_clang_symlinks.sh  # [unix]
-    script: install_clang_symlinks.bat  # [win]
+  - package:
+      name: clang
+    inherit: clangdev-stage
     build:
-      track_features:
-        - root         # [variant and variant.startswith("root_")]
-        - clang_nocfg  # [unix and not with_cfg]
-      string: {{ variant }}_cfg_h{{ PKG_HASH }}_{{ build_number }}    # [with_cfg]
-      string: {{ variant }}_nocfg_h{{ PKG_HASH }}_{{ build_number }}  # [not with_cfg]
-      ignore_run_exports_from:
-        # the build fails if it doesn't find the following, but it's not used
-        - libxml2-devel
-        - zlib     # [unix]
-        - zstd     # [unix]
+      string: ${{ variant }}_${{ "cfg" if with_cfg else "nocfg" }}_h${{ hash }}_${{ build_number }}
+      script:
+        file: install_clang_symlinks
+      variant:
+        # increasing numbers correspond to decreasing priority
+        # 0:     with_cfg, variant == "default"
+        # 1: not with_cfg, variant == "default"
+        # 2:     with_cfg, variant != "default"
+        # 3: not with_cfg, variant != "default"
+        down_prioritize_variant: ${{ ((not with_cfg) | int) + 2 * ((variant != "default") | int) }}
     requirements:
-      # for run-exports
-      build:                        # [win]
-        - {{ stdlib('c') }}         # [win]
-        - {{ compiler('cxx') }}     # [win]
+      build:
+        # for run-exports
+        - if: win
+          then:
+            - ${{ stdlib('c') }}
+            - ${{ compiler('cxx') }}
       host:
-        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
-        # Use the same requirements as the top-level requirements
-        - libcxx-devel {{ cxx_compiler_version }}   # [osx]
-        - llvmdev {{ version }}
+        - ${{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+        - llvmdev ==${{ version }}
+          # Use the same requirements as the top-level requirements
         - libxml2-devel
         - zlib
         - zstd
+        - if: osx
+          then: libcxx-devel ${{ cxx_compiler_version }}.*
       run:
-        - binutils                             # [linux]
-        - sysroot_{{ target_platform }}        # [linux]
-        - libgcc-devel_{{ target_platform }}   # [linux]
-        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
-        - {{ pin_subpackage("clang_impl_" ~ target_platform, exact=True) }}     # [unix]
-        - ld64_{{ target_platform }} * llvm{{ maj_min.replace(".", "_") }}_*    # [osx]
-        - llvm-tools {{ version }}.*           # [osx]
-        - ld64                                 # [osx]
-        - cctools                              # [osx]
-        - llvm-openmp >={{ version }}
-    test:
-      commands:
-        - clang --version
-        - clang-cl --version
-        - clang-cpp --version
-
-        # test that compiler-rt bits are available where clang expects them to be
-        - test -f $PREFIX/lib/clang/{{ major_version }}/lib/linux/clang_rt.crtend-x86_64.o       # [linux and x86_64]
-        - test -f $PREFIX/lib/clang/{{ major_version }}/lib/linux/clang_rt.crtend-aarch64.o      # [linux and aarch64]
-        - test -f $PREFIX/lib/clang/{{ major_version }}/lib/linux/clang_rt.crtend-powerpc64le.o  # [linux and ppc64le]
-        - test -f $PREFIX/lib/clang/{{ major_version }}/lib/darwin/libclang_rt.osx.a             # [osx]
-        - if not exist %LIBRARY_LIB%\clang\{{ major_version }}\lib\windows\clang_rt.builtins-x86_64.lib exit 1  # [win and x64_64]
+        - ${{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+        - llvm-openmp >=${{ version }}
+        - if: unix
+          then: ${{ pin_subpackage("clang_impl_" ~ target_platform, exact=True) }}
+        - if: linux
+          then:
+            - binutils
+            - libgcc-devel_${{ target_platform }}
+            - sysroot_${{ target_platform }}
+        - if: osx
+          then:
+            - cctools
+            - ld64
+            - ld64_${{ target_platform }} * llvm${{ maj_min|replace(".", "_") }}_*
+            - llvm-tools ==${{ version }}
+      ignore_run_exports:
+        from_package:
+          # the build fails if it doesn't find the following, but it's not used
+          - libxml2-devel
+          - if: unix
+            then:
+              - zlib
+              - zstd
+    tests:
+      - package_contents:
+          files:
+            # presence of versioned libraries
+            - if: linux and x86_64
+              then: lib/clang/${{ major_version }}/lib/linux/clang_rt.crtend-x86_64.o
+            - if: linux and aarch64
+              then: lib/clang/${{ major_version }}/lib/linux/clang_rt.crtend-aarch64.o
+            - if: linux and ppc64le
+              then: lib/clang/${{ major_version }}/lib/linux/clang_rt.crtend-powerpc64le.o
+            - if: osx
+              then: lib/clang/${{ major_version }}/lib/darwin/libclang_rt.osx.a
+            - if: win
+              then: Library/lib/clang/${{ major_version }}/lib/windows/clang_rt.builtins-x86_64.lib
+      - script:
+          - clang --version
+          - clang-cl --version
+          - clang-cpp --version
 
   - name: clangxx_impl_{{ target_platform }}
     script: install_clang_symlinks.sh
