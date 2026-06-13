@@ -993,61 +993,75 @@ outputs:
           - if: osx and arm64
             then: arm64-apple-darwin20.0.0-clang-scan-deps --version
 
-  - name: clang-tools
-    script: install_clang_tools.sh  # [unix]
-    script: install_clang_tools.bat  # [win]
+  - package:
+      name: clang-tools
+    inherit: clangdev-stage
     build:
-      track_features:
-        - root         # [variant and variant.startswith("root_")]
-      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
-      ignore_run_exports_from:
-        # the build fails if it doesn't find the following, but it's not used
-        - zlib     # [unix]
-        - zstd     # [unix]
+      string: ${{ variant }}_h${{ hash }}_${{ build_number }}
+      script:
+        file: install_clang_tools
+      variant:
+        down_prioritize_variant: ${{ 0 if variant == "default" else 1 }}
     requirements:
       build:
         # "compiling .pyc files" fails without this
         - python >3
-        - {{ stdlib('c') }}
-        - {{ compiler('cxx') }}
+        - ${{ stdlib('c') }}
+        - ${{ compiler('cxx') }}
         - cmake
-        - ninja  # [win]
-        - make   # [unix]
-        - llvmdev {{ version }}     # [build_platform != target_platform]
-        - libxml2-devel             # [build_platform != target_platform]
-        - zlib                      # [build_platform != target_platform]
-        - zstd                      # [build_platform != target_platform]
+        - if: unix
+          then: make
+          else: ninja
+        - if: build_platform != target_platform
+          then:
+            - llvmdev ==${{ version }}
+            - libxml2-devel
+            - zlib
+            - zstd
       host:
         # it does not matter whether we use cfg or nocfg clang{,xx} in host
-        - {{ pin_subpackage("clang", exact=True) }}
-        - {{ pin_subpackage("clangxx", exact=True) }}
-        - {{ pin_subpackage("libclang", exact=True) }}
-        - {{ pin_subpackage("libclang-cpp", exact=True) }}
-        - {{ pin_subpackage("clang-format", exact=True) }}
-        # cannot pin to `cxx_compiler_version` here,
-        # because clangxx pins libcxx-devel to `maj_min`
-        - libcxx-devel {{ maj_min }}    # [osx]
-        - llvmdev {{ version }}
-        - llvm {{ version }}
+        - ${{ pin_subpackage("clang", exact=True) }}
+        - ${{ pin_subpackage("clangxx", exact=True) }}
+        - ${{ pin_subpackage("libclang", exact=True) }}
+        - ${{ pin_subpackage("libclang-cpp", exact=True) }}
+        - ${{ pin_subpackage("clang-format", exact=True) }}
+        - llvmdev ==${{ version }}
+        - llvm ==${{ version }}
         - libxml2-devel
         - zlib
         - zstd
+        - if: osx
+          # cannot pin to `cxx_compiler_version` here,
+          # because clangxx_impl_ pins libcxx-devel to `maj_min`
+          then: libcxx-devel ${{ maj_min }}.*
       run:
-        - ucrt                                                 # [win and x86_64]
-        - {{ pin_subpackage("clang-format", exact=True) }}
-        - {{ pin_subpackage("clang-scan-deps", exact=True) }}  # [unix]
-        - {{ pin_subpackage("libclang" ~ libclang_soversion, max_pin=None) }}
-        - {{ pin_subpackage("libclang-cpp" ~ maj_min, max_pin="x.x") }}   # [unix]
-        # we need to do this manually because clang_bootstrap has no run-export
-        - libcxx >={{ version }}    # [osx]
-      run_constrained:
-        - clangdev {{ version }}
-    test:
-      commands:
-        - clang-check --version
-        - clang-tidy --version
-        # absence of "doubly versioned" binaries
-        - test -z "$(find "${PREFIX}/bin" -name '*-{{ major_version }}-{{ major_version }}' -print)"    # [unix]
+        - ${{ pin_subpackage("clang-format", exact=True) }}
+        - ${{ pin_subpackage("libclang" ~ libclang_soversion, upper_bound=None) }}
+        - if: unix
+          then:
+            - ${{ pin_subpackage("clang-scan-deps", exact=True) }}
+            - ${{ pin_subpackage("libclang-cpp" ~ maj_min, upper_bound="x.x") }}
+        - if: osx
+          # we need to do this manually because clang_bootstrap has no run-export
+          then: libcxx >=${{ version }}
+        - if: win and x86_64
+          then: ucrt
+      run_constraints:
+        - clangdev ==${{ version }}
+      ignore_run_exports:
+        from_package:
+          - if: unix
+            then:
+              # the build fails if it doesn't find the following, but it's not used
+              - zlib
+              - zstd
+    tests:
+      - script:
+          - clang-check --version
+          - clang-tidy --version
+          - if: unix
+            # absence of "doubly versioned" binaries
+            then: test -z "$(find "${PREFIX}/bin" -name '*-${{ major_version }}-${{ major_version }}' -print)"
 
   - name: python-clang
     build:
