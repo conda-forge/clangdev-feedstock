@@ -711,57 +711,81 @@ outputs:
           - if: osx and arm64
             then: arm64-apple-darwin20.0.0-clang++ --version
 
-  - name: clangxx
-    script: install_clang_symlinks.sh  # [unix]
-    script: install_clang_symlinks.bat  # [win]
+  - package:
+      name: clangxx
+    inherit: clangdev-stage
     build:
-      track_features:
-        - root         # [variant and variant.startswith("root_")]
-        - clang_nocfg  # [unix and not with_cfg]
-      string: {{ variant }}_cfg_h{{ PKG_HASH }}_{{ build_number }}    # [with_cfg]
-      string: {{ variant }}_nocfg_h{{ PKG_HASH }}_{{ build_number }}  # [not with_cfg]
-      ignore_run_exports_from:
-        # the build fails if it doesn't find the following, but it's not used
-        - libxml2-devel
-        - zlib     # [unix]
-        - zstd     # [unix]
+      string: ${{ variant }}_${{ "cfg" if with_cfg else "nocfg" }}_h${{ hash }}_${{ build_number }}
+      script:
+        file: install_clang_symlinks
+      variant:
+        # increasing numbers correspond to decreasing priority
+        # 0:     with_cfg, variant == "default"
+        # 1: not with_cfg, variant == "default"
+        # 2:     with_cfg, variant != "default"
+        # 3: not with_cfg, variant != "default"
+        down_prioritize_variant: ${{ ((not with_cfg) | int) + 2 * ((variant != "default") | int) }}
     requirements:
-      # for run-exports
-      build:                        # [win]
-        - {{ stdlib('c') }}         # [win]
-        - {{ compiler('cxx') }}     # [win]
+      build:
+        # for run-exports
+        - if: win
+          then:
+            - ${{ stdlib('c') }}
+            - ${{ compiler('cxx') }}
       host:
-        - {{ pin_subpackage("clangxx_impl_" ~ target_platform, exact=True) }}  # [unix]
-        - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}
-        # cannot pin to `cxx_compiler_version` here,
-        # because clangxx_impl_ pins libcxx-devel to `maj_min`
-        - libcxx-devel {{ maj_min }}    # [osx]
-        - llvmdev {{ version }}
+        - ${{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+        - llvmdev ==${{ version }}
         - libxml2-devel
         - zlib
         - zstd
+        - if: unix
+          then: ${{ pin_subpackage("clangxx_impl_" ~ target_platform, exact=True) }}
+        - if: osx
+          # cannot pin to `cxx_compiler_version` here,
+          # because clangxx_impl_ pins libcxx-devel to `maj_min`
+          then: libcxx-devel ${{ maj_min }}.*
       run:
-        - {{ pin_subpackage("clangxx_impl_" ~ target_platform, exact=True) }}  # [unix]
-        - libstdcxx-devel_{{ target_platform }}  # [linux]
-        # only minor-pin to avoid issues when building new libcxx versions
-        - libcxx-devel {{ maj_min }}             # [osx]
-        - {{ pin_subpackage("clang", exact=True) }}
-    test:
-      requires:
-        - {{ compiler("cxx") }}
-        - gxx_impl_{{ target_platform }}  # [win64]
-      files:
-        - mytest.cxx
-      commands:
-        # avoid CMake picking up random clang in image when using unactivated compilers
-        - del /s /q "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\Llvm\x64\bin\clang++.exe"  # [win]
-        - clang++ --version
-        - clang++-{{ major_version }} --version
-        - clang++ -v -c mytest.cxx
-        - unset CONDA_BUILD_SYSROOT   # [unix]
-        - set "CONDA_BUILD_SYSROOT="  # [win]
-        - clang++ -v -c mytest.cxx
-        - clang++ -v mytest.cxx --target=x86_64-w64-mingw32  # [win64]
+        - ${{ pin_subpackage("clang", exact=True) }}
+        - if: unix
+          then: ${{ pin_subpackage("clangxx_impl_" ~ target_platform, exact=True) }}
+        - if: linux
+          then: libstdcxx-devel_${{ target_platform }}
+        - if: osx
+          # only minor-pin to avoid issues when building new libcxx versions
+          then: libcxx-devel ${{ maj_min }}.*
+      ignore_run_exports:
+        from_package:
+          # the build fails if it doesn't find the following, but it's not used
+          - libxml2-devel
+          - if: unix
+            then:
+              - zlib
+              - zstd
+    tests:
+      - requirements:
+          run:
+            - ${{ compiler("cxx") }}
+            - if: win
+              then: gxx_impl_${{ target_platform }}
+        files:
+          recipe:
+            - mytest.cxx
+        script:
+          - if: win
+            then:
+              # avoid CMake picking up random clang in image when using unactivated compilers
+              - rmdir /s /q "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\Llvm" || true
+              - rmdir /s /q "C:\Program Files\Microsoft Visual Studio\2026\Enterprise\VC\Tools\Llvm" || true
+          - clang++ --version
+          - clang++-${{ major_version }} --version
+          - clang++ -v -c mytest.cxx
+          # test that compilers work without CONDA_BUILD_SYSROOT
+          - if: unix
+            then: unset CONDA_BUILD_SYSROOT
+            else: set "CONDA_BUILD_SYSROOT="
+          - clang++ -v -c mytest.cxx
+          - if: win
+            then: clang++ -v mytest.cxx --target=x86_64-w64-mingw32
 
   - name: clang-format-{{ major_version }}
     script: install_clang_format.sh  # [unix]
