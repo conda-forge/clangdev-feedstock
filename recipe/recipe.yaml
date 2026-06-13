@@ -381,57 +381,78 @@ outputs:
                   - Library/bin/libclang-${{ major_version }}.dll
                   - Library/bin/libclang-${{ version }}.dll
 
-  - name: libclang
-    script: install_libclang.sh   # [unix]
-    script: install_libclang.bat  # [win]
-    files:
-      - Library/bin/libclang.dll  # [win]
-      - Library/lib/libclang.lib  # [win]
-      - lib/libclang.so           # [linux]
-      - lib/libclang.dylib        # [osx]
+  - package:
+      name: libclang
+    inherit: clangdev-stage
     build:
-      track_features:
-        - root         # [variant and variant.startswith("root_")]
-      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
-      run_exports:
-        # note that the name (e.g. libclang13) does not necessarily
-        # match the version lower bound (e.g. >=14.0.0)
-        - {{ pin_subpackage("libclang" ~ libclang_soversion, max_pin=None) }}
-      ignore_run_exports_from:
-        # the build fails if it doesn't find the following, but it's not used
-        - libxml2-devel     # [unix]
-        - zlib              # [unix]
-        - zstd              # [unix]
+      string: ${{ variant }}_h${{ hash }}_${{ build_number }}
+      script:
+        file: install_libclang
+      files:
+        - if: linux
+          then: lib/libclang.so
+        - if: osx
+          then: lib/libclang.dylib
+        - if: win
+          then:
+            - Library/bin/libclang.dll
+            - Library/lib/libclang.lib
+      variant:
+        down_prioritize_variant: ${{ 0 if variant == "default" else 1 }}
     requirements:
       build:
-        - {{ stdlib('c') }}
-        - {{ compiler('cxx') }}
+        - ${{ stdlib('c') }}
+        - ${{ compiler('cxx') }}
         - cmake
-        - ninja                     # [win]
-        - make                      # [unix]
-        - create-forwarder-dll      # [win]
-        - llvmdev {{ version }}     # [build_platform != target_platform]
-        - libxml2-devel             # [build_platform != target_platform]
-        - zlib                      # [build_platform != target_platform]
-        - zstd                      # [build_platform != target_platform]
+        - if: unix
+          then: make
+          else:
+            - ninja
+            - create-forwarder-dll
+        - if: build_platform != target_platform
+          then:
+            - llvmdev ==${{ version }}
+            - libxml2-devel
+            - zlib
+            - zstd
       host:
-        - llvm {{ version }}
-        - {{ pin_subpackage("libclang" ~ libclang_soversion, exact=True) }}
-        # Use the same requirements as the top-level requirements
-        - libcxx-devel {{ cxx_compiler_version }}   # [osx]
-        - llvmdev {{ version }}
+        - ${{ pin_subpackage("libclang" ~ libclang_soversion, exact=True) }}
+        - llvmdev ==${{ version }}
+        - llvm ==${{ version }}
+          # Use the same requirements as the top-level requirements
         - libxml2-devel
         - zlib
         - zstd
+        - if: osx
+          then: libcxx-devel ${{ cxx_compiler_version }}.*
       run:
-        - {{ pin_subpackage("libclang" ~ libclang_soversion, exact=True) }}
-        # we need to do this manually because clang_bootstrap has no run-export
-        - libcxx >={{ version }}    # [osx]
-    test:
-      commands:
-        - test -f $PREFIX/lib/libclang.so                   # [linux]
-        - test -f $PREFIX/lib/libclang.dylib                # [osx]
-        - if not exist %LIBRARY_LIB%\libclang.lib exit 1    # [win]
+        - ${{ pin_subpackage("libclang" ~ libclang_soversion, exact=True) }}
+        - if: osx
+          #  we need to do this manually because clang_bootstrap has no run-export
+          then: libcxx >=${{ version }}
+      run_exports:
+        # note that the name (e.g. libclang13) does not necessarily
+        # match the version lower bound (e.g. >=14.0.0)
+        - ${{ pin_subpackage("libclang" ~ libclang_soversion, upper_bound=None) }}
+      ignore_run_exports:
+        from_package:
+          - if: unix
+            then:
+              # the build fails if it doesn't find the following, but it's not used
+              - libxml2-devel
+              - zlib
+              - zstd
+    tests:
+      - package_contents:
+          files:
+            - if: linux
+              then: lib/libclang.so
+            - if: osx
+              then: lib/libclang.dylib
+            - if: win
+              then:
+                - Library/bin/libclang.dll
+                - Library/lib/libclang.lib
 
   - name: clang-{{ major_version }}
     script: install_clang_maj.sh  # [unix]
