@@ -454,81 +454,107 @@ outputs:
                 - Library/bin/libclang.dll
                 - Library/lib/libclang.lib
 
-  - name: clang-{{ major_version }}
-    script: install_clang_maj.sh  # [unix]
-    script: install_clang_maj.bat  # [win]
-    files:
-      - lib/clang                                    # [unix]
-      - bin/clang-{{ major_version }}                # [unix]
-      - bin/clang++-{{ major_version }}              # [unix]
-      - Library/lib/clang                            # [win]
-      - Library/bin/clang-{{ major_version }}.exe    # [win]
-      - Library/bin/clang++-{{ major_version }}.exe  # [win]
+  - package:
+      name: clang-${{ major_version }}
+    inherit: clangdev-stage
     build:
-      track_features:
-        - root         # [variant and variant.startswith("root_")]
-      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
-      ignore_run_exports_from:
-        # the build fails if it doesn't find the following, but it's not used
-        - libxml2-devel
-        - zlib     # [unix]
-        - zstd     # [unix]
-        - llvm-openmp
+      string: ${{ variant }}_h${{ hash }}_${{ build_number }}
+      script:
+        file: install_clang_maj
+      files:
+        - if: unix
+          then:
+            - lib/clang/${{ major_version }}/*
+            - bin/clang-${{ major_version }}
+            - bin/clang++-${{ major_version }}
+          else:
+            - Library/lib/clang/${{ major_version }}/*
+            - Library/bin/clang-${{ major_version }}.exe
+            - Library/bin/clang++-${{ major_version }}.exe
+      variant:
+        down_prioritize_variant: ${{ 0 if variant == "default" else 1 }}
     requirements:
       build:
-        - {{ stdlib('c') }}
-        - {{ compiler('cxx') }}
+        - ${{ stdlib('c') }}
+        - ${{ compiler('cxx') }}
         - cmake
-        - ninja                     # [win]
-        - make                      # [unix]
-        - llvmdev {{ version }}     # [build_platform != target_platform]
-        - libxml2-devel             # [build_platform != target_platform]
-        - zlib                      # [build_platform != target_platform]
-        - zstd                      # [build_platform != target_platform]
+        - if: unix
+          then: make
+          else: ninja
+        - if: build_platform != target_platform
+          then:
+            - llvmdev ==${{ version }}
+            - libxml2-devel
+            - zlib
+            - zstd
       host:
-        - llvm {{ version }}
-        - {{ pin_subpackage("libclang-cpp" ~ maj_min, exact=True) }}  # [unix]
-        # Use the same requirements as the top-level requirements
-        - libcxx-devel {{ cxx_compiler_version }}   # [osx]
-        - llvmdev {{ version }}
+        - if: unix
+          then: ${{ pin_subpackage("libclang-cpp" ~ maj_min, exact=True) }}
+        - llvm-openmp ==${{ version }}
+        - llvmdev ==${{ version }}
+        - llvm ==${{ version }}
+          # Use the same requirements as the top-level requirements
         - libxml2-devel
         - zlib
         - zstd
-        - llvm-openmp {{ version }}
+        - if: osx
+          then: libcxx-devel ${{ cxx_compiler_version }}.*
       run:
-        - compiler-rt{{ major_version }} {{ version }}
-        - {{ pin_subpackage("libclang-cpp" ~ maj_min, exact=True) }}  # [unix]
-        # we need to do this manually because clang_bootstrap has no run-export
-        - libcxx >={{ version }}    # [osx]
-    test:
-      requires:
-        - llvm-openmp {{ version }}
-      commands:
-        # presence of versioned libraries
-        - test -f $PREFIX/lib/libclang-cpp.so.{{ sover }}       # [linux]
-        - test -f $PREFIX/lib/libclang-cpp.{{ sover }}.dylib    # [osx]
-
-        # absence of unversioned libraries
-        - test ! -f $PREFIX/lib/libclang-cpp.so                 # [linux]
-        - test ! -f $PREFIX/lib/libclang-cpp.dylib              # [osx]
-
-        # headers
-        - test -f $PREFIX/lib/clang/{{ major_version }}/include/stdatomic.h                 # [unix]
-        - test -f $PREFIX/lib/clang/{{ major_version }}/include/omp.h                       # [unix]
-        - if not exist %LIBRARY_LIB%\clang\{{ major_version }}\include\stdatomic.h exit 1   # [win]
-        - if not exist %LIBRARY_LIB%\clang\{{ major_version }}\include\omp.h exit 1         # [win]
-
-        # versioned binaries
-        - clang-{{ major_version }} --version
-        - clang++-{{ major_version }} --version
-
-        # absence of unversioned binaries
-        - test ! -f $PREFIX/bin/clang                   # [unix]
-        - test ! -f $PREFIX/bin/clang-cl                # [unix]
-        - test ! -f $PREFIX/bin/clang-cpp               # [unix]
-        - if exist %LIBRARY_BIN%\clang.exe exit 1       # [win]
-        - if exist %LIBRARY_BIN%\clang-cl.exe exit 1    # [win]
-        - if exist %LIBRARY_BIN%\clang-cpp.exe exit 1   # [win]
+        - compiler-rt${{ major_version }} ==${{ version }}
+        - if: unix
+          then: ${{ pin_subpackage("libclang-cpp" ~ maj_min, exact=True) }}
+        - if: osx
+          # we need to do this manually because clang_bootstrap has no run-export
+          then: libcxx >=${{ version }}
+      ignore_run_exports:
+        from_package:
+          # the build fails if it doesn't find the following, but it's not used
+          - libxml2-devel
+          - llvm-openmp
+          - if: unix
+            then:
+              - zlib
+              - zstd
+    tests:
+      - package_contents:
+          files:
+            exists:
+              # headers in clang-specific locations
+              - if: unix
+                then:
+                  - lib/clang/${{ major_version }}/include/stdatomic.h
+                  - lib/clang/${{ major_version }}/include/omp.h
+                else:
+                  - Library/lib/clang/${{ major_version }}/include/stdatomic.h
+                  - Library/lib/clang/${{ major_version }}/include/omp.h
+              # presence of versioned libraries
+              - if: linux
+                then: lib/libclang-cpp.so.${{ sover }}
+              - if: osx
+                then: lib/libclang-cpp.${{ sover }}.dylib
+            not_exists:
+              # absence of unversioned libraries (should only be in `libclang-cpp`)
+              - if: linux
+                then: lib/libclang-cpp.so
+              - if: osx
+                then: libclang-cpp.dylib
+              # absence of unversioned binaries
+              - if: unix
+                then:
+                  - bin/clang
+                  - bin/clang-cl
+                  - bin/clang-cpp
+                else:
+                  - Library/bin/clang.exe
+                  - Library/bin/clang-cl.exe
+                  - Library/bin/clang-cpp.exe
+      - requirements:
+          run:
+            - llvm-openmp ==${{ version }}
+        script:
+          # versioned binaries
+          - clang-${{ major_version }} --version
+          - clang++-${{ major_version }} --version
 
   - name: clang_impl_{{ target_platform }}
     script: install_clang_symlinks.sh
