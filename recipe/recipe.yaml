@@ -162,51 +162,66 @@ outputs:
             else:
               - '%LIBRARY_BIN%/clang -v -c mytest.c'
 
-  - name: libclang-cpp{{ maj_min }}
-    script: install_libclang_cpp.sh  # [unix]
-    files:
-      - lib/libclang-cpp.so.{{ sover }}     # [linux]
-      - lib/libclang-cpp.{{ sover }}.dylib  # [osx]
+  - package:
+      name: libclang-cpp${{ maj_min }}
+    inherit: clangdev-stage
     build:
-      skip: true  # [win]
-      track_features:
-        - root         # [variant and variant.startswith("root_")]
-      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
-      run_exports:
-        - {{ pin_subpackage("libclang-cpp" ~ maj_min, max_pin="x.x") }}   # [unix]
-      ignore_run_exports_from:
-        # the build fails if it doesn't find the following, but it's not used
-        - libxml2-devel     # [unix]
-        - zlib              # [unix]
-        - zstd              # [unix]
+      skip: win
+      string: ${{ variant }}_h${{ hash }}_${{ build_number }}
+      script:
+        file: install_libclang_cpp
+      files:
+        - if: linux
+          then: lib/libclang-cpp.so.${{ sover }}
+          else: lib/libclang-cpp.${{ sover }}.dylib
+      variant:
+        down_prioritize_variant: ${{ 0 if variant == "default" else 1 }}
     requirements:
       build:
-        - {{ stdlib('c') }}
-        - {{ compiler('cxx') }}
+        - ${{ stdlib('c') }}
+        - ${{ compiler('cxx') }}
         - cmake
-        - ninja  # [win]
-        - make   # [unix]
-        - llvmdev {{ version }}     # [build_platform != target_platform]
+        - if: unix
+          then: make
+          else: ninja
+        - if: build_platform != target_platform
+          then: llvmdev ==${{ version }}
       host:
-        - llvm {{ version }}
+        - llvmdev ==${{ version }}
+        - llvm ==${{ version }}
         # Use the same requirements as the top-level requirements
-        - libcxx-devel {{ cxx_compiler_version }}   # [osx]
-        - llvmdev {{ version }}
         - libxml2-devel
         - zlib
         - zstd
+        - if: osx
+          then: libcxx-devel ${{ cxx_compiler_version }}.*
       run:
-        # we need to do this manually because clang_bootstrap has no run-export
-        - libcxx >={{ version }}    # [osx]
-    test:
-      commands:
-        # presence of versioned library
-        - test -f $PREFIX/lib/libclang-cpp.so.{{ sover }}       # [linux]
-        - test -f $PREFIX/lib/libclang-cpp.{{ sover }}.dylib    # [osx]
-
-        # absence of unversioned library
-        - test ! -f $PREFIX/lib/libclang-cpp.so                 # [linux]
-        - test ! -f $PREFIX/lib/libclang-cpp.dylib              # [osx]
+        - if: osx
+          # we need to do this manually because clang_bootstrap has no run-export
+          then: libcxx >=${{ version }}
+      run_exports:
+        - ${{ pin_subpackage("libclang-cpp" ~ maj_min, upper_bound="x.x") }}
+      ignore_run_exports:
+        from_package:
+          - if: unix
+            then:
+              # the build fails if it doesn't find the following, but it's not used
+              - libxml2-devel
+              - zlib
+              - zstd
+    tests:
+      - package_contents:
+          files:
+            # presence of versioned library
+            exists:
+              - if: linux
+                then: lib/libclang-cpp.so.${{ sover }}
+                else: lib/libclang-cpp.${{ sover }}.dylib
+            # absence of unversioned library
+            not_exists:
+              - if: linux
+                then: lib/libclang-cpp.so
+                else: lib/libclang-cpp.dylib
 
   - name: libclang-cpp
     # note that this is just an empty wrapper on windows
