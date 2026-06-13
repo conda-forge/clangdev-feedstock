@@ -43,27 +43,36 @@ source:
 build:
   number: ${{ build_number }}
 
-requirements:
-  build:
-    - {{ stdlib('c') }}
-    - {{ compiler('cxx') }}
-    - cmake
-    - ninja  # [win]
-    - make   # [unix]
-    # "compiling .pyc files" fails without this
-    - python >3
-    - llvmdev {{ version }}     # [build_platform != target_platform]
-    - libxml2-devel             # [build_platform != target_platform]
-    - zlib                      # [build_platform != target_platform]
-    - zstd                      # [build_platform != target_platform]
-  host:
-    - libcxx-devel {{ cxx_compiler_version }}   # [osx]
-    - llvmdev {{ version }}
-    - libxml2-devel
-    - zlib
-    - zstd
-
 outputs:
+  - staging:
+      name: clangdev-stage
+    build:
+      script:
+        file: build
+    requirements:
+      build:
+        - ${{ stdlib('c') }}
+        - ${{ compiler('cxx') }}
+        - cmake
+        # "compiling .pyc files" fails without this
+        - python >3
+        - if: unix
+          then: make
+          else: ninja
+        - if: build_platform != target_platform
+          then:
+            - llvmdev ==${{ version }}
+            - libxml2-devel
+            - zlib
+            - zstd
+      host:
+        - llvmdev ==${{ version }}
+        - libxml2-devel
+        - zlib
+        - zstd
+        - if: osx
+          then: libcxx-devel ${{ cxx_compiler_version }}.*
+
   - name: clangdev
     script: install_clangdev.sh  # [unix]
     script: install_clangdev.bat  # [win]
