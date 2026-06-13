@@ -223,52 +223,74 @@ outputs:
                 then: lib/libclang-cpp.so
                 else: lib/libclang-cpp.dylib
 
-  - name: libclang-cpp
-    # note that this is just an empty wrapper on windows
-    script: install_libclang_cpp.sh  # [unix]
-    files:                      # [unix]
-      - lib/libclang-cpp.so     # [linux]
-      - lib/libclang-cpp.dylib  # [osx]
+  - package:
+      name: libclang-cpp
+    inherit: clangdev-stage
     build:
-      track_features:
-        - root         # [variant and variant.startswith("root_")]
-      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
-      run_exports:   # [unix]
-        - {{ pin_subpackage("libclang-cpp" ~ maj_min, max_pin="x.x") }}   # [unix]
-      ignore_run_exports_from:
-        # the build fails if it doesn't find the following, but it's not used
-        - libxml2-devel     # [unix]
-        - zlib              # [unix]
-        - zstd              # [unix]
+      string: ${{ variant }}_h${{ hash }}_${{ build_number }}
+      script:
+        file: install_libclang_cpp
+      files:
+        - if: linux
+          then: lib/libclang-cpp.so
+        - if: osx
+          then: lib/libclang-cpp.dylib
+        # this is just an empty wrapper on windows
+      variant:
+        down_prioritize_variant: ${{ 0 if variant == "default" else 1 }}
     requirements:
       build:
-        - {{ stdlib('c') }}
-        - {{ compiler('cxx') }}
+        - ${{ stdlib('c') }}
+        - ${{ compiler('cxx') }}
         - cmake
-        - ninja  # [win]
-        - make   # [unix]
-        - llvmdev {{ version }}     # [build_platform != target_platform]
+        - if: unix
+          then: make
+          else: ninja
+        - if: build_platform != target_platform
+          then: llvmdev ==${{ version }}
       host:
-        - llvm {{ version }}
-        - {{ pin_subpackage("libclang-cpp" ~ maj_min, exact=True) }}  # [unix]
-        # Use the same requirements as the top-level requirements
-        - libcxx-devel {{ cxx_compiler_version }}   # [osx]
-        - llvmdev {{ version }}
+        - if: unix
+          then: ${{ pin_subpackage("libclang-cpp" ~ maj_min, exact=True) }}
+        - llvmdev ==${{ version }}
+        - llvm ==${{ version }}
+          # Use the same requirements as the top-level requirements
         - libxml2-devel
         - zlib
         - zstd
+        - if: osx
+          then: libcxx-devel ${{ cxx_compiler_version }}.*
       run:
-        - {{ pin_subpackage("libclang-cpp" ~ maj_min, exact=True) }}  # [unix]
-        # we need to do this manually because clang_bootstrap has no run-export
-        - libcxx >={{ version }}    # [osx]
-    test:
-      commands:
-        # presence on unix
-        - test -f $PREFIX/lib/libclang-cpp.so                     # [linux]
-        - test -f $PREFIX/lib/libclang-cpp.dylib                  # [osx]
-
-        # absence on windows
-        - if exist %LIBRARY_BIN%\libclang-cpp.dll exit 1          # [win]
+        - if: unix
+          then: ${{ pin_subpackage("libclang-cpp" ~ maj_min, exact=True) }}
+        - if: osx
+          # we need to do this manually because clang_bootstrap has no run-export
+          then: libcxx >=${{ version }}
+      run_exports:
+        - if: unix
+          then: ${{ pin_subpackage("libclang-cpp" ~ maj_min, upper_bound="x.x") }}
+      ignore_run_exports:
+        from_package:
+          - if: unix
+            then:
+              # the build fails if it doesn't find the following, but it's not used
+              - libxml2-devel
+              - zlib
+              - zstd
+    tests:
+      - package_contents:
+          files:
+            # presence of versioned library on unix
+            exists:
+              - if: linux
+                then: lib/libclang-cpp.so
+              - if: osx
+                then: lib/libclang-cpp.dylib
+            # absence on windows
+            not_exists:
+              - if: win
+                then:
+                  - Library/bin/libclang-cpp.dll
+                  - Library/lib/libclang-cpp.lib
 
   - name: libclang{{ libclang_soversion }}
     script: install_libclang.sh  # [unix]
