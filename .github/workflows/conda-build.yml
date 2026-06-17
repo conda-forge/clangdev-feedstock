@@ -31,7 +31,7 @@ jobs:
             docker_run_args: 
             free_disk_space: skip
             os: ubuntu
-            pagefile_size: 0
+            pagefile_size: 16
             resize_partitions: False
             runs_on: ['ubuntu-latest']
             tools_install_dir: ~/miniforge3
@@ -44,7 +44,7 @@ jobs:
             docker_run_args: 
             free_disk_space: skip
             os: ubuntu
-            pagefile_size: 0
+            pagefile_size: 16
             resize_partitions: False
             runs_on: ['ubuntu-24.04-arm']
             tools_install_dir: ~/miniforge3
@@ -57,7 +57,7 @@ jobs:
             docker_run_args: 
             free_disk_space: skip
             os: ubuntu
-            pagefile_size: 0
+            pagefile_size: 16
             resize_partitions: False
             runs_on: ['ubuntu-latest']
             tools_install_dir: ~/miniforge3
@@ -69,7 +69,7 @@ jobs:
             docker_run_args: 
             free_disk_space: skip
             os: windows
-            pagefile_size: 0
+            pagefile_size: 16
             resize_partitions: False
             runs_on: ['namespace-profile-8cpu-on-win-64']
             tools_install_dir: D:\Miniforge
@@ -77,6 +77,23 @@ jobs:
 
     - name: Checkout code
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+    - name: Configure page file on Linux
+      if: matrix.os == 'ubuntu' && matrix.pagefile_size > 0
+      shell: bash
+      env:
+        PAGEFILE_SIZE: ${{ matrix.pagefile_size }}
+        GHA_RUNS_ON: ${{ join(matrix.runs_on, ' ') }}
+      run: |
+        .scripts/create_pagefile.sh "${PAGEFILE_SIZE}"
+    - name: Configure page file on Windows
+      if: matrix.os == 'windows' && matrix.pagefile_size > 0
+      shell: cmd
+      env:
+        CONDA_BLD_PATH: ${{ matrix.build_workspace_dir }}
+        PAGEFILE_SIZE: ${{ matrix.pagefile_size }}
+      run: |
+        call ".scripts\create_pagefile.bat" %PAGEFILE_SIZE%
     - name: Configure binfmt_misc
       if: matrix.os == 'ubuntu'
       shell: bash
