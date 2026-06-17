@@ -65,14 +65,14 @@ jobs:
             CONFIG_SHORT: win_64_
             STORE_BUILD_ARTIFACTS: True
             UPLOAD_PACKAGES: True
-            build_workspace_dir: C:\\bld\\
+            build_workspace_dir: D:\\bld\\
             docker_run_args: 
             free_disk_space: skip
             os: windows
             pagefile_size: 0
             resize_partitions: False
-            runs_on: ['cirun-azure-windows-2xlarge--${{ github.run_id }}-win_64_', 'windows', 'x64', 'self-hosted']
-            tools_install_dir: C:\Miniforge
+            runs_on: ['namespace-profile-8cpu-on-win-64']
+            tools_install_dir: D:\Miniforge
     steps:
 
     - name: Checkout code
