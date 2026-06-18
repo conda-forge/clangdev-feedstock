@@ -1,7 +1,7 @@
 {% set version = "22.1.8" %}
 {% set major_version = version.split(".")[0] %}
 {% set tail_version = version.split(".")[-1] %}
-{% set build_number = 0 %}
+{% set build_number = 1 %}
 
 # always includes minor as of v18, see https://github.com/llvm/llvm-project/issues/76273
 {% set maj_min = major_version ~ "." ~ version.split(".")[1] %}
@@ -254,6 +254,7 @@ outputs:
         - cmake
         - ninja                     # [win]
         - make                      # [unix]
+        - create-forwarder-dll      # [win]
         - llvmdev {{ version }}     # [build_platform != target_platform]
       host:
         - llvm {{ version }}
@@ -293,9 +294,10 @@ outputs:
         {% endif %}
 
   - name: libclang
-    script: install_libclang.sh  # [unix]
+    script: install_libclang.sh   # [unix]
     script: install_libclang.bat  # [win]
     files:
+      - Library/bin/libclang.dll  # [win]
       - Library/lib/libclang.lib  # [win]
       - lib/libclang.so           # [linux]
       - lib/libclang.dylib        # [osx]
@@ -319,6 +321,7 @@ outputs:
         - cmake
         - ninja                     # [win]
         - make                      # [unix]
+        - create-forwarder-dll      # [win]
         - llvmdev {{ version }}     # [build_platform != target_platform]
       host:
         - llvm {{ version }}
