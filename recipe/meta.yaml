@@ -232,7 +232,6 @@ outputs:
     script: install_libclang.bat  # [win]
     files:
       - Library/bin/libclang-{{ libclang_soversion }}.dll   # [win]
-      - Library/bin/libclang.dll                            # [win]
       - lib/libclang.so.{{ libclang_soversion }}            # [linux]
       - lib/libclang.{{ libclang_soversion }}.dylib         # [osx]
     build:
@@ -295,9 +294,10 @@ outputs:
         {% endif %}
 
   - name: libclang
-    script: install_libclang.sh  # [unix]
+    script: install_libclang.sh   # [unix]
     script: install_libclang.bat  # [win]
     files:
+      - Library/bin/libclang.dll  # [win]
       - Library/lib/libclang.lib  # [win]
       - lib/libclang.so           # [linux]
       - lib/libclang.dylib        # [osx]
@@ -321,6 +321,7 @@ outputs:
         - cmake
         - ninja                     # [win]
         - make                      # [unix]
+        - create-forwarder-dll      # [win]
         - llvmdev {{ version }}     # [build_platform != target_platform]
       host:
         - llvm {{ version }}
