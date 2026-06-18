@@ -84,6 +84,9 @@ outputs:
         - ninja  # [win]
         - make   # [unix]
         - llvmdev {{ version }}     # [build_platform != target_platform]
+        - libxml2-devel             # [build_platform != target_platform]
+        - zlib                      # [build_platform != target_platform]
+        - zstd                      # [build_platform != target_platform]
       host:
         - {{ pin_subpackage("clang", exact=True) }}
         - {{ pin_subpackage("clangxx", exact=True) }}
@@ -256,6 +259,9 @@ outputs:
         - make                      # [unix]
         - create-forwarder-dll      # [win]
         - llvmdev {{ version }}     # [build_platform != target_platform]
+        - libxml2-devel             # [build_platform != target_platform]
+        - zlib                      # [build_platform != target_platform]
+        - zstd                      # [build_platform != target_platform]
       host:
         - llvm {{ version }}
         - {{ pin_subpackage("clang", exact=True) }}
@@ -323,6 +329,9 @@ outputs:
         - make                      # [unix]
         - create-forwarder-dll      # [win]
         - llvmdev {{ version }}     # [build_platform != target_platform]
+        - libxml2-devel             # [build_platform != target_platform]
+        - zlib                      # [build_platform != target_platform]
+        - zstd                      # [build_platform != target_platform]
       host:
         - llvm {{ version }}
         - {{ pin_subpackage("clang", exact=True) }}
@@ -371,6 +380,9 @@ outputs:
         - ninja                     # [win]
         - make                      # [unix]
         - llvmdev {{ version }}     # [build_platform != target_platform]
+        - libxml2-devel             # [build_platform != target_platform]
+        - zlib                      # [build_platform != target_platform]
+        - zstd                      # [build_platform != target_platform]
       host:
         - llvm {{ version }}
         - {{ pin_subpackage("libclang-cpp" ~ maj_min, exact=True) }}  # [unix]
@@ -645,6 +657,9 @@ outputs:
         - ninja  # [win]
         - make   # [unix]
         - llvmdev {{ version }}     # [build_platform != target_platform]
+        - libxml2-devel             # [build_platform != target_platform]
+        - zlib                      # [build_platform != target_platform]
+        - zstd                      # [build_platform != target_platform]
       host:
         # it does not matter whether we use cfg or nocfg clang{,xx} in host
         - {{ pin_subpackage("clang", exact=True) }}
@@ -747,6 +762,9 @@ outputs:
         - ninja  # [win]
         - make   # [unix]
         - llvmdev {{ version }}     # [build_platform != target_platform]
+        - libxml2-devel             # [build_platform != target_platform]
+        - zlib                      # [build_platform != target_platform]
+        - zstd                      # [build_platform != target_platform]
       host:
         # it does not matter whether we use cfg or nocfg clang{,xx} in host
         - {{ pin_subpackage("clang", exact=True) }}
