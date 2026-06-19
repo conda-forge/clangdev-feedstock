@@ -8,11 +8,12 @@ setlocal enabledelayedexpansion
 for /f "tokens=1 delims=." %%a in ("%PKG_VERSION%") do (
   set "MAJOR_VERSION=%%a"
 )
+set "RESOURCE_DIR_REF=%LIBRARY_LIB:/=\%\clang\!MAJOR_VERSION!"
+
 if "%target_platform%"=="%build_platform%" (
   FOR /F "tokens=* USEBACKQ" %%F IN (`%LIBRARY_PREFIX%\bin\clang.exe -print-resource-dir`) DO (
     set "RESOURCE_DIR=%%F"
   )
-  set "RESOURCE_DIR_REF=%LIBRARY_LIB:/=\%\clang\!MAJOR_VERSION!"
   if NOT "!RESOURCE_DIR!" == "!RESOURCE_DIR_REF!" (
     echo "resource dir !RESOURCE_DIR_REF! does not match expected !RESOURCE_DIR!"
     exit 1
