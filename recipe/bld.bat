@@ -25,8 +25,6 @@ set "CXXFLAGS= -MD"
 
 set "CXX=cl.exe"
 set "CC=cl.exe"
-set "MT=%BUILD_PREFIX%\Library\bin\llvm-mt.exe"
-set "RC=%BUILD_PREFIX%\Library\bin\llvm-rc.exe"
 
 if NOT "%target_platform%"=="%build_platform%" (
     echo "LIB: %LIB%"
@@ -35,9 +33,10 @@ if NOT "%target_platform%"=="%build_platform%" (
     echo set^(CMAKE_CXX_COMPILER "%CXX_FOR_BUILD:\=/%"^)        >> native-toolchain.cmake
     echo set^(CMAKE_C_FLAGS ""^)                                >> native-toolchain.cmake
     echo set^(CMAKE_CXX_FLAGS ""^)                              >> native-toolchain.cmake
-    echo set^(CMAKE_MT "%MT:\=/%"^)                             >> native-toolchain.cmake
     echo set^(CMAKE_LIBRARY_PATH "%LIB_FOR_BUILD:\=/%"^)        >> native-toolchain.cmake
     echo set^(CMAKE_INCLUDE_PATH "%INCLUDE_FOR_BUILD:\=/%"^)    >> native-toolchain.cmake
+    echo set^(CMAKE_RC_COMPILER "%BUILD_PREFIX:\=/%/Library/bin/llvm-rc.exe"^) >> native-toolchain.cmake
+    echo set^(CMAKE_MT "%BUILD_PREFIX:\=/%/Library/bin/llvm-mt.exe"^) >> native-toolchain.cmake
     echo set^(LLVM_DIR "%BUILD_PREFIX:\=/%/Library/lib/cmake/llvm"^) >> native-toolchain.cmake
     echo set^(ENV{INCLUDE} "%INCLUDE_FOR_BUILD:\=/%"^)          >> native-toolchain.cmake
     echo set^(ENV{LIB} "%LIB_FOR_BUILD:\=/%"^)                  >> native-toolchain.cmake
