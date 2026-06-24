@@ -1063,33 +1063,42 @@ outputs:
             # absence of "doubly versioned" binaries
             then: test -z "$(find "${PREFIX}/bin" -name '*-${{ major_version }}-${{ major_version }}' -print)"
 
-  - name: python-clang
+  - package:
+      name: python-clang
+    inherit: clangdev-stage
     build:
       noarch: python
       # Building this output using this recipe is only supported on unix
       # It can still be installed on Windows as it is marked as `noarch: python`
-      skip: true  # [not linux64]
-      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
-    script: build_python_bindings.sh
+      skip: not (linux and x86_64)
+      string: ${{ variant }}_h${{ hash }}_${{ build_number }}
+      script:
+        file: build_python_bindings
     requirements:
       host:
-        - python {{ python_min }}
+        - python ${{ python_min }}.*
       run:
-        - python >={{ python_min }}
-        - libclang {{ version }}
-    test:
-      requires:
-        - python {{ python_min }}
-      source_files:
-        - clang/bindings/python/tests
-        - clang/bindings/python/examples/cindex
-        - clang/include/clang-c
-      imports:
-        - clang
-        - clang.cindex
-      commands:
-        - cd clang/bindings/python
-        - python -m unittest discover -v
+        - python >=${{ python_min }}
+        - libclang ==${{ version }}
+    tests:
+      - python:
+          imports:
+            - clang
+            - clang.cindex
+          python_version:
+            - ${{ python_min }}.*
+            - "*"
+      - requirements:
+          run:
+            - python ${{ python_min }}.*
+        files:
+          source:
+            - clang/bindings/python/tests
+            - clang/bindings/python/examples/cindex
+            - clang/include/clang-c
+        script:
+            - cd clang/bindings/python
+            - python -m unittest discover -v
 
 about:
   license: Apache-2.0 WITH LLVM-exception
