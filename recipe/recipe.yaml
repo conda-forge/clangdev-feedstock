@@ -1070,8 +1070,8 @@ outputs:
       noarch: python
       # Building this output using this recipe is only supported on unix
       # It can still be installed on Windows as it is marked as `noarch: python`
-      skip: not (linux and x86_64)
-      string: ${{ variant }}_h${{ hash }}_${{ build_number }}
+      skip: not (linux and x86_64 and ${{ variant }} == "default")
+      string: h${{ hash }}_${{ build_number }}
       script:
         file: build_python_bindings
     requirements:
