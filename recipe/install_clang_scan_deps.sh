@@ -28,4 +28,4 @@ fi
 
 mv ${PREFIX}/bin/clang-scan-deps ${PREFIX}/bin/clang-scan-deps-${MAJOR_VERSION}
 ln -s ${PREFIX}/bin/clang-scan-deps-${MAJOR_VERSION} ${PREFIX}/bin/clang-scan-deps
-ln -s ${PREFIX}/bin/clang-scan-deps ${PREFIX}/bin/${TARGET}-clang-scan-deps
+ln -s ${PREFIX}/bin/clang-scan-deps-${MAJOR_VERSION} ${PREFIX}/bin/${TARGET}-clang-scan-deps
