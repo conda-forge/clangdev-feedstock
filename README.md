@@ -11,6 +11,8 @@ Summary: Development headers and libraries for Clang
 
 Development: https://github.com/llvm/llvm-project
 
+Documentation: https://clang.llvm.org/
+
 Current build status
 ====================
 
