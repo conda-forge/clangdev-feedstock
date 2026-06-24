@@ -528,11 +528,6 @@ outputs:
                 else:
                   - Library/lib/clang/${{ major_version }}/include/stdatomic.h
                   - Library/lib/clang/${{ major_version }}/include/omp.h
-              # presence of versioned libraries
-              - if: linux
-                then: lib/libclang-cpp.so.${{ sover }}
-              - if: osx
-                then: lib/libclang-cpp.${{ sover }}.dylib
             not_exists:
               # absence of unversioned libraries (should only be in `libclang-cpp`)
               - if: linux
@@ -556,6 +551,25 @@ outputs:
           # versioned binaries
           - clang-${{ major_version }} --version
           - clang++-${{ major_version }} --version
+          # check that relevant libraries are where clang needs them;
+          # cannot be `package_contents.files` tests because those apply only
+          # to the output under test as packaged, whereas these libraries live
+          # in other outputs: libclang-cpp<maj_min> & compiler-rt<major_version>
+          - if: linux
+            then: test -f $PREFIX/lib/libclang-cpp.so.${{ sover }}
+          - if: osx
+            then: test -f $PREFIX/lib/libclang-cpp.${{ sover }}.dylib
+          - if: linux and x86_64
+            then: test -f $PREFIX/lib/clang/${{ major_version }}/lib/linux/clang_rt.crtend-x86_64.o
+          - if: linux and aarch64
+            then: test -f $PREFIX/lib/clang/${{ major_version }}/lib/linux/clang_rt.crtend-aarch64.o
+          - if: linux and ppc64le
+            then: test -f $PREFIX/lib/clang/${{ major_version }}/lib/linux/clang_rt.crtend-powerpc64le.o
+          - if: osx
+            then: test -f $PREFIX/lib/clang/${{ major_version }}/lib/darwin/libclang_rt.osx.a
+          - if: win
+            then: 'if not exist %LIBRARY_PREFIX%/lib/clang/${{ major_version }}/lib/windows/clang_rt.builtins-x86_64.lib exit 1'
+
 
   - package:
       name: clang_impl_${{ target_platform }}
@@ -660,19 +674,6 @@ outputs:
               - zlib
               - zstd
     tests:
-      - package_contents:
-          files:
-            # presence of versioned libraries
-            - if: linux and x86_64
-              then: lib/clang/${{ major_version }}/lib/linux/clang_rt.crtend-x86_64.o
-            - if: linux and aarch64
-              then: lib/clang/${{ major_version }}/lib/linux/clang_rt.crtend-aarch64.o
-            - if: linux and ppc64le
-              then: lib/clang/${{ major_version }}/lib/linux/clang_rt.crtend-powerpc64le.o
-            - if: osx
-              then: lib/clang/${{ major_version }}/lib/darwin/libclang_rt.osx.a
-            - if: win
-              then: Library/lib/clang/${{ major_version }}/lib/windows/clang_rt.builtins-x86_64.lib
       - script:
           - clang --version
           - clang-cl --version
