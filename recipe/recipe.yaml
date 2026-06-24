@@ -4,7 +4,8 @@ context:
   # derived quanities
   major_version: "${{ (version | split('.'))[0] }}"
   # tail is not necessarily equal to patch version; e.g. 23.1.0.rc1
-  tail_version: "${{ (version | split('.'))[-1] }}"
+  # but currently deactivated due to https://github.com/prefix-dev/rattler-build/issues/2582
+  tail_version: "${{ (version | split('.'))[2] }}"
   # sover always includes minor as of v18, see https://github.com/llvm/llvm-project/issues/76273
   maj_min: "${{ (version | split('.'))[:2] | join('.') }}"
   # construct full sover, which contains extra suffixes for rc/dev builds
