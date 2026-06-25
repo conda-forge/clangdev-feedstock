@@ -71,3 +71,36 @@ if %ERRORLEVEL% neq 0 exit 1
 
 ninja -j%CPU_COUNT%
 if %ERRORLEVEL% neq 0 exit 1
+
+ninja install
+if %ERRORLEVEL% neq 0 exit 1
+
+for /f "tokens=1 delims=." %%a in ("%PKG_VERSION%") do (
+  set "MAJOR_VERSION=%%a"
+)
+:: FIXME: the above is currently non-functional due to a bug in rattler-build, see
+:: https://github.com/prefix-dev/rattler-build/issues/2587
+set "MAJOR_VERSION=22"
+
+:: create versioned copies of clang/clang++
+copy "%LIBRARY_BIN%\clang.exe" "%LIBRARY_BIN%\clang-!MAJOR_VERSION!.exe"
+copy "%LIBRARY_BIN%\clang.exe" "%LIBRARY_BIN%\clang++-!MAJOR_VERSION!.exe"
+
+if not exist %LIBRARY_BIN%\\libclang-13.dll exit 1
+
+REM create a libclang.dll that forwards to libclang-13.dll
+create-forwarder-dll %LIBRARY_BIN%\\libclang-13.dll %LIBRARY_BIN%\\libclang.dll --no-temp-dir
+if %ERRORLEVEL% neq 0 exit 1
+
+set "RESOURCE_DIR_REF=%LIBRARY_LIB:/=\%\clang\!MAJOR_VERSION!"
+if "%build_platform%" == "%target_platform%" (
+  FOR /F "tokens=* USEBACKQ" %%F IN (`%LIBRARY_PREFIX%\bin\clang.exe -print-resource-dir`) DO (
+    set "RESOURCE_DIR=%%F"
+  )
+  if NOT "!RESOURCE_DIR!" == "!RESOURCE_DIR_REF!" (
+    echo "resource dir !RESOURCE_DIR_REF! does not match expected !RESOURCE_DIR!"
+    exit 1
+  )
+)
+:: Make sure omp.h from conda environment is found by clang
+copy %LIBRARY_PREFIX%\include\omp.h %RESOURCE_DIR_REF%\include\omp.h

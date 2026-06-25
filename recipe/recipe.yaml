@@ -1,6 +1,6 @@
 context:
   version: "22.1.8"
-  build_number: 3
+  build_number: 4
   # derived quanities
   major_version: "${{ (version | split('.'))[0] }}"
   # tail is not necessarily equal to patch version; e.g. 23.1.0.rc1
@@ -59,7 +59,9 @@ outputs:
         - python >3
         - if: unix
           then: make
-          else: ninja
+          else:
+            - ninja
+            - create-forwarder-dll
         - if: build_platform != target_platform
           then:
             - llvmdev ==${{ version }}
@@ -73,48 +75,48 @@ outputs:
         - zstd
         - if: osx
           then: libcxx-devel ${{ cxx_compiler_version }}.*
+        - if: win
+          then: llvm-openmp ==${{ version }}
 
   - package:
       name: clangdev
     inherit: clangdev-stage
     build:
       string: ${{ variant }}_h${{ hash }}_${{ build_number }}
-      script:
-        file: install_clangdev
+      files:
+        - if: unix
+          then:
+            - include/clang/*
+            - include/clang-c/*
+            - include/clang-tidy/*
+            - lib/cmake/clang/*
+            - lib/libclang*.a
+            - lib/libfindAllSymbols.a
+          else:
+            - Library/include/clang/*
+            - Library/include/clang-c/*
+            - Library/include/clang-tidy/*
+            - Library/lib/cmake/clang/*
+            - Library/lib/clang*.lib
+            - Library/lib/findAllSymbols.lib
       variant:
         down_prioritize_variant: ${{ 0 if variant == "default" else 1 }}
     requirements:
       build:
+        # these deps are added because of the static libraries
         - ${{ stdlib('c') }}
         - ${{ compiler('cxx') }}
-        - cmake
-        - if: unix
-          then: make
-          else: ninja
-        - if: build_platform != target_platform
-          then:
-            - llvmdev ==${{ version }}
-            - libxml2-devel
-            - zlib
-            - zstd
       host:
-        - ${{ pin_subpackage("clang", exact=True) }}
-        - ${{ pin_subpackage("clangxx", exact=True) }}
-        - ${{ pin_subpackage("clang-tools", exact=True) }}
-        - ${{ pin_subpackage("libclang", exact=True) }}
-        - ${{ pin_subpackage("libclang-cpp", exact=True) }}
-        - llvmdev ==${{ version }}
+        # Use the same requirements as the top-level requirements
+        # these deps are added because of the static libraries
+        - llvm ==${{ version }}
         - libxml2-devel
         - zlib
         - zstd
-        - if: osx
-          # cannot pin to `cxx_compiler_version` here,
-          # because clangxx pins libcxx-devel to `maj_min`
-          then: libcxx-devel ${{ maj_min }}.*
       run:
         # without pin_subpackage because we want clangdev to be independent of cfg/nocfg
-        - clang ==${{ version }} *_${{ build_number }}
-        - clangxx ==${{ version }} *_${{ build_number }}
+        - clang ==${{ version }} ${{ variant }}_*_${{ build_number }}
+        - clangxx ==${{ version }} ${{ variant }}_*_${{ build_number }}
         - ${{ pin_subpackage("clang-tools", exact=True) }}
         - ${{ pin_subpackage("libclang", exact=True) }}
         - ${{ pin_subpackage("libclang-cpp", exact=True) }}
@@ -122,14 +124,6 @@ outputs:
         - if: osx
           # we need to do this manually because clang_bootstrap has no run-export
           then: libcxx >=${{ version }}
-      ignore_run_exports:
-        from_package:
-          - if: unix
-            then:
-              # the build fails if it doesn't find the following, but it's not used
-              - libxml2-devel
-              - zlib
-              - zstd
     tests:
       - package_contents:
           include:
@@ -148,9 +142,11 @@ outputs:
           run:
             - ${{ compiler('cxx') }}
             - cmake
+            - ninja
         files:
           recipe:
             - mytest.c
+            - cmake_test/*
         script:
           - if: unix
             then:
@@ -162,6 +158,11 @@ outputs:
               - $PREFIX/bin/clang -v -c mytest.c
             else:
               - '%LIBRARY_BIN%/clang -v -c mytest.c'
+          # ensure CMake metadata is correct & working
+          - cd cmake_test
+          - if: unix
+            then: cmake -GNinja $CMAKE_ARGS .
+            else: 'cmake -GNinja %CMAKE_ARGS% .'
 
   - package:
       name: libclang-cpp${{ maj_min }}
@@ -169,8 +170,6 @@ outputs:
     build:
       skip: win
       string: ${{ variant }}_h${{ hash }}_${{ build_number }}
-      script:
-        file: install_libclang_cpp
       files:
         - if: linux
           then: lib/libclang-cpp.so.${{ sover }}
@@ -181,35 +180,14 @@ outputs:
       build:
         - ${{ stdlib('c') }}
         - ${{ compiler('cxx') }}
-        - cmake
-        - if: unix
-          then: make
-          else: ninja
-        - if: build_platform != target_platform
-          then: llvmdev ==${{ version }}
       host:
-        - llvmdev ==${{ version }}
         - llvm ==${{ version }}
-        # Use the same requirements as the top-level requirements
-        - libxml2-devel
-        - zlib
-        - zstd
-        - if: osx
-          then: libcxx-devel ${{ cxx_compiler_version }}.*
       run:
         - if: osx
           # we need to do this manually because clang_bootstrap has no run-export
           then: libcxx >=${{ version }}
       run_exports:
         - ${{ pin_subpackage("libclang-cpp" ~ maj_min, upper_bound="x.x") }}
-      ignore_run_exports:
-        from_package:
-          - if: unix
-            then:
-              # the build fails if it doesn't find the following, but it's not used
-              - libxml2-devel
-              - zlib
-              - zstd
     tests:
       - package_contents:
           files:
@@ -229,8 +207,6 @@ outputs:
     inherit: clangdev-stage
     build:
       string: ${{ variant }}_h${{ hash }}_${{ build_number }}
-      script:
-        file: install_libclang_cpp
       files:
         - if: linux
           then: lib/libclang-cpp.so
@@ -240,26 +216,6 @@ outputs:
       variant:
         down_prioritize_variant: ${{ 0 if variant == "default" else 1 }}
     requirements:
-      build:
-        - ${{ stdlib('c') }}
-        - ${{ compiler('cxx') }}
-        - cmake
-        - if: unix
-          then: make
-          else: ninja
-        - if: build_platform != target_platform
-          then: llvmdev ==${{ version }}
-      host:
-        - if: unix
-          then: ${{ pin_subpackage("libclang-cpp" ~ maj_min, exact=True) }}
-        - llvmdev ==${{ version }}
-        - llvm ==${{ version }}
-          # Use the same requirements as the top-level requirements
-        - libxml2-devel
-        - zlib
-        - zstd
-        - if: osx
-          then: libcxx-devel ${{ cxx_compiler_version }}.*
       run:
         - if: unix
           then: ${{ pin_subpackage("libclang-cpp" ~ maj_min, exact=True) }}
@@ -269,14 +225,6 @@ outputs:
       run_exports:
         - if: unix
           then: ${{ pin_subpackage("libclang-cpp" ~ maj_min, upper_bound="x.x") }}
-      ignore_run_exports:
-        from_package:
-          - if: unix
-            then:
-              # the build fails if it doesn't find the following, but it's not used
-              - libxml2-devel
-              - zlib
-              - zstd
     tests:
       - package_contents:
           files:
@@ -298,8 +246,6 @@ outputs:
     inherit: clangdev-stage
     build:
       string: ${{ variant }}_h${{ hash }}_${{ build_number }}
-      script:
-        file: install_libclang
       files:
         - if: linux
           then: lib/libclang.so.${{ libclang_soversion }}
@@ -313,27 +259,14 @@ outputs:
       build:
         - ${{ stdlib('c') }}
         - ${{ compiler('cxx') }}
-        - cmake
-        - if: unix
-          then: make
-          else:
-            - ninja
-            - create-forwarder-dll
-        - if: build_platform != target_platform
+      host:
+        # Use the same requirements as the top-level requirements, but only
+        # the ones required for run_exports
+        - llvm ==${{ version }}
+        - if: win
           then:
-            - llvmdev ==${{ version }}
-            - libxml2-devel
             - zlib
             - zstd
-      host:
-        - llvmdev ==${{ version }}
-        - llvm ==${{ version }}
-          # Use the same requirements as the top-level requirements
-        - libxml2-devel
-        - zlib
-        - zstd
-        - if: osx
-          then: libcxx-devel ${{ cxx_compiler_version }}.*
       run:
         - if: unix
           then: ${{ pin_subpackage("libclang-cpp" ~ maj_min, exact=True) }}
@@ -344,14 +277,6 @@ outputs:
         # note that the name (e.g. libclang13) does not necessarily
         # match the version lower bound (e.g. >=14.0.0)
         - ${{ pin_subpackage("libclang" ~ libclang_soversion, upper_bound=None) }}
-      ignore_run_exports:
-        from_package:
-          - if: unix
-            then:
-              # the build fails if it doesn't find the following, but it's not used
-              - libxml2-devel
-              - zlib
-              - zstd
     tests:
       - package_contents:
           files:
@@ -387,8 +312,6 @@ outputs:
     inherit: clangdev-stage
     build:
       string: ${{ variant }}_h${{ hash }}_${{ build_number }}
-      script:
-        file: install_libclang
       files:
         - if: linux
           then: lib/libclang.so
@@ -401,21 +324,6 @@ outputs:
       variant:
         down_prioritize_variant: ${{ 0 if variant == "default" else 1 }}
     requirements:
-      build:
-        - ${{ stdlib('c') }}
-        - ${{ compiler('cxx') }}
-        - cmake
-        - if: unix
-          then: make
-          else:
-            - ninja
-            - create-forwarder-dll
-        - if: build_platform != target_platform
-          then:
-            - llvmdev ==${{ version }}
-            - libxml2-devel
-            - zlib
-            - zstd
       host:
         - ${{ pin_subpackage("libclang" ~ libclang_soversion, exact=True) }}
         - llvmdev ==${{ version }}
@@ -435,14 +343,6 @@ outputs:
         # note that the name (e.g. libclang13) does not necessarily
         # match the version lower bound (e.g. >=14.0.0)
         - ${{ pin_subpackage("libclang" ~ libclang_soversion, upper_bound=None) }}
-      ignore_run_exports:
-        from_package:
-          - if: unix
-            then:
-              # the build fails if it doesn't find the following, but it's not used
-              - libxml2-devel
-              - zlib
-              - zstd
     tests:
       - package_contents:
           files:
@@ -460,13 +360,13 @@ outputs:
     inherit: clangdev-stage
     build:
       string: ${{ variant }}_h${{ hash }}_${{ build_number }}
-      script:
-        file: install_clang_maj
       files:
         - if: unix
           then:
             - lib/clang/${{ major_version }}/*
             - bin/clang-${{ major_version }}
+            - bin/clang-cl-${{ major_version }}
+            - bin/clang-cpp-${{ major_version }}
             - bin/clang++-${{ major_version }}
           else:
             - Library/lib/clang/${{ major_version }}/*
@@ -478,28 +378,16 @@ outputs:
       build:
         - ${{ stdlib('c') }}
         - ${{ compiler('cxx') }}
-        - cmake
-        - if: unix
-          then: make
-          else: ninja
-        - if: build_platform != target_platform
-          then:
-            - llvmdev ==${{ version }}
-            - libxml2-devel
-            - zlib
-            - zstd
       host:
         - if: unix
           then: ${{ pin_subpackage("libclang-cpp" ~ maj_min, exact=True) }}
-        - llvm-openmp ==${{ version }}
-        - llvmdev ==${{ version }}
+        # Use the same requirements as the top-level requirements, but only
+        # the ones required for run_exports
         - llvm ==${{ version }}
-          # Use the same requirements as the top-level requirements
-        - libxml2-devel
-        - zlib
-        - zstd
-        - if: osx
-          then: libcxx-devel ${{ cxx_compiler_version }}.*
+        - if: win
+          then:
+            - zlib
+            - zstd
       run:
         - compiler-rt${{ major_version }} ==${{ version }}
         - if: unix
@@ -507,15 +395,6 @@ outputs:
         - if: osx
           # we need to do this manually because clang_bootstrap has no run-export
           then: libcxx >=${{ version }}
-      ignore_run_exports:
-        from_package:
-          # the build fails if it doesn't find the following, but it's not used
-          - libxml2-devel
-          - llvm-openmp
-          - if: unix
-            then:
-              - zlib
-              - zstd
     tests:
       - package_contents:
           files:
@@ -570,24 +449,25 @@ outputs:
           - if: win
             then: 'if not exist %LIBRARY_PREFIX%/lib/clang/${{ major_version }}/lib/windows/clang_rt.builtins-x86_64.lib exit 1'
 
-
   - package:
       name: clang_impl_${{ target_platform }}
     inherit: clangdev-stage
     build:
       skip: win
       string: ${{ variant }}_h${{ hash }}_${{ build_number }}
-      script:
-        file: install_clang_symlinks
+      files:
+        - bin/${{ TARGET }}-clang
+        - bin/${{ TARGET }}-clang-cpp
       variant:
         down_prioritize_variant: ${{ 0 if variant == "default" else 1 }}
     requirements:
-      host:
-        - ${{ pin_subpackage("clang-" ~ major_version, exact=True) }}
       run:
-        - ${{ pin_subpackage("clang-" ~ major_version, exact=True) }}
-        - compiler-rt_${{ target_platform }}
-        - compiler-rt ${{ version }}.*
+        # cannot use exact pins on osx due to separation of compiler activation; see #437
+        - if: osx
+          then: clang-${{ major_version }} ==${{ version }} ${{ variant }}_*
+          else: ${{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+        - compiler-rt_${{ target_platform }} ==${{ version }}
+        - compiler-rt ==${{ version }}
         - if: linux
           then:
             - binutils_impl_${{ target_platform }}
@@ -624,8 +504,31 @@ outputs:
     inherit: clangdev-stage
     build:
       string: ${{ variant }}_${{ "cfg" if with_cfg else "nocfg" }}_h${{ hash }}_${{ build_number }}
-      script:
-        file: install_clang_symlinks
+      files:
+        - if: unix
+          then:
+            - bin/clang
+            - bin/clang-cl
+            - bin/clang-cpp
+          else:
+            - Library/bin/clang.exe
+            - Library/bin/clang-cl.exe
+            - Library/bin/clang-cpp.exe
+        - if: unix and with_cfg
+          then:
+            # we add configuration files for with_cfg only. `_NO_VER` is only relevant on osx.
+            # on linux, the --sysroot argument is added for non-cfg builds as well,
+            # through the file bin/<TARGET>.cfg that's present in the sysroot package
+            - bin/${{ TARGET_NO_VER }}-clang.cfg
+            - bin/${{ TARGET_NO_VER }}-clang-cl.cfg
+            - bin/${{ TARGET_NO_VER }}-clang-cpp.cfg
+            # technically the flang cfg files should be in flang, but it's easier to consolidate them here.
+            - bin/${{ TARGET_NO_VER }}-flang.cfg
+        - if: osx and with_cfg
+          then:
+            # only for macos to avoid conflicts with gcc
+            - bin/cc
+            - bin/cpp
       variant:
         # increasing numbers correspond to decreasing priority
         # 0:     with_cfg, variant == "default"
@@ -635,22 +538,21 @@ outputs:
         down_prioritize_variant: ${{ ((not with_cfg) | int) + 2 * ((variant != "default") | int) }}
     requirements:
       build:
-        # for run-exports
+        # for run-export on win. This is just a symlink on unix
         - if: win
           then:
             - ${{ stdlib('c') }}
             - ${{ compiler('cxx') }}
       host:
-        - ${{ pin_subpackage("clang-" ~ major_version, exact=True) }}
-        - llvmdev ==${{ version }}
-          # Use the same requirements as the top-level requirements
-        - libxml2-devel
-        - zlib
-        - zstd
-        - if: osx
-          then: libcxx-devel ${{ cxx_compiler_version }}.*
+        - if: win
+          then:
+            - zlib
+            - zstd
       run:
-        - ${{ pin_subpackage("clang-" ~ major_version, exact=True) }}
+        # cannot use exact pins on osx due to separation of compiler activation; see #437
+        - if: osx
+          then: clang-${{ major_version }} ==${{ version }} ${{ variant }}_*
+          else: ${{ pin_subpackage("clang-" ~ major_version, exact=True) }}
         - llvm-openmp >=${{ version }}
         - if: unix
           then: ${{ pin_subpackage("clang_impl_" ~ target_platform, exact=True) }}
@@ -680,21 +582,38 @@ outputs:
           - clang-cpp --version
 
   - package:
+      name: clang-no-conda-cfg
+    inherit: clangdev-stage
+    build:
+      skip: with_cfg
+      string: ${{ variant }}_h${{ hash }}_${{ build_number }}
+      files: []
+      variant:
+        down_prioritize_variant: ${{ 0 if variant == "default" else 1 }}
+    requirements:
+      run:
+        - clang ==${{ version }} ${{ variant }}_nocfg_*_${{ build_number }}
+    tests:
+      - script:
+          - echo "pure metapackage"
+
+  - package:
       name: clangxx_impl_${{ target_platform }}
     inherit: clangdev-stage
     build:
       skip: win
       string: ${{ variant }}_h${{ hash }}_${{ build_number }}
-      script:
-        file: install_clang_symlinks
+      files:
+        - bin/${{ TARGET }}-clang++
       variant:
         down_prioritize_variant: ${{ 0 if variant == "default" else 1 }}
     requirements:
-      host:
-        - ${{ pin_subpackage("clang-" ~ major_version, exact=True) }}
       run:
+        # cannot use exact pins on osx due to separation of compiler activation; see #437
+        - if: osx
+          then: clang-${{ major_version }} ==${{ version }} ${{ variant }}_*
+          else: ${{ pin_subpackage("clang-" ~ major_version, exact=True) }}
         - ${{ pin_subpackage("clang_impl_" ~ target_platform, exact=True) }}
-        - ${{ pin_subpackage("clang-" ~ major_version, exact=True) }}
         - ${{ pin_subpackage("clang-scan-deps", exact=True) }}
         - if: linux
           then: libstdcxx-devel_${{ target_platform }}
@@ -718,8 +637,15 @@ outputs:
     inherit: clangdev-stage
     build:
       string: ${{ variant }}_${{ "cfg" if with_cfg else "nocfg" }}_h${{ hash }}_${{ build_number }}
-      script:
-        file: install_clang_symlinks
+      files:
+        - if: unix
+          then: bin/clang++
+          else: Library/bin/clang++.exe
+        - if: unix and with_cfg
+          then: bin/${{ TARGET_NO_VER }}-clang++.cfg
+        - if: osx and with_cfg
+          # only for macos to avoid conflicts with gcc
+          then: bin/c++
       variant:
         # increasing numbers correspond to decreasing priority
         # 0:     with_cfg, variant == "default"
@@ -729,44 +655,33 @@ outputs:
         down_prioritize_variant: ${{ ((not with_cfg) | int) + 2 * ((variant != "default") | int) }}
     requirements:
       build:
-        # for run-exports
+        # for run-export on win. This is just a symlink on unix
         - if: win
           then:
             - ${{ stdlib('c') }}
             - ${{ compiler('cxx') }}
       host:
-        - ${{ pin_subpackage("clang-" ~ major_version, exact=True) }}
-        - llvmdev ==${{ version }}
-        - libxml2-devel
-        - zlib
-        - zstd
-        - if: unix
-          then: ${{ pin_subpackage("clangxx_impl_" ~ target_platform, exact=True) }}
-        - if: osx
-          # cannot pin to `cxx_compiler_version` here,
-          # because clangxx_impl_ pins libcxx-devel to `maj_min`
-          then: libcxx-devel ${{ maj_min }}.*
+        - if: win
+          then:
+            - zlib
+            - zstd
       run:
         - ${{ pin_subpackage("clang", exact=True) }}
         - if: unix
-          then: ${{ pin_subpackage("clangxx_impl_" ~ target_platform, exact=True) }}
+          # we'd like to do the equivalent of pin_subpackage here (modulo cfg/nocfg); however,
+          # https://github.com/conda-forge/clang-compiler-activation-feedstock now depends on
+          # being able to co-install `clangxx_impl_${{ cross_target_platform }}` (built on that
+          # feedstock) with a `clangxx` from here (to have the symlinks available also for the
+          # bootstrap compilers), so we can't pin the build number either
+          then: clangxx_impl_${{ target_platform }} ==${{ version }} ${{ variant }}_*
         - if: linux
           then: libstdcxx-devel_${{ target_platform }}
         - if: osx
           # only minor-pin to avoid issues when building new libcxx versions
           then: libcxx-devel ${{ maj_min }}.*
-      ignore_run_exports:
-        from_package:
-          # the build fails if it doesn't find the following, but it's not used
-          - libxml2-devel
-          - if: unix
-            then:
-              - zlib
-              - zstd
     tests:
       - requirements:
           run:
-            - ${{ compiler("cxx") }}
             - if: win
               then: gxx_impl_${{ target_platform }}
         files:
@@ -795,50 +710,24 @@ outputs:
     build:
       skip: win
       string: ${{ variant }}_h${{ hash }}_${{ build_number }}
-      script:
-        file: install_clang_format
       files:
         - bin/clang-format-${{ major_version }}
       variant:
         down_prioritize_variant: ${{ 0 if variant == "default" else 1 }}
     requirements:
       build:
-        # "compiling .pyc files" fails without this
-        - python >3
         - ${{ stdlib('c') }}
         - ${{ compiler('cxx') }}
-        - cmake
-        - make
-        - if: build_platform != target_platform
-          then: llvmdev ==${{ version }}
       host:
-        # it does not matter whether we use cfg or nocfg clang{,xx} in host
-        - ${{ pin_subpackage("clang", exact=True) }}
-        - ${{ pin_subpackage("clangxx", exact=True) }}
-        - ${{ pin_subpackage("libclang", exact=True) }}
-        - ${{ pin_subpackage("libclang-cpp", exact=True) }}
-        - llvmdev ==${{ version }}
+        - ${{ pin_subpackage("libclang-cpp" ~ maj_min, upper_bound="x.x") }}
+        # Use the same requirements as the top-level requirements, but only
+        # the ones required for run_exports
         - llvm ==${{ version }}
-        - libxml2-devel
-        - zlib
-        - zstd
-        - if: osx
-          # cannot pin to `cxx_compiler_version` here,
-          # because clangxx_impl_ pins libcxx-devel to `maj_min`
-          then: libcxx-devel ${{ maj_min }}.*
       run:
         - ${{ pin_subpackage("libclang-cpp" ~ maj_min, upper_bound="x.x") }}
         - if: osx
           # we need to do this manually because clang_bootstrap has no run-export
           then: libcxx >=${{ version }}
-      ignore_run_exports:
-        from_package:
-          - if: unix
-            then:
-              # the build fails if it doesn't find the following, but it's not used
-              - libxml2-devel
-              - zlib
-              - zstd
     tests:
       - package_contents:
           files:
@@ -853,8 +742,6 @@ outputs:
     inherit: clangdev-stage
     build:
       string: ${{ variant }}_h${{ hash }}_${{ build_number }}
-      script:
-        file: install_clang_format
       files:
         - if: unix
           then: bin/clang-format
@@ -863,39 +750,12 @@ outputs:
         down_prioritize_variant: ${{ 0 if variant == "default" else 1 }}
     requirements:
       build:
-        # "compiling .pyc files" fails without this
-        - python >3
-        - ${{ stdlib('c') }}
-        - ${{ compiler('cxx') }}
-        - cmake
-        - if: unix
-          then: make
-          else: ninja
-        - if: build_platform != target_platform
+        # for run-export on win. This is just a symlink on unix
+        - if: win
           then:
-            - llvmdev ==${{ version }}
-            - libxml2-devel
-            - zlib
-            - zstd
-      host:
-        # it does not matter whether we use cfg or nocfg clang{,xx} in host
-        - ${{ pin_subpackage("clang", exact=True) }}
-        - ${{ pin_subpackage("clangxx", exact=True) }}
-        - ${{ pin_subpackage("libclang", exact=True) }}
-        - ${{ pin_subpackage("libclang-cpp", exact=True) }}
-        - llvmdev ==${{ version }}
-        - llvm ==${{ version }}
-        - libxml2-devel
-        - zlib
-        - zstd
-        - if: unix
-          then: ${{ pin_subpackage("clang-format-" ~ major_version, exact=True) }}
-        - if: osx
-          # cannot pin to `cxx_compiler_version` here,
-          # because clangxx_impl_ pins libcxx-devel to `maj_min`
-          then: libcxx-devel ${{ maj_min }}.*
+            - ${{ stdlib('c') }}
+            - ${{ compiler('cxx') }}
       run:
-        - ${{ pin_subpackage("clang", exact=True) }}
         - if: unix
           then:
             - ${{ pin_subpackage("libclang-cpp" ~ maj_min, upper_bound="x.x") }}
@@ -903,14 +763,6 @@ outputs:
         - if: osx
           # we need to do this manually because clang_bootstrap has no run-export
           then: libcxx >=${{ version }}
-      ignore_run_exports:
-        from_package:
-          - if: unix
-            then:
-              # the build fails if it doesn't find the following, but it's not used
-              - libxml2-devel
-              - zlib
-              - zstd
     tests:
       - package_contents:
           files:
@@ -927,8 +779,6 @@ outputs:
     build:
       skip: win
       string: ${{ variant }}_h${{ hash }}_${{ build_number }}
-      script:
-        file: install_clang_scan_deps
       files:
         - bin/clang-scan-deps
         - bin/clang-scan-deps-${{ major_version }}
@@ -946,40 +796,18 @@ outputs:
         down_prioritize_variant: ${{ 0 if variant == "default" else 1 }}
     requirements:
       build:
-        # "compiling .pyc files" fails without this
-        - python >3
         - ${{ stdlib('c') }}
         - ${{ compiler('cxx') }}
-        - cmake
-        - make
-        - if: build_platform != target_platform
-          then: llvmdev ==${{ version }}
       host:
-        - ${{ pin_subpackage("libclang", exact=True) }}
-        - ${{ pin_subpackage("libclang-cpp", exact=True) }}
-        - llvmdev ==${{ version }}
+        - ${{ pin_subpackage("libclang" ~ libclang_soversion, upper_bound=None) }}
+        - ${{ pin_subpackage("libclang-cpp" ~ maj_min, upper_bound="x.x") }}
         - llvm ==${{ version }}
-        - libxml2-devel
-        - zlib
-        - zstd
-        - if: osx
-          # cannot pin to `cxx_compiler_version` here,
-          # because clangxx_impl_ pins libcxx-devel to `maj_min`
-          then: libcxx-devel ${{ maj_min }}.*
       run:
         - ${{ pin_subpackage("libclang" ~ libclang_soversion, upper_bound=None) }}
         - ${{ pin_subpackage("libclang-cpp" ~ maj_min, upper_bound="x.x") }}
         - if: osx
           # we need to do this manually because clang_bootstrap has no run-export
           then: libcxx >=${{ version }}
-      ignore_run_exports:
-        from_package:
-          - if: unix
-            then:
-              # the build fails if it doesn't find the following, but it's not used
-              - libxml2-devel
-              - zlib
-              - zstd
     tests:
       - script:
           - clang-scan-deps --version
@@ -1000,42 +828,71 @@ outputs:
     inherit: clangdev-stage
     build:
       string: ${{ variant }}_h${{ hash }}_${{ build_number }}
-      script:
-        file: install_clang_tools
+      files:
+        include:
+          - if: unix
+            then:
+              - bin/*
+              - lib/libear/*
+              - lib/libscanbuild/*
+              - libexec/*
+              - share/*
+            else:
+              - Library/bin/*
+              - Library/lib/libear/*
+              - Library/lib/libscanbuild/*
+              - Library/libexec/*
+              - Library/share/*
+          - if: osx
+            # osx-specifc, see #420
+            then: lib/libClangdXPCLib*
+        exclude:
+          - if: unix
+            then:
+              - bin/c++
+              - bin/cc
+              - bin/cpp
+              - bin/clang
+              - bin/clang++
+              - bin/clang-cl
+              - bin/clang-cpp
+              - bin/clang-format
+              - bin/clang-scan-deps
+              - bin/clang-${{ major_version }}
+              - bin/clang++-${{ major_version }}
+              - bin/clang-cl-${{ major_version }}
+              - bin/clang-cpp-${{ major_version }}
+              - bin/clang-format-${{ major_version }}
+              - bin/clang-scan-deps-${{ major_version }}
+              - bin/${{ TARGET }}-*
+              - bin/*.cfg
+            else:
+              - Library/bin/*.dll
+              - Library/bin/clang.exe
+              - Library/bin/clang++.exe
+              - Library/bin/clang-cl.exe
+              - Library/bin/clang-cpp.exe
+              - Library/bin/clang-format.exe
+              - Library/bin/clang-${{ major_version }}.exe
+              - Library/bin/clang++-${{ major_version }}.exe
       variant:
         down_prioritize_variant: ${{ 0 if variant == "default" else 1 }}
     requirements:
       build:
-        # "compiling .pyc files" fails without this
-        - python >3
         - ${{ stdlib('c') }}
         - ${{ compiler('cxx') }}
-        - cmake
-        - if: unix
-          then: make
-          else: ninja
-        - if: build_platform != target_platform
-          then:
-            - llvmdev ==${{ version }}
-            - libxml2-devel
-            - zlib
-            - zstd
       host:
-        # it does not matter whether we use cfg or nocfg clang{,xx} in host
-        - ${{ pin_subpackage("clang", exact=True) }}
-        - ${{ pin_subpackage("clangxx", exact=True) }}
-        - ${{ pin_subpackage("libclang", exact=True) }}
-        - ${{ pin_subpackage("libclang-cpp", exact=True) }}
-        - ${{ pin_subpackage("clang-format", exact=True) }}
-        - llvmdev ==${{ version }}
+        - ${{ pin_subpackage("libclang" ~ libclang_soversion, upper_bound=None) }}
+        - if: unix
+          then: ${{ pin_subpackage("libclang-cpp" ~ maj_min, upper_bound="x.x") }}
+        # Use the same requirements as the top-level requirements, but only
+        # the ones required for run_exports
         - llvm ==${{ version }}
         - libxml2-devel
-        - zlib
-        - zstd
-        - if: osx
-          # cannot pin to `cxx_compiler_version` here,
-          # because clangxx_impl_ pins libcxx-devel to `maj_min`
-          then: libcxx-devel ${{ maj_min }}.*
+        - if: win
+          then:
+            - zlib
+            - zstd
       run:
         - ${{ pin_subpackage("clang-format", exact=True) }}
         - ${{ pin_subpackage("libclang" ~ libclang_soversion, upper_bound=None) }}
@@ -1050,13 +907,6 @@ outputs:
           then: ucrt
       run_constraints:
         - clangdev ==${{ version }}
-      ignore_run_exports:
-        from_package:
-          - if: unix
-            then:
-              # the build fails if it doesn't find the following, but it's not used
-              - zlib
-              - zstd
     tests:
       - script:
           - clang-check --version
