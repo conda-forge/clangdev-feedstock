@@ -59,7 +59,9 @@ outputs:
         - python >3
         - if: unix
           then: make
-          else: ninja
+          else:
+            - ninja
+            - create-forwarder-dll
         - if: build_platform != target_platform
           then:
             - llvmdev ==${{ version }}
@@ -79,8 +81,6 @@ outputs:
     inherit: clangdev-stage
     build:
       string: ${{ variant }}_h${{ hash }}_${{ build_number }}
-      script:
-        file: install_clangdev
       files:
         - if: unix
           then:
@@ -180,8 +180,6 @@ outputs:
     build:
       skip: win
       string: ${{ variant }}_h${{ hash }}_${{ build_number }}
-      script:
-        file: install_libclang_cpp
       files:
         - if: linux
           then: lib/libclang-cpp.so.${{ sover }}
@@ -240,8 +238,6 @@ outputs:
     inherit: clangdev-stage
     build:
       string: ${{ variant }}_h${{ hash }}_${{ build_number }}
-      script:
-        file: install_libclang_cpp
       files:
         - if: linux
           then: lib/libclang-cpp.so
@@ -309,8 +305,6 @@ outputs:
     inherit: clangdev-stage
     build:
       string: ${{ variant }}_h${{ hash }}_${{ build_number }}
-      script:
-        file: install_libclang
       files:
         - if: linux
           then: lib/libclang.so.${{ libclang_soversion }}
@@ -398,8 +392,6 @@ outputs:
     inherit: clangdev-stage
     build:
       string: ${{ variant }}_h${{ hash }}_${{ build_number }}
-      script:
-        file: install_libclang
       files:
         - if: linux
           then: lib/libclang.so
@@ -471,13 +463,13 @@ outputs:
     inherit: clangdev-stage
     build:
       string: ${{ variant }}_h${{ hash }}_${{ build_number }}
-      script:
-        file: install_clang_maj
       files:
         - if: unix
           then:
             - lib/clang/${{ major_version }}/*
             - bin/clang-${{ major_version }}
+            - bin/clang-cl-${{ major_version }}
+            - bin/clang-cpp-${{ major_version }}
             - bin/clang++-${{ major_version }}
           else:
             - Library/lib/clang/${{ major_version }}/*
@@ -581,15 +573,15 @@ outputs:
           - if: win
             then: 'if not exist %LIBRARY_PREFIX%/lib/clang/${{ major_version }}/lib/windows/clang_rt.builtins-x86_64.lib exit 1'
 
-
   - package:
       name: clang_impl_${{ target_platform }}
     inherit: clangdev-stage
     build:
       skip: win
       string: ${{ variant }}_h${{ hash }}_${{ build_number }}
-      script:
-        file: install_clang_symlinks
+      files:
+        - bin/${{ TARGET }}-clang
+        - bin/${{ TARGET }}-clang-cpp
       variant:
         down_prioritize_variant: ${{ 0 if variant == "default" else 1 }}
     requirements:
@@ -635,8 +627,31 @@ outputs:
     inherit: clangdev-stage
     build:
       string: ${{ variant }}_${{ "cfg" if with_cfg else "nocfg" }}_h${{ hash }}_${{ build_number }}
-      script:
-        file: install_clang_symlinks
+      files:
+        - if: unix
+          then:
+            - bin/clang
+            - bin/clang-cl
+            - bin/clang-cpp
+          else:
+            - Library/bin/clang.exe
+            - Library/bin/clang-cl.exe
+            - Library/bin/clang-cpp.exe
+        - if: unix and with_cfg
+          then:
+            # we add configuration files for with_cfg only. `_NO_VER` is only relevant on osx.
+            # on linux, the --sysroot argument is added for non-cfg builds as well,
+            # through the file bin/<TARGET>.cfg that's present in the sysroot package
+            - bin/${{ TARGET_NO_VER }}-clang.cfg
+            - bin/${{ TARGET_NO_VER }}-clang-cl.cfg
+            - bin/${{ TARGET_NO_VER }}-clang-cpp.cfg
+            # technically the flang cfg files should be in flang, but it's easier to consolidate them here.
+            - bin/${{ TARGET_NO_VER }}-flang.cfg
+        - if: osx and with_cfg
+          then:
+            # only for macos to avoid conflicts with gcc
+            - bin/cc
+            - bin/cpp
       variant:
         # increasing numbers correspond to decreasing priority
         # 0:     with_cfg, variant == "default"
@@ -696,6 +711,7 @@ outputs:
     build:
       skip: with_cfg
       string: ${{ variant }}_h${{ hash }}_${{ build_number }}
+      files: []
       variant:
         down_prioritize_variant: ${{ 0 if variant == "default" else 1 }}
     requirements:
@@ -711,8 +727,8 @@ outputs:
     build:
       skip: win
       string: ${{ variant }}_h${{ hash }}_${{ build_number }}
-      script:
-        file: install_clang_symlinks
+      files:
+        - bin/${{ TARGET }}-clang++
       variant:
         down_prioritize_variant: ${{ 0 if variant == "default" else 1 }}
     requirements:
@@ -744,8 +760,15 @@ outputs:
     inherit: clangdev-stage
     build:
       string: ${{ variant }}_${{ "cfg" if with_cfg else "nocfg" }}_h${{ hash }}_${{ build_number }}
-      script:
-        file: install_clang_symlinks
+      files:
+        - if: unix
+          then: bin/clang++
+          else: Library/bin/clang++.exe
+        - if: unix and with_cfg
+          then: bin/${{ TARGET_NO_VER }}-clang++.cfg
+        - if: osx and with_cfg
+          # only for macos to avoid conflicts with gcc
+          then: bin/c++
       variant:
         # increasing numbers correspond to decreasing priority
         # 0:     with_cfg, variant == "default"
@@ -761,6 +784,7 @@ outputs:
             - ${{ stdlib('c') }}
             - ${{ compiler('cxx') }}
       host:
+        - ${{ pin_subpackage("clang-" ~ major_version, exact=True) }}
         - llvmdev ==${{ version }}
         - libxml2-devel
         - zlib
@@ -785,7 +809,6 @@ outputs:
     tests:
       - requirements:
           run:
-            - ${{ compiler("cxx") }}
             - if: win
               then: gxx_impl_${{ target_platform }}
         files:
@@ -814,8 +837,6 @@ outputs:
     build:
       skip: win
       string: ${{ variant }}_h${{ hash }}_${{ build_number }}
-      script:
-        file: install_clang_format
       files:
         - bin/clang-format-${{ major_version }}
       variant:
@@ -867,8 +888,6 @@ outputs:
     inherit: clangdev-stage
     build:
       string: ${{ variant }}_h${{ hash }}_${{ build_number }}
-      script:
-        file: install_clang_format
       files:
         - if: unix
           then: bin/clang-format
@@ -933,8 +952,6 @@ outputs:
     build:
       skip: win
       string: ${{ variant }}_h${{ hash }}_${{ build_number }}
-      script:
-        file: install_clang_scan_deps
       files:
         - bin/clang-scan-deps
         - bin/clang-scan-deps-${{ major_version }}
@@ -1004,8 +1021,50 @@ outputs:
     inherit: clangdev-stage
     build:
       string: ${{ variant }}_h${{ hash }}_${{ build_number }}
-      script:
-        file: install_clang_tools
+      files:
+        include:
+          - if: unix
+            then:
+              - bin/*
+              - lib/libear/*
+              - lib/libscanbuild/*
+              - libexec/*
+              - share/*
+            else:
+              - Library/bin/*
+              - Library/lib/libear/*
+              - Library/lib/libscanbuild/*
+              - Library/libexec/*
+              - Library/share/*
+        exclude:
+          - if: unix
+            then:
+              - bin/c++
+              - bin/cc
+              - bin/cpp
+              - bin/clang
+              - bin/clang++
+              - bin/clang-cl
+              - bin/clang-cpp
+              - bin/clang-format
+              - bin/clang-scan-deps
+              - bin/clang-${{ major_version }}
+              - bin/clang++-${{ major_version }}
+              - bin/clang-cl-${{ major_version }}
+              - bin/clang-cpp-${{ major_version }}
+              - bin/clang-format-${{ major_version }}
+              - bin/clang-scan-deps-${{ major_version }}
+              - bin/${{ TARGET }}-*
+              - bin/*.cfg
+            else:
+              - Library/bin/*.dll
+              - Library/bin/clang.exe
+              - Library/bin/clang++.exe
+              - Library/bin/clang-cl.exe
+              - Library/bin/clang-cpp.exe
+              - Library/bin/clang-format.exe
+              - Library/bin/clang-${{ major_version }}.exe
+              - Library/bin/clang++-${{ major_version }}.exe
       variant:
         down_prioritize_variant: ${{ 0 if variant == "default" else 1 }}
     requirements:
