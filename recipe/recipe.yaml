@@ -680,6 +680,21 @@ outputs:
           - clang-cpp --version
 
   - package:
+      name: clang-no-conda-cfg
+    inherit: clangdev-stage
+    build:
+      skip: with_cfg
+      string: ${{ variant }}_h${{ hash }}_${{ build_number }}
+      variant:
+        down_prioritize_variant: ${{ 0 if variant == "default" else 1 }}
+    requirements:
+      run:
+        - clang ==${{ version }} ${{ variant }}_nocfg_*_${{ build_number }}
+    tests:
+      - script:
+          - echo "pure metapackage"
+
+  - package:
       name: clangxx_impl_${{ target_platform }}
     inherit: clangdev-stage
     build:
