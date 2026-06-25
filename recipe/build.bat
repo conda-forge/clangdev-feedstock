@@ -78,6 +78,9 @@ if %ERRORLEVEL% neq 0 exit 1
 for /f "tokens=1 delims=." %%a in ("%PKG_VERSION%") do (
   set "MAJOR_VERSION=%%a"
 )
+:: FIXME: the above is currently non-functional due to a bug in rattler-build, see
+:: https://github.com/prefix-dev/rattler-build/issues/2587
+set "MAJOR_VERSION=22"
 
 :: create versioned copies of clang/clang++
 copy "%LIBRARY_BIN%\clang.exe" "%LIBRARY_BIN%\clang-!MAJOR_VERSION!.exe"

@@ -56,6 +56,10 @@ make -j${CPU_COUNT}
 make install
 
 MAJOR_VERSION=$(echo ${PKG_VERSION} | cut -f1 -d".")
+# FIXME: the above is currently non-functional due to a bug in rattler-build, see
+# https://github.com/prefix-dev/rattler-build/issues/2587
+MAJOR_VERSION=22
+
 for f in ${PREFIX}/bin/clang-*; do
   if [[ "$(basename $f)" == "clang-${MAJOR_VERSION}" ]]; then
     # installation also creates a versioned clang, no need to re-version it
