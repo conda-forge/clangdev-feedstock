@@ -3,17 +3,11 @@ setlocal enabledelayedexpansion
 
 :: move clang-tools-extra to clang/tools/extra, see
 :: https://github.com/llvm/llvm-project/blob/main/clang-tools-extra/README.txt
-mkdir llvm-project\clang\tools\extra
-robocopy llvm-project\clang-tools-extra llvm-project\clang\tools\extra /E >nul
+mkdir clang\tools\extra
+robocopy clang-tools-extra clang\tools\extra /E >nul
 :: do not check %ERRORLEVEL%! robocopy returns an exit code
 :: of 1 if one or more files were successfully copied.
 
-:: using subproject sources has been effectively broken in LLVM 14,
-:: so we use the entire project, but make sure we don't pick up
-:: anything in-tree other than clang & the shared cmake folder
-robocopy llvm-project\clang .\clang /E >nul
-robocopy llvm-project\cmake .\cmake /E >nul
-del /f /q llvm-project
 cd clang
 
 mkdir build

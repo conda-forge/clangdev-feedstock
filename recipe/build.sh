@@ -3,15 +3,9 @@ set -ex
 
 # move clang-tools-extra to clang/tools/extra, see
 # https://github.com/llvm/llvm-project/blob/main/clang-tools-extra/README.txt
-mkdir -p llvm-project/clang/tools/extra
-mv llvm-project/clang-tools-extra/* llvm-project/clang/tools/extra/
+mkdir -p ./clang/tools/extra
+mv ./clang-tools-extra/* ./clang/tools/extra/
 
-# using subproject sources has been effectively broken in LLVM 14,
-# so we use the entire project, but make sure we don't pick up
-# anything in-tree other than clang & the shared cmake folder
-mv llvm-project/clang ./clang
-mv llvm-project/cmake ./cmake
-rm -rf llvm-project
 cd clang
 
 if [[ "$CONDA_BUILD_CROSS_COMPILATION" == "1" ]]; then
