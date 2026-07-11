@@ -857,7 +857,9 @@ outputs:
         file: install_clang_format
       files:
         - if: unix
-          then: bin/clang-format
+          then:
+            - bin/clang-format
+            - bin/git-clang-format
           else: Library/bin/clang-format.exe
       variant:
         down_prioritize_variant: ${{ 0 if variant == "default" else 1 }}
