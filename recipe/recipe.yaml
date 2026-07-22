@@ -34,12 +34,11 @@ source:
       - patches/0008-Find-ROCm-device-library-in-conda-layout.patch
       - patches/0009-Add-conda-mingw-paths.patch
       - patches/0010-Look-for-libLTO.dylib-in-the-versioned-ResourceDir.patch
-    # would like to use filter here: https://github.com/prefix-dev/rattler-build/issues/2581
-    # filter:
-    #   # we don't want to accidentally build more than clang here
-    #   - cmake/*
-    #   - clang/*
-    #   - clang-tools-extra/*
+    filter:
+      # we don't want to accidentally build more than clang here
+      - cmake/*
+      - clang/*
+      - clang-tools-extra/*
 
 build:
   number: ${{ build_number }}
