@@ -1,6 +1,6 @@
 context:
-  version: "22.1.8"
-  build_number: 3
+  version: "23.1.0.rc1"
+  build_number: 0
   # derived quanities
   major_version: "${{ (version | split('.'))[0] }}"
   # tail is not necessarily equal to patch version; e.g. 23.1.0.rc1
@@ -22,7 +22,7 @@ recipe:
 
 source:
   - url: https://github.com/llvm/llvm-project/archive/refs/tags/llvmorg-${{ version|replace(".rc", "-rc") }}.tar.gz
-    sha256: ad18b70e287954c3d62bc7e0b86e7b7af2adf87bcfce21c15fe717f101d7aace
+    sha256: b981ddc5e205f4366ce507e8a3f169b5406db1a911eafce191bd2a5ef98d7829
     patches:
       - patches/0001-Find-conda-gcc-installation.patch
       - patches/0002-Fix-sysroot-detection-for-linux.patch
