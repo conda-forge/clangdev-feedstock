@@ -1,0 +1,25 @@
+From 95e5d3585506eb5e1f445585a30add78aecbf24e Mon Sep 17 00:00:00 2001
+From: Isuru Fernando <isuruf@gmail.com>
+Date: Tue, 10 Mar 2026 10:03:35 -0700
+Subject: [PATCH 9/9] Look for libLTO.dylib in the versioned ResourceDir
+
+---
+ clang/lib/Driver/ToolChains/Darwin.cpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/clang/lib/Driver/ToolChains/Darwin.cpp b/clang/lib/Driver/ToolChains/Darwin.cpp
+index 021a6867061d..d8efd6cf8198 100644
+--- a/clang/lib/Driver/ToolChains/Darwin.cpp
++++ b/clang/lib/Driver/ToolChains/Darwin.cpp
+@@ -294,9 +294,8 @@ void darwin::Linker::AddLinkArgs(Compilation &C, const ArgList &Args,
+   // lld is built at the same revision as clang and statically links in
+   // LLVM libraries, so it doesn't need libLTO.dylib.
+   if (Version >= VersionTuple(133) && !LinkerIsLLD) {
+-    // Search for libLTO in <InstalledDir>/../lib/libLTO.dylib
+-    StringRef P = llvm::sys::path::parent_path(D.Dir);
+-    SmallString<128> LibLTOPath(P);
++    // Search for libLTO in <InstalledDir>/lib/clang/<major>/lib/libLTO.dylib
++    SmallString<128> LibLTOPath(D.ResourceDir);
+     llvm::sys::path::append(LibLTOPath, "lib");
+     llvm::sys::path::append(LibLTOPath, "libLTO.dylib");
+     CmdArgs.push_back("-lto_library");
