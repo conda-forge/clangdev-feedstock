@@ -1,13 +1,13 @@
 c_stdlib:
 - vs
 channel_sources:
-- conda-forge/label/llvm_rc,conda-forge
+- conda-forge
 channel_targets:
-- conda-forge llvm_rc
+- conda-forge main
 cxx_compiler:
 - vs2022
-libclang_soversion:
-- '13'
+github_actions_labels:
+- namespace-profile-8cpu-on-win-64
 libxml2_devel:
 - '2.14'
 python_min:
