@@ -1,4 +1,4 @@
-From bc3fc62c44e5adce528a9012396c26f2208ed602 Mon Sep 17 00:00:00 2001
+From ada86aa962b15a762463a04b1873395a4905c442 Mon Sep 17 00:00:00 2001
 From: Isuru Fernando <isuruf@gmail.com>
 Date: Fri, 18 Oct 2024 10:28:09 -0400
 Subject: [PATCH 8/9] Add conda mingw paths

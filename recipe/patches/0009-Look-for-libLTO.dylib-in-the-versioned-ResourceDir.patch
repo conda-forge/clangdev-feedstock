@@ -1,4 +1,4 @@
-From 95e5d3585506eb5e1f445585a30add78aecbf24e Mon Sep 17 00:00:00 2001
+From 70400a2082370b766afe8b405ec13b2dfee20bfa Mon Sep 17 00:00:00 2001
 From: Isuru Fernando <isuruf@gmail.com>
 Date: Tue, 10 Mar 2026 10:03:35 -0700
 Subject: [PATCH 9/9] Look for libLTO.dylib in the versioned ResourceDir
