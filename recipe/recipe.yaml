@@ -686,9 +686,12 @@ outputs:
     tests:
       - requirements:
           run:
-            - ${{ compiler("cxx") }}
             - if: win
-              then: gxx_impl_${{ target_platform }}
+              then:
+                # on windows, we need the compiler activation to find the C++ stdlib
+                - ${{ compiler("cxx") }}
+                # for testing mingw target
+                - gxx_impl_${{ target_platform }}
         files:
           recipe:
             - mytest.cxx
