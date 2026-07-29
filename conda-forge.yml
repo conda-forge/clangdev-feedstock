@@ -1,21 +1,25 @@
-azure:
-  settings_win:
-    variables:
-      SET_PAGEFILE: 'True'
 bot:
   abi_migration_branches:
+  - 21.x
   - 20.x
   - 19.x
 build_platform:
-  linux_aarch64: linux_64
   linux_ppc64le: linux_64
-  osx_arm64: osx_64
+  win_arm64: win_64
 conda_build:
   pkg_format: '2'
+conda_build_tool: rattler-build
 conda_forge_output_validation: true
+conda_install_tool: pixi
 github:
   branch_name: main
   tooling_branch_name: main
 provider:
-  win: azure
+  linux_aarch64: default
+  osx_arm64: default
+  win_64: github_actions
 test: native_and_emulated
+workflow_settings:
+  free_disk_space:
+    - value: quick
+      os: linux
