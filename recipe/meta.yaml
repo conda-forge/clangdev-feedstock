@@ -430,6 +430,9 @@ outputs:
     requirements:
       run:
         - clang {{ version }} {{ variant }}_nocfg_*_{{ build_number }}
+    test:
+      commands:
+        - echo "pure metapackage"
 
   - name: clangxx_impl_{{ target_platform }}
     files:
