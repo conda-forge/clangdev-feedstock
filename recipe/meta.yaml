@@ -312,6 +312,9 @@ outputs:
         - test ! -f $PREFIX/lib/libclang-cpp.so                 # [linux]
         - test ! -f $PREFIX/lib/libclang-cpp.dylib              # [osx]
 
+        # presence of symlink to libLTO in clang's resource directory
+        - test -f $PREFIX/lib/clang/{{ major_version }}/lib/libLTO.dylib    # [osx]
+
         # headers
         - test -f $PREFIX/lib/clang/{{ major_version }}/include/stdatomic.h                 # [unix]
         - test -f $PREFIX/lib/clang/{{ major_version }}/include/omp.h                       # [unix]
