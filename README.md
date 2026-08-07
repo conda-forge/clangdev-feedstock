@@ -99,31 +99,73 @@ conda config --add channels conda-forge
 conda config --set channel_priority strict
 ```
 
-Once the `conda-forge` channel has been enabled, `clang, clang-22, clang-format, clang-format-22, clang-no-conda-cfg, clang-scan-deps, clang-tools, clang_impl_linux-64, clang_impl_linux-aarch64, clang_impl_linux-ppc64le, clang_impl_osx-64, clang_impl_osx-arm64, clangdev, clangxx, clangxx_impl_linux-64, clangxx_impl_linux-aarch64, clangxx_impl_linux-ppc64le, clangxx_impl_osx-64, clangxx_impl_osx-arm64, libclang, libclang-cpp, libclang-cpp22.1, libclang13, python-clang` can be installed with `conda`:
+How to use
+----------
+
+<details>
+<summary>With conda</summary>
 
 ```
 conda install clang clang-22 clang-format clang-format-22 clang-no-conda-cfg clang-scan-deps clang-tools clang_impl_linux-64 clang_impl_linux-aarch64 clang_impl_linux-ppc64le clang_impl_osx-64 clang_impl_osx-arm64 clangdev clangxx clangxx_impl_linux-64 clangxx_impl_linux-aarch64 clangxx_impl_linux-ppc64le clangxx_impl_osx-64 clangxx_impl_osx-arm64 libclang libclang-cpp libclang-cpp22.1 libclang13 python-clang
 ```
 
-or with `mamba`:
+</details>
+
+<details>
+<summary>With mamba</summary>
 
 ```
 mamba install clang clang-22 clang-format clang-format-22 clang-no-conda-cfg clang-scan-deps clang-tools clang_impl_linux-64 clang_impl_linux-aarch64 clang_impl_linux-ppc64le clang_impl_osx-64 clang_impl_osx-arm64 clangdev clangxx clangxx_impl_linux-64 clangxx_impl_linux-aarch64 clangxx_impl_linux-ppc64le clangxx_impl_osx-64 clangxx_impl_osx-arm64 libclang libclang-cpp libclang-cpp22.1 libclang13 python-clang
 ```
 
-It is possible to list all of the versions of `clang` available on your platform with `conda`:
+</details>
+
+<details>
+<summary>With pixi</summary>
+
+```
+# for adding to your local project
+pixi add clang clang-22 clang-format clang-format-22 clang-no-conda-cfg clang-scan-deps clang-tools clang_impl_linux-64 clang_impl_linux-aarch64 clang_impl_linux-ppc64le clang_impl_osx-64 clang_impl_osx-arm64 clangdev clangxx clangxx_impl_linux-64 clangxx_impl_linux-aarch64 clangxx_impl_linux-ppc64le clangxx_impl_osx-64 clangxx_impl_osx-arm64 libclang libclang-cpp libclang-cpp22.1 libclang13 python-clang
+# for installing globally
+pixi global install clang clang-22 clang-format clang-format-22 clang-no-conda-cfg clang-scan-deps clang-tools clang_impl_linux-64 clang_impl_linux-aarch64 clang_impl_linux-ppc64le clang_impl_osx-64 clang_impl_osx-arm64 clangdev clangxx clangxx_impl_linux-64 clangxx_impl_linux-aarch64 clangxx_impl_linux-ppc64le clangxx_impl_osx-64 clangxx_impl_osx-arm64 libclang libclang-cpp libclang-cpp22.1 libclang13 python-clang
+```
+
+</details>
+
+Search package versions
+-----------------------
+
+It is possible to list all of the versions of `clang` available on your platform:
+
+<details>
+<summary>With conda</summary>
 
 ```
 conda search clang --channel conda-forge
 ```
 
-or with `mamba`:
+</details>
+
+<details>
+<summary>With mamba</summary>
 
 ```
 mamba search clang --channel conda-forge
 ```
 
-Alternatively, `mamba repoquery` may provide more information:
+</details>
+
+<details>
+<summary>With pixi</summary>
+
+```
+pixi search clang --channel conda-forge
+```
+
+</details>
+
+<details>
+<summary>With mamba repoquery, which may provide more information</summary>
 
 ```
 # Search all versions available on your platform:
@@ -135,6 +177,8 @@ mamba repoquery whoneeds clang --channel conda-forge
 # List dependencies of `clang`:
 mamba repoquery depends clang --channel conda-forge
 ```
+
+</details>
 
 
 About conda-forge
