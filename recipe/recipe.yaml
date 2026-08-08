@@ -1,6 +1,6 @@
 context:
   version: "22.1.8"
-  build_number: 4
+  build_number: 5
   # derived quanities
   major_version: "${{ (version | split('.'))[0] }}"
   # tail is not necessarily equal to patch version; e.g. 23.1.0.rc1
@@ -411,6 +411,8 @@ outputs:
                 else:
                   - Library/lib/clang/${{ major_version }}/include/stdatomic.h
                   - Library/lib/clang/${{ major_version }}/include/omp.h
+              - if: osx
+                then: lib/clang/${{ major_version }}/lib/libLTO.dylib
             not_exists:
               # absence of unversioned libraries (should only be in `libclang-cpp`)
               - if: linux
