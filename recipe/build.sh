@@ -72,3 +72,98 @@ cmake \
   ..
 
 make -j${CPU_COUNT}
+make install
+
+MAJOR_VERSION=$(echo ${PKG_VERSION} | cut -f1 -d".")
+for f in ${PREFIX}/bin/clang-*; do
+  if [[ "$(basename $f)" == "clang-${MAJOR_VERSION}" ]]; then
+    # installation also creates a versioned clang, no need to re-version it
+    continue
+  fi
+  rm -f ${PREFIX}/bin/$(basename $f)-${MAJOR_VERSION}
+  mv $f ${PREFIX}/bin/$(basename $f)-${MAJOR_VERSION};
+  ln -s ${PREFIX}/bin/$(basename $f)-${MAJOR_VERSION} $f;
+done
+
+rm ${PREFIX}/bin/clang++
+rm ${PREFIX}/bin/clang
+rm ${PREFIX}/bin/clang-cpp
+rm ${PREFIX}/bin/clang-cl
+
+ln -sf ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/cc
+ln -sf ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/c++
+ln -sf ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/cpp
+ln -sf ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/clang
+ln -sf ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/clang++
+ln -sf ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/clang-cl
+ln -sf ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/clang-cpp
+ln -sf ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/clang++-${MAJOR_VERSION}
+ln -sf ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/clang-cl-${MAJOR_VERSION}
+ln -sf ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/clang-cpp-${MAJOR_VERSION}
+ln -sf ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/${TARGET}-clang++
+ln -sf ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/${TARGET}-clang
+ln -sf ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/${TARGET}-clang-cpp
+
+RESOURCE_DIR=${PREFIX}/lib/clang/${MAJOR_VERSION}
+if [[ ! -d ${RESOURCE_DIR}/include ]]; then
+  echo "${RESOURCE_DIR}/include not found"
+  exit 1
+fi
+# Make sure omp.h from conda environment is found by clang
+ln -sf $PREFIX/include/omp.h ${RESOURCE_DIR}/include/
+
+# Create a link from versioned <PREFIX>/lib/libLTO.22.dylib (which
+# is present in libllvm<major> that libclang<sover> depends on) to a
+# versioned directory as the unversioned symlink <PREFIX>/lib/libLTO.dylib
+# is only present in llvmdev, which may not be present when using clang.
+# the patch 0010-Look-for-libLTO.dylib-in-the-versioned-ResourceDir.patch
+# changes the diretory clang looks for it.
+#
+# We previously patched clang to use libLTO.22.dylib, and ld64 to
+# accept a LTO library named libLTO.22.dylib, but sometimes clang uses the
+# system linker when a different target tuple is given and the system
+# linker rejects any library not named libLTO.dylib
+#
+# TODO: fix clang to use the correct linker regardless of the target
+# tuple
+#
+# TODO: figure out what happens with LTO on Linux targetting Darwin
+# It seems like this is not supported upstream.
+
+if [[ "$target_platform" == "osx-"* ]]; then
+  mkdir -p "${RESOURCE_DIR}/lib"
+  IFS='.' read -r -a PKG_VER_ARRAY <<< "${PKG_VERSION}"
+  # default SOVER for tagged releases is major.minor since LLVM 18
+  SOVER_EXT="${PKG_VER_ARRAY[0]}.${PKG_VER_ARRAY[1]}"
+  if [[ "${PKG_VERSION}" == *dev* ]]; then
+      # otherwise with git suffix
+      SOVER_EXT="${SOVER_EXT}git"
+  fi
+  ln -s "${PREFIX}/lib/libLTO.${SOVER_EXT}.dylib" "${RESOURCE_DIR}/lib/libLTO.dylib"
+fi
+
+if [[ "$target_platform" == "$build_platform" ]]; then
+  RESOURCE_DIR_REF=$(${PREFIX}/bin/clang-${MAJOR_VERSION} -print-resource-dir)
+  if [[ "${RESOURCE_DIR_REF}" != ${RESOURCE_DIR_REF} ]]; then
+    echo "resource dir ${RESOURCE_DIR_REF} does not match expected ${RESOURCE_DIR}"
+    exit 1
+  fi
+fi
+
+# cfg files
+for driver in clang clang++ clang-cpp; do
+  echo '-isystem <CFGDIR>/../include'                    > ${PREFIX}/bin/${TARGET_NO_VER}-${driver}.cfg
+done
+# technically the flang cfg files should be in flang, but it's easier to consolidate them here.
+for driver in clang clang++ flang; do
+  echo '$-Wl,-L,<CFGDIR>/../lib'                        >> ${PREFIX}/bin/${TARGET_NO_VER}-${driver}.cfg
+  echo '$-Wl,-rpath,<CFGDIR>/../lib'                    >> ${PREFIX}/bin/${TARGET_NO_VER}-${driver}.cfg
+  if [[ "${target_platform}" == "linux-"* ]]; then
+    echo '$-Wl,-rpath-link,<CFGDIR>/../lib'             >> ${PREFIX}/bin/${TARGET_NO_VER}-${driver}.cfg
+  fi
+done
+if [[ "${target_platform}" == "linux-"* ]]; then
+  for driver in clang clang++ flang clang-cpp; do
+    echo "--sysroot=<CFGDIR>/../${TARGET}/sysroot"      >> ${PREFIX}/bin/${TARGET_NO_VER}-${driver}.cfg
+  done
+fi

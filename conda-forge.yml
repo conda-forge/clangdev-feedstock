@@ -1,9 +1,3 @@
-azure:
-  settings_win:
-    variables:
-      CONDA_BLD_PATH: C:\\bld\\
-      MINIFORGE_HOME: C:\Miniforge
-      SET_PAGEFILE: 'True'
 bot:
   abi_migration_branches:
   - 20.x
@@ -19,5 +13,5 @@ github:
   branch_name: main
   tooling_branch_name: main
 provider:
-  win: azure
+  win_64: github_actions
 test: native_and_emulated
