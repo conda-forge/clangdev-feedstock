@@ -1,6 +1,6 @@
 context:
   version: "22.1.8"
-  build_number: 5
+  build_number: 6
   # derived quanities
   major_version: "${{ (version | split('.'))[0] }}"
   # tail is not necessarily equal to patch version; e.g. 23.1.0.rc1
@@ -936,6 +936,9 @@ outputs:
       string: h${{ hash }}_${{ build_number }}
       script:
         file: build_python_bindings
+      files:
+        # see https://github.com/prefix-dev/rattler-build/issues/2730
+        - site-packages/clang/*
     requirements:
       host:
         - python ${{ python_min }}.*
@@ -943,6 +946,11 @@ outputs:
         - python >=${{ python_min }}
         - libclang ==${{ version }}
     tests:
+      - package_contents:
+          strict: true
+          files:
+            - site-packages/clang/__init__.py
+            - site-packages/clang/cindex.py
       - python:
           imports:
             - clang
