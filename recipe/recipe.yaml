@@ -938,7 +938,7 @@ outputs:
         file: build_python_bindings
       files:
         # see https://github.com/prefix-dev/rattler-build/issues/2730
-        - site-packages/clang/*
+        - lib/python${{ python_min }}/site-packages/clang
     requirements:
       host:
         - python ${{ python_min }}.*
@@ -951,6 +951,7 @@ outputs:
           files:
             - site-packages/clang/__init__.py
             - site-packages/clang/cindex.py
+            - etc/conda/test-files/python-clang/*
       - python:
           imports:
             - clang
