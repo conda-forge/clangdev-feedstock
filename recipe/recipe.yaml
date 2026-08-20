@@ -1,6 +1,6 @@
 context:
   version: "22.1.8"
-  build_number: 6
+  build_number: 7
   # derived quanities
   major_version: "${{ (version | split('.'))[0] }}"
   # tail is not necessarily equal to patch version; e.g. 23.1.0.rc1
@@ -589,7 +589,8 @@ outputs:
 
   - package:
       name: clang-no-conda-cfg
-    inherit: clangdev-stage
+    # don't inherit due to https://github.com/prefix-dev/rattler-build/issues/2753
+    # inherit: clangdev-stage
     build:
       skip: with_cfg
       string: ${{ variant }}_h${{ hash }}_${{ build_number }}
@@ -600,8 +601,10 @@ outputs:
       run:
         - clang ==${{ version }} ${{ variant }}_nocfg_*_${{ build_number }}
     tests:
-      - script:
-          - echo "pure metapackage"
+      # pure metapackage -- should be empty!
+      - package_contents:
+          strict: true
+          files: []
 
   - package:
       name: clangxx_impl_${{ target_platform }}
