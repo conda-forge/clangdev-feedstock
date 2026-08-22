@@ -401,7 +401,6 @@ outputs:
       build:                        # [win]
         - {{ stdlib('c') }}         # [win]
         - {{ compiler('cxx') }}     # [win]
-      # for run-exports on win. This is just a symlink on unix
       host:                         # [win]
         - zlib                      # [win]
         - zstd                      # [win]
@@ -492,7 +491,6 @@ outputs:
       build:                        # [win]
         - {{ stdlib('c') }}         # [win]
         - {{ compiler('cxx') }}     # [win]
-      # for run-exports on win. This is just a symlink on unix
       host:                         # [win]
         - zlib                      # [win]
         - zstd                      # [win]
@@ -564,7 +562,6 @@ outputs:
       build:                        # [win]
         - {{ stdlib('c') }}         # [win]
         - {{ compiler('cxx') }}     # [win]
-      # for run-exports on win. This is just a symlink on unix
       host:                         # [win]
       run:
         - {{ pin_subpackage("libclang-cpp" ~ maj_min, max_pin="x.x") }}          # [unix]
