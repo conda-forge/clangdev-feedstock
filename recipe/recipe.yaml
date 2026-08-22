@@ -450,6 +450,8 @@ outputs:
             then: test -f $PREFIX/lib/clang/${{ major_version }}/lib/linux/clang_rt.crtend-aarch64.o
           - if: linux and ppc64le
             then: test -f $PREFIX/lib/clang/${{ major_version }}/lib/linux/clang_rt.crtend-powerpc64le.o
+          - if: linux and riscv64
+            then: test -f $PREFIX/lib/clang/${{ major_version }}/lib/linux/clang_rt.crtend-riscv64.o
           - if: osx
             then: test -f $PREFIX/lib/clang/${{ major_version }}/lib/darwin/libclang_rt.osx.a
           - if: win
@@ -496,6 +498,10 @@ outputs:
             then:
               - powerpc64le-conda-linux-gnu-clang --version
               - powerpc64le-conda-linux-gnu-clang-cpp --version
+          - if: linux and riscv64
+            then:
+              - riscv64-conda-linux-gnu-clang --version
+              - riscv64-conda-linux-gnu-clang-cpp --version
           - if: osx and x86_64
             then:
               - x86_64-apple-darwin13.4.0-clang --version
@@ -636,6 +642,8 @@ outputs:
             then: aarch64-conda-linux-gnu-clang++ --version
           - if: linux and ppc64le
             then: powerpc64le-conda-linux-gnu-clang++ --version
+          - if: linux and riscv64
+            then: riscv64-conda-linux-gnu-clang++ --version
           - if: osx and x86_64
             then: x86_64-apple-darwin13.4.0-clang++ --version
           - if: osx and arm64
@@ -801,6 +809,8 @@ outputs:
           then: bin/aarch64-conda-linux-gnu-clang-scan-deps
         - if: linux and ppc64le
           then: bin/powerpc64le-conda-linux-gnu-clang-scan-deps
+        - if: linux and riscv64
+          then: bin/riscv64-conda-linux-gnu-clang-scan-deps
         - if: osx and x86_64
           then: bin/x86_64-apple-darwin13.4.0-clang-scan-deps
         - if: osx and arm64
@@ -831,6 +841,8 @@ outputs:
             then: aarch64-conda-linux-gnu-clang-scan-deps --version
           - if: linux and ppc64le
             then: powerpc64le-conda-linux-gnu-clang-scan-deps --version
+          - if: linux and riscv64
+            then: riscv64-conda-linux-gnu-clang-scan-deps --version
           - if: osx and x86_64
             then: x86_64-apple-darwin13.4.0-clang-scan-deps --version
           - if: osx and arm64
