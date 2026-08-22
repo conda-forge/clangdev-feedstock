@@ -356,12 +356,16 @@ outputs:
         - ld64_{{ target_platform }} * llvm{{ maj_min.replace(".", "_") }}_*    # [osx]
     test:
       commands:
-        - x86_64-conda-linux-gnu-clang --version         # [linux64]
-        - x86_64-conda-linux-gnu-clang-cpp --version     # [linux64]
-        - powerpc64le-conda-linux-gnu-clang --version    # [linux and ppc64le]
-        - powerpc64le-conda-linux-gnu-clang-cpp --version  # [linux and ppc64le]
-        - x86_64-apple-darwin13.4.0-clang --version      # [osx and x86_64]
-        - x86_64-apple-darwin13.4.0-clang-cpp --version  # [osx and x86_64]
+        - x86_64-conda-linux-gnu-clang --version            # [linux and x86_64]
+        - x86_64-conda-linux-gnu-clang-cpp --version        # [linux and x86_64]
+        - aarch64-conda-linux-gnu-clang --version           # [linux and aarch64]
+        - aarch64-conda-linux-gnu-clang-cpp --version       # [linux and aarch64]
+        - powerpc64le-conda-linux-gnu-clang --version       # [linux and ppc64le]
+        - powerpc64le-conda-linux-gnu-clang-cpp --version   # [linux and ppc64le]
+        - x86_64-apple-darwin13.4.0-clang --version         # [osx and x86_64]
+        - x86_64-apple-darwin13.4.0-clang-cpp --version     # [osx and x86_64]
+        - arm64-apple-darwin20.0.0-clang --version          # [osx and arm64]
+        - arm64-apple-darwin20.0.0-clang-cpp --version      # [osx and arm64]
 
   - name: clang
     files:
