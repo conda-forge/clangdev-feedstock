@@ -103,6 +103,7 @@ ln -sf ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/clang-cpp-${MAJOR_VERS
 ln -sf ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/${TARGET}-clang++
 ln -sf ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/${TARGET}-clang
 ln -sf ${PREFIX}/bin/clang-${MAJOR_VERSION} ${PREFIX}/bin/${TARGET}-clang-cpp
+ln -sf ${PREFIX}/bin/clang-scan-deps-${MAJOR_VERSION} ${PREFIX}/bin/${TARGET}-clang-scan-deps
 
 RESOURCE_DIR=${PREFIX}/lib/clang/${MAJOR_VERSION}
 if [[ ! -d ${RESOURCE_DIR}/include ]]; then
