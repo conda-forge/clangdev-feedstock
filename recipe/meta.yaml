@@ -52,6 +52,7 @@ requirements:
     - make   # [unix]
     # "compiling .pyc files" fails without this
     - python >3
+    - create-forwarder-dll      # [win]
     - llvmdev {{ version }}     # [build_platform != target_platform]
     - libxml2-devel             # [build_platform != target_platform]
     - zlib                      # [build_platform != target_platform]
@@ -248,6 +249,7 @@ outputs:
 
   - name: libclang
     files:
+      - Library/bin/libclang.dll  # [win]
       - Library/lib/libclang.lib  # [win]
       - lib/libclang.so           # [linux]
       - lib/libclang.dylib        # [osx]
