@@ -47,15 +47,20 @@ if %ERRORLEVEL% neq 0 exit 1
 ninja install
 if %ERRORLEVEL% neq 0 exit 1
 
-for /f "tokens=1 delims=." %%a in ("%PKG_VERSION%") do (
-  copy "%LIBRARY_BIN%\\clang.exe" "%LIBRARY_BIN%\\clang-%%a.exe"
-  copy "%LIBRARY_BIN%\\clang.exe" "%LIBRARY_BIN%\\clang++-%%a.exe"
-)
-
 setlocal enabledelayedexpansion
 for /f "tokens=1 delims=." %%a in ("%PKG_VERSION%") do (
   set "MAJOR_VERSION=%%a"
 )
+
+:: create versioned copies of clang/clang++
+copy "%LIBRARY_BIN%\clang.exe" "%LIBRARY_BIN%\clang-!MAJOR_VERSION!.exe"
+copy "%LIBRARY_BIN%\clang.exe" "%LIBRARY_BIN%\clang++-!MAJOR_VERSION!.exe"
+
+if not exist %LIBRARY_BIN%\\libclang-13.dll exit 1
+REM create a libclang.dll that forwards to libclang-13.dll
+create-forwarder-dll %LIBRARY_BIN%\\libclang-13.dll %LIBRARY_BIN%\\libclang.dll --no-temp-dir
+if %ERRORLEVEL% neq 0 exit 1
+
 FOR /F "tokens=* USEBACKQ" %%F IN (`%LIBRARY_PREFIX%\bin\clang.exe -print-resource-dir`) DO (
   set "RESOURCE_DIR=%%F"
 )

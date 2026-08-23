@@ -1,7 +1,7 @@
 {% set version = "21.1.8" %}
 {% set major_version = version.split(".")[0] %}
 {% set tail_version = version.split(".")[-1] %}
-{% set build_number = 5 %}
+{% set build_number = 6 %}
 
 # always includes minor as of v18, see https://github.com/llvm/llvm-project/issues/76273
 {% set maj_min = major_version ~ "." ~ version.split(".")[1] %}
@@ -52,6 +52,7 @@ requirements:
     - make   # [unix]
     # "compiling .pyc files" fails without this
     - python >3
+    - create-forwarder-dll      # [win]
     - llvmdev {{ version }}     # [build_platform != target_platform]
     - libxml2-devel             # [build_platform != target_platform]
     - zlib                      # [build_platform != target_platform]
@@ -248,6 +249,7 @@ outputs:
 
   - name: libclang
     files:
+      - Library/bin/libclang.dll  # [win]
       - Library/lib/libclang.lib  # [win]
       - lib/libclang.so           # [linux]
       - lib/libclang.dylib        # [osx]
@@ -356,12 +358,18 @@ outputs:
         - ld64_{{ target_platform }} * llvm{{ maj_min.replace(".", "_") }}_*    # [osx]
     test:
       commands:
-        - x86_64-conda-linux-gnu-clang --version         # [linux64]
-        - x86_64-conda-linux-gnu-clang-cpp --version     # [linux64]
-        - powerpc64le-conda-linux-gnu-clang --version    # [linux and ppc64le]
-        - powerpc64le-conda-linux-gnu-clang-cpp --version  # [linux and ppc64le]
-        - x86_64-apple-darwin13.4.0-clang --version      # [osx and x86_64]
-        - x86_64-apple-darwin13.4.0-clang-cpp --version  # [osx and x86_64]
+        - x86_64-conda-linux-gnu-clang --version            # [linux and x86_64]
+        - x86_64-conda-linux-gnu-clang-cpp --version        # [linux and x86_64]
+        - aarch64-conda-linux-gnu-clang --version           # [linux and aarch64]
+        - aarch64-conda-linux-gnu-clang-cpp --version       # [linux and aarch64]
+        - powerpc64le-conda-linux-gnu-clang --version       # [linux and ppc64le]
+        - powerpc64le-conda-linux-gnu-clang-cpp --version   # [linux and ppc64le]
+        - riscv64-conda-linux-gnu-clang --version           # [linux and riscv64]
+        - riscv64-conda-linux-gnu-clang-cpp --version       # [linux and riscv64]
+        - x86_64-apple-darwin13.4.0-clang --version         # [osx and x86_64]
+        - x86_64-apple-darwin13.4.0-clang-cpp --version     # [osx and x86_64]
+        - arm64-apple-darwin20.0.0-clang --version          # [osx and arm64]
+        - arm64-apple-darwin20.0.0-clang-cpp --version      # [osx and arm64]
 
   - name: clang
     files:
@@ -393,7 +401,6 @@ outputs:
       build:                        # [win]
         - {{ stdlib('c') }}         # [win]
         - {{ compiler('cxx') }}     # [win]
-      # for run-exports on win. This is just a symlink on unix
       host:                         # [win]
         - zlib                      # [win]
         - zstd                      # [win]
@@ -420,6 +427,7 @@ outputs:
         - test -f $PREFIX/lib/clang/{{ major_version }}/lib/linux/clang_rt.crtend-x86_64.o       # [linux and x86_64]
         - test -f $PREFIX/lib/clang/{{ major_version }}/lib/linux/clang_rt.crtend-aarch64.o      # [linux and aarch64]
         - test -f $PREFIX/lib/clang/{{ major_version }}/lib/linux/clang_rt.crtend-powerpc64le.o  # [linux and ppc64le]
+        - test -f $PREFIX/lib/clang/{{ major_version }}/lib/linux/clang_rt.crtend-riscv64.o      # [linux and riscv64]
         - test -f $PREFIX/lib/clang/{{ major_version }}/lib/darwin/libclang_rt.osx.a             # [osx]
         - if not exist %LIBRARY_LIB%\clang\{{ major_version }}\lib\windows\clang_rt.builtins-x86_64.lib exit 1  # [win and x64_64]
 
@@ -451,14 +459,18 @@ outputs:
         - clang-{{ major_version }} {{ version }}.* {{ variant }}_*     # [osx]
         - {{ pin_subpackage("clang-" ~ major_version, exact=True) }}    # [not osx]
         - {{ pin_subpackage("clang_impl_" ~ target_platform, exact=True) }}
+        - {{ pin_subpackage("clang-scan-deps", exact=True) }}
         - libstdcxx-devel_{{ target_platform }}  # [linux]
         # only minor-pin to avoid issues when building new libcxx versions
         - libcxx-devel {{ maj_min }}             # [osx]
     test:
       commands:
-        - x86_64-conda-linux-gnu-clang++ --version         # [linux64]
-        - powerpc64le-conda-linux-gnu-clang++ --version    # [linux and ppc64le]
-        - x86_64-apple-darwin13.4.0-clang++ --version      # [osx and x86_64]
+        - x86_64-conda-linux-gnu-clang++ --version          # [linux and x86_64]
+        - aarch64-conda-linux-gnu-clang++ --version         # [linux and aarch64]
+        - powerpc64le-conda-linux-gnu-clang++ --version     # [linux and ppc64le]
+        - riscv64-conda-linux-gnu-clang++ --version         # [linux and riscv64]
+        - x86_64-apple-darwin13.4.0-clang++ --version       # [osx and x86_64]
+        - arm64-apple-darwin20.0.0-clang++ --version        # [osx and arm64]
 
   - name: clangxx
     files:
@@ -479,7 +491,6 @@ outputs:
       build:                        # [win]
         - {{ stdlib('c') }}         # [win]
         - {{ compiler('cxx') }}     # [win]
-      # for run-exports on win. This is just a symlink on unix
       host:                         # [win]
         - zlib                      # [win]
         - zstd                      # [win]
@@ -551,7 +562,6 @@ outputs:
       build:                        # [win]
         - {{ stdlib('c') }}         # [win]
         - {{ compiler('cxx') }}     # [win]
-      # for run-exports on win. This is just a symlink on unix
       host:                         # [win]
       run:
         - {{ pin_subpackage("libclang-cpp" ~ maj_min, max_pin="x.x") }}          # [unix]
@@ -563,6 +573,45 @@ outputs:
         - clang-format --version
         - test ! -f ${PREFIX}/bin/c-index-test                   # [unix]
         - if exist %LIBRARY_BIN%\c-index-test.exe exit 1         # [win]
+
+  - name: clang-scan-deps
+    files:
+      - bin/clang-scan-deps
+      - bin/clang-scan-deps-{{ major_version }}
+      - bin/x86_64-conda-linux-gnu-clang-scan-deps          # [linux and x86_64]
+      - bin/aarch64-conda-linux-gnu-clang-scan-deps         # [linux and aarch64]
+      - bin/powerpc64le-conda-linux-gnu-clang-scan-deps     # [linux and ppc64le]
+      - bin/riscv64-conda-linux-gnu-clang-scan-deps         # [linux and riscv64]
+      - bin/x86_64-apple-darwin13.4.0-clang-scan-deps       # [osx and x86_64]
+      - bin/arm64-apple-darwin20.0.0-clang-scan-deps        # [osx and arm64]
+    build:
+      skip: true  # [win]
+      track_features:
+        - root         # [variant and variant.startswith("root_")]
+      string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
+    requirements:
+      build:
+        - {{ stdlib('c') }}
+        - {{ compiler('cxx') }}
+      host:
+        - {{ pin_subpackage("libclang", exact=True) }}
+        - {{ pin_subpackage("libclang-cpp", exact=True) }}
+        - llvm {{ version }}
+      run:
+        - {{ pin_subpackage("libclang" ~ libclang_soversion, max_pin=None) }}
+        - {{ pin_subpackage("libclang-cpp" ~ maj_min, max_pin="x.x") }}
+        # we need to do this manually because clang_bootstrap has no run-export
+        - libcxx >={{ version }}    # [osx]
+    test:
+      commands:
+        - clang-scan-deps --version
+        - clang-scan-deps-{{ major_version }} --version
+        - x86_64-conda-linux-gnu-clang-scan-deps --version          # [linux and x86_64]
+        - aarch64-conda-linux-gnu-clang-scan-deps --version         # [linux and aarch64]
+        - powerpc64le-conda-linux-gnu-clang-scan-deps --version     # [linux and ppc64le]
+        - riscv64-conda-linux-gnu-clang-scan-deps --version         # [linux and riscv64]
+        - x86_64-apple-darwin13.4.0-clang-scan-deps --version       # [osx and x86_64]
+        - arm64-apple-darwin20.0.0-clang-scan-deps --version        # [osx and arm64]
 
   - name: clang-tools
     files:
@@ -629,6 +678,7 @@ outputs:
       run:
         - ucrt                                          # [win]
         - {{ pin_subpackage("clang-format", exact=True) }}
+        - {{ pin_subpackage("clang-scan-deps", exact=True) }}  # [unix]
         - {{ pin_subpackage("libclang" ~ libclang_soversion, max_pin=None) }}
         - {{ pin_subpackage("libclang-cpp" ~ maj_min, max_pin="x.x") }}   # [unix]
         # we need to do this manually because clang_bootstrap has no run-export
@@ -639,6 +689,8 @@ outputs:
       commands:
         - clang-check --version
         - clang-tidy --version
+        # absence of "doubly versioned" binaries
+        - test -z "$(find "${PREFIX}/bin" -name '*-{{ major_version }}-{{ major_version }}' -print)"    # [unix]
 
   - name: python-clang
     build:
