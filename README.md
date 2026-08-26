@@ -94,10 +94,10 @@ Current release info
 Installing clangdev
 ===================
 
-Installing `clangdev` from the `conda-forge/label/llvm_rc` channel can be achieved by adding `conda-forge/label/llvm_rc` to your channels with:
+Installing `clangdev` from the `conda-forge` channel can be achieved by adding `conda-forge` to your channels with:
 
 ```
-conda config --add channels conda-forge/label/llvm_rc
+conda config --add channels conda-forge
 conda config --set channel_priority strict
 ```
 
@@ -143,7 +143,7 @@ It is possible to list all of the versions of `clang` available on your platform
 <summary>With conda</summary>
 
 ```
-conda search clang --channel conda-forge/label/llvm_rc
+conda search clang --channel conda-forge
 ```
 
 </details>
@@ -152,7 +152,7 @@ conda search clang --channel conda-forge/label/llvm_rc
 <summary>With mamba</summary>
 
 ```
-mamba search clang --channel conda-forge/label/llvm_rc
+mamba search clang --channel conda-forge
 ```
 
 </details>
@@ -161,7 +161,7 @@ mamba search clang --channel conda-forge/label/llvm_rc
 <summary>With pixi</summary>
 
 ```
-pixi search clang --channel conda-forge/label/llvm_rc
+pixi search clang --channel conda-forge
 ```
 
 </details>
@@ -171,13 +171,13 @@ pixi search clang --channel conda-forge/label/llvm_rc
 
 ```
 # Search all versions available on your platform:
-mamba repoquery search clang --channel conda-forge/label/llvm_rc
+mamba repoquery search clang --channel conda-forge
 
 # List packages depending on `clang`:
-mamba repoquery whoneeds clang --channel conda-forge/label/llvm_rc
+mamba repoquery whoneeds clang --channel conda-forge
 
 # List dependencies of `clang`:
-mamba repoquery depends clang --channel conda-forge/label/llvm_rc
+mamba repoquery depends clang --channel conda-forge
 ```
 
 </details>
