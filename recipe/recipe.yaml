@@ -1,6 +1,6 @@
 context:
-  version: "22.1.8"
-  build_number: 9
+  version: "23.1.0.rc3"
+  build_number: 0
   # derived quanities
   major_version: "${{ (version | split('.'))[0] }}"
   # tail is not necessarily equal to patch version; e.g. 23.1.0.rc1
@@ -21,18 +21,17 @@ recipe:
 
 source:
   - url: https://github.com/llvm/llvm-project/archive/refs/tags/llvmorg-${{ version|replace(".rc", "-rc") }}.tar.gz
-    sha256: ad18b70e287954c3d62bc7e0b86e7b7af2adf87bcfce21c15fe717f101d7aace
+    sha256: b5fc14bcddd06013688a1f537a75cd4087042c94d82c3c562221b57ce526ca62
     patches:
       - patches/0001-Find-conda-gcc-installation.patch
       - patches/0002-Fix-sysroot-detection-for-linux.patch
       - patches/0003-clang-add-conda-specific-env-var-CONDA_BUILD_SYSROOT.patch
       - patches/0004-Fix-normalizeProgramName-s-handling-of-dots-outside-.patch
-      - patches/0005-Set-VERSION-in-osx-as-well.patch
-      - patches/0006-set-libclang-SOVERSION-unconditionally.patch
-      - patches/0007-Make-PIE-default-on-macOS-too.patch
-      - patches/0008-Find-ROCm-device-library-in-conda-layout.patch
-      - patches/0009-Add-conda-mingw-paths.patch
-      - patches/0010-Look-for-libLTO.dylib-in-the-versioned-ResourceDir.patch
+      - patches/0005-set-libclang-SOVERSION-unconditionally.patch
+      - patches/0006-Make-PIE-default-on-macOS-too.patch
+      - patches/0007-Find-ROCm-device-library-in-conda-layout.patch
+      - patches/0008-Add-conda-mingw-paths.patch
+      - patches/0009-Look-for-libLTO.dylib-in-the-versioned-ResourceDir.patch
     filter:
       # we don't want to accidentally build more than clang here
       - cmake/*

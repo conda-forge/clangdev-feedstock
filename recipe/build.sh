@@ -20,7 +20,7 @@ fi
 
 if [[ "$target_platform" == osx* ]]; then
   export CXXFLAGS="$CXXFLAGS -DTARGET_OS_OSX=1"
-  CMAKE_ARGS="$CMAKE_ARGS -DLLVM_ENABLE_LIBCXX=ON"
+  CMAKE_ARGS="$CMAKE_ARGS -DLLVM_ENABLE_LIBCXX=ON -DLLVM_VERSIONED_DYLIB_NAME_ON_DARWIN=ON -DLLVM_UNVERSIONED_LIBCLANG_ON_DARWIN=OFF"
 fi
 
 # disable -fno-plt due to some GCC bug causing linker errors, see
