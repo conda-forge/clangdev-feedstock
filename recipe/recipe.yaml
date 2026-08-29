@@ -1,6 +1,6 @@
 context:
   version: "23.1.0"
-  build_number: 0
+  build_number: 1
   # derived quanities
   major_version: "${{ (version | split('.'))[0] }}"
   # tail is not necessarily equal to patch version; e.g. 23.1.0.rc1
@@ -215,7 +215,10 @@ outputs:
           then: lib/libclang-cpp.so
         - if: osx
           then: lib/libclang-cpp.dylib
-        # this is just an empty wrapper on windows
+        # this is just an empty wrapper on windows; use a dummy file to work around broken
+        # rattler-build default: https://github.com/prefix-dev/rattler-build/issues/2753
+        - if: win
+          then: lib/this_does_not_exist
       variant:
         down_prioritize_variant: ${{ 0 if variant == "default" else 1 }}
     requirements:
@@ -230,19 +233,13 @@ outputs:
           then: ${{ pin_subpackage("libclang-cpp" ~ maj_min, upper_bound="x.x") }}
     tests:
       - package_contents:
+          strict: true
           files:
             # presence of versioned library on unix
-            exists:
-              - if: linux
-                then: lib/libclang-cpp.so
-              - if: osx
-                then: lib/libclang-cpp.dylib
-            # absence on windows
-            not_exists:
-              - if: win
-                then:
-                  - Library/bin/libclang-cpp.dll
-                  - Library/lib/libclang-cpp.lib
+            - if: linux
+              then: lib/libclang-cpp.so
+            - if: osx
+              then: lib/libclang-cpp.dylib
 
   - package:
       name: libclang${{ libclang_soversion }}
