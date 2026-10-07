@@ -420,10 +420,19 @@ outputs:
         - cctools                              # [osx]
         - llvm-openmp >={{ version }}
     test:
+      files:
+        - test_float_need_infinity_nan.c
       commands:
         - clang --version
         - clang-cl --version
         - clang-cpp --version
+
+        # partial `#include <float.h>` via __need_infinity_nan (as done by the macOS 27 SDK's math.h)
+        - test -f $PREFIX/lib/clang/{{ major_version }}/include/__float_infinity_nan.h                  # [unix]
+        - if not exist %LIBRARY_LIB%\clang\{{ major_version }}\include\__float_infinity_nan.h exit 1  # [win]
+        - clang -fsyntax-only -std=c99 test_float_need_infinity_nan.c
+        - clang -fsyntax-only -std=c23 test_float_need_infinity_nan.c
+        - clang -fsyntax-only -std=c23 -fmodules -fmodules-cache-path=mcache test_float_need_infinity_nan.c
 
         # test that compiler-rt bits are available where clang expects them to be
         - test -f $PREFIX/lib/clang/{{ major_version }}/lib/linux/clang_rt.crtend-x86_64.o       # [linux and x86_64]
