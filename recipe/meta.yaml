@@ -432,7 +432,12 @@ outputs:
         - if not exist %LIBRARY_LIB%\clang\{{ major_version }}\include\__float_infinity_nan.h exit 1  # [win]
         - clang -fsyntax-only -std=c99 test_float_need_infinity_nan.c
         - clang -fsyntax-only -std=c23 test_float_need_infinity_nan.c
-        - clang -fsyntax-only -std=c23 -fmodules -fmodules-cache-path=mcache test_float_need_infinity_nan.c
+        # with SDKs older than 15 (e.g. CONDA_BUILD_SYSROOT=MacOSX11.0.sdk), the driver enables
+        # -fbuiltin-headers-in-system-modules and the SDK's Darwin module claims float.h, so the
+        # modules check uses an empty sysroot to exercise clang's own module map
+        - mkdir -p empty_sysroot                                                                     # [unix]
+        - clang -fsyntax-only -std=c23 -fmodules -fmodules-cache-path=mcache -isysroot empty_sysroot test_float_need_infinity_nan.c  # [unix]
+        - clang -fsyntax-only -std=c23 -fmodules -fmodules-cache-path=mcache test_float_need_infinity_nan.c                          # [win]
 
         # test that compiler-rt bits are available where clang expects them to be
         - test -f $PREFIX/lib/clang/{{ major_version }}/lib/linux/clang_rt.crtend-x86_64.o       # [linux and x86_64]
