@@ -1,7 +1,7 @@
 {% set version = "21.1.8" %}
 {% set major_version = version.split(".")[0] %}
 {% set tail_version = version.split(".")[-1] %}
-{% set build_number = 6 %}
+{% set build_number = 7 %}
 
 # always includes minor as of v18, see https://github.com/llvm/llvm-project/issues/76273
 {% set maj_min = major_version ~ "." ~ version.split(".")[1] %}
@@ -35,6 +35,8 @@ source:
       - patches/0008-Make-PIE-default-on-macOS-too.patch
       - patches/0009-Find-ROCm-device-library-in-conda-layout.patch
       - patches/0010-Add-conda-mingw-paths.patch
+      # backport of https://github.com/llvm/llvm-project/pull/164348, needed for macOS 27 SDK
+      - patches/0011-clang-headers-Need-a-way-for-math.h-to-share-the-def.patch
     # name folder for easier deletion; we do the equivalent of downloading
     # the subproject sources, so the work folder then has clang in it;
     # for details see build scripts
@@ -510,12 +512,15 @@ outputs:
         - gxx_impl_{{ target_platform }}  # [win64]
       files:
         - mytest.cxx
+        - test_cmath_infinity_nan.cxx
       commands:
         # avoid CMake picking up random clang in image when using unactivated compilers
         - del /s /q "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\Llvm\x64\bin\clang++.exe"  # [win]
         - clang++ --version
         - clang++-{{ major_version }} --version
         - clang++ -v -c mytest.cxx
+        # INFINITY/NAN via <cmath> in C++20 (conda-forge/compilers-feedstock#85, macOS 27 SDK)
+        - clang++ -std=c++20 -c test_cmath_infinity_nan.cxx
         - unset CONDA_BUILD_SYSROOT   # [unix]
         - set "CONDA_BUILD_SYSROOT="  # [win]
         - clang++ -v -c mytest.cxx
