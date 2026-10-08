@@ -420,24 +420,10 @@ outputs:
         - cctools                              # [osx]
         - llvm-openmp >={{ version }}
     test:
-      files:
-        - test_float_need_infinity_nan.c
       commands:
         - clang --version
         - clang-cl --version
         - clang-cpp --version
-
-        # partial `#include <float.h>` via __need_infinity_nan (as done by the macOS 27 SDK's math.h)
-        - test -f $PREFIX/lib/clang/{{ major_version }}/include/__float_infinity_nan.h                  # [unix]
-        - if not exist %LIBRARY_LIB%\clang\{{ major_version }}\include\__float_infinity_nan.h exit 1  # [win]
-        - clang -fsyntax-only -std=c99 test_float_need_infinity_nan.c
-        - clang -fsyntax-only -std=c23 test_float_need_infinity_nan.c
-        # with SDKs older than 15 (e.g. CONDA_BUILD_SYSROOT=MacOSX11.0.sdk), the driver enables
-        # -fbuiltin-headers-in-system-modules and the SDK's Darwin module claims float.h, so the
-        # modules check uses an empty sysroot to exercise clang's own module map
-        - mkdir -p empty_sysroot                                                                     # [unix]
-        - clang -fsyntax-only -std=c23 -fmodules -fmodules-cache-path=mcache -isysroot empty_sysroot test_float_need_infinity_nan.c  # [unix]
-        - clang -fsyntax-only -std=c23 -fmodules -fmodules-cache-path=mcache test_float_need_infinity_nan.c                          # [win]
 
         # test that compiler-rt bits are available where clang expects them to be
         - test -f $PREFIX/lib/clang/{{ major_version }}/lib/linux/clang_rt.crtend-x86_64.o       # [linux and x86_64]
@@ -526,12 +512,15 @@ outputs:
         - gxx_impl_{{ target_platform }}  # [win64]
       files:
         - mytest.cxx
+        - test_cmath_infinity_nan.cxx
       commands:
         # avoid CMake picking up random clang in image when using unactivated compilers
         - del /s /q "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\Llvm\x64\bin\clang++.exe"  # [win]
         - clang++ --version
         - clang++-{{ major_version }} --version
         - clang++ -v -c mytest.cxx
+        # INFINITY/NAN via <cmath> in C++20 (conda-forge/compilers-feedstock#85, macOS 27 SDK)
+        - clang++ -std=c++20 -c test_cmath_infinity_nan.cxx
         - unset CONDA_BUILD_SYSROOT   # [unix]
         - set "CONDA_BUILD_SYSROOT="  # [win]
         - clang++ -v -c mytest.cxx
