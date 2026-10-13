@@ -1,6 +1,6 @@
 context:
   version: "22.1.8"
-  build_number: 10
+  build_number: 11
   # derived quanities
   major_version: "${{ (version | split('.'))[0] }}"
   # tail is not necessarily equal to patch version; e.g. 23.1.0.rc1
@@ -957,6 +957,10 @@ outputs:
       run:
         - python >=${{ python_min }}
         - libclang ==${{ version }}
+      ignore_run_exports:
+        from_package:
+          - ${{ stdlib('c') }}
+          - ${{ compiler('cxx') }}
     tests:
       - package_contents:
           strict: true
