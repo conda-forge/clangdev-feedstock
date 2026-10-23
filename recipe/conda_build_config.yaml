@@ -3,6 +3,9 @@ c_compiler:          # [osx]
 cxx_compiler:        # [osx]
   - clang_bootstrap  # [osx]
 
+c_stdlib_version:    # [osx]
+  - 15.5             # [osx]
+
 github_actions_labels:                  # [win]
   - namespace-profile-8cpu-on-win-64    # [win]
 
