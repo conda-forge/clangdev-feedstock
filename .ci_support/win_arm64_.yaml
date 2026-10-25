@@ -1,0 +1,24 @@
+c_stdlib:
+- vs
+channel_sources:
+- conda-forge/label/llvm_dev,conda-forge
+channel_targets:
+- conda-forge llvm_dev
+cxx_compiler:
+- vs2022
+github_actions_labels:
+- namespace-profile-8cpu-on-win-64
+libxml2_devel:
+- '2.15'
+python_min:
+- '3.14'
+target_platform:
+- win-arm64
+variant:
+- default
+with_cfg:
+- false
+zlib:
+- '1'
+zstd:
+- '1.5'
