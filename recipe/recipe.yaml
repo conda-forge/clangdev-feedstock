@@ -161,6 +161,9 @@ outputs:
               - $PREFIX/bin/clang -v -c mytest.c
             else:
               - '%LIBRARY_BIN%/clang -v -c mytest.c'
+              # hack to force TARGET to appear in win ci_support files
+              # to allow the bot to render the recipe
+              - 'echo ${{ TARGET }}'
           # ensure CMake metadata is correct & working
           - cd cmake_test
           - if: unix
