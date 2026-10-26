@@ -1,3 +1,5 @@
+TARGET:
+- x86_64-pc-windows-msvc
 c_stdlib:
 - vs
 channel_sources:
