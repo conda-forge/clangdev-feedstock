@@ -98,14 +98,18 @@ outputs:
             - include/clang-tidy/*
             - lib/cmake/clang/*
             - lib/libclang*.a
+            - lib/libCIR*.a
             - lib/libfindAllSymbols.a
+            - lib/libMLIRCIR*.a
           else:
             - Library/include/clang/*
             - Library/include/clang-c/*
             - Library/include/clang-tidy/*
             - Library/lib/cmake/clang/*
             - Library/lib/clang*.lib
+            - Library/lib/CIR*.lib
             - Library/lib/findAllSymbols.lib
+            - Library/lib/MLIRCIR*.lib
       variant:
         down_prioritize_variant: ${{ 0 if variant == "default" else 1 }}
     requirements:
