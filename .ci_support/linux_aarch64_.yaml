@@ -1,3 +1,5 @@
+DOCKER_PLATFORM:
+- linux/aarch64
 TARGET:
 - aarch64-conda-linux-gnu
 TARGET_NO_VER:
