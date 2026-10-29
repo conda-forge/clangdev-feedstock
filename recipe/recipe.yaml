@@ -166,8 +166,10 @@ outputs:
               - $PREFIX/bin/clang-check --version
               # basic compilation
               - $PREFIX/bin/clang -v -c mytest.c
+              - $PREFIX/bin/clang -v -fclangir -c mytest.c
             else:
               - '%LIBRARY_BIN%/clang -v -c mytest.c'
+              - '%LIBRARY_BIN%\clang -v -fclangir -c mytest.c'
           # ensure CMake metadata is correct & working
           - cd cmake_test
           - if: unix
