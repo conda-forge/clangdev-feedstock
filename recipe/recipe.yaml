@@ -70,11 +70,13 @@ outputs:
         - if: build_platform != target_platform
           then:
             - llvmdev ==${{ version }}
+            - mlir ==${{ version }}
             - libxml2-devel
             - zlib
             - zstd
       host:
         - llvmdev ==${{ version }}
+        - mlir ==${{ version }}
         - libxml2-devel
         - zlib
         - zstd
