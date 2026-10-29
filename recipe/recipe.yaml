@@ -1,6 +1,6 @@
 context:
   version: "23.1.4"
-  build_number: 0
+  build_number: 1
   # derived quanities
   major_version: "${{ (version | split('.'))[0] }}"
   # tail is not necessarily equal to patch version; e.g. 23.1.0.rc1
@@ -11,6 +11,7 @@ context:
   # as of LLVM 19, we expect an "-rcX" suffix for the release candidates
   extra: ${{ "git" if tail_version|trim("0123456789") == "dev" else "-" ~ tail_version if tail_version not in "0123456789" else "" }}
   sover: ${{ maj_min ~ extra }}
+  cli_version: "${{ (version | split('.'))[:3] | join('.') ~ extra }}"
 
   # see https://github.com/llvm/llvm-project/blob/release/22.x/clang/tools/libclang/CMakeLists.txt#L14
   libclang_soversion: "13"
@@ -143,7 +144,8 @@ outputs:
                 - Library/lib/clangBasic.lib
       - requirements:
           run:
-            - ${{ compiler('cxx') }}
+            - if: not osx
+              then: ${{ compiler('cxx') }}
             - cmake
             - ninja
         files:
@@ -153,6 +155,8 @@ outputs:
         script:
           - if: unix
             then:
+              # check we got the right version
+              - test "$($PREFIX/bin/clang -dumpversion)" = "${{ cli_version }}"
               # symlinks
               - $PREFIX/bin/clang --version
               - $PREFIX/bin/clang++ --version
