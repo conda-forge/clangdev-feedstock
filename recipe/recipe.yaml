@@ -34,6 +34,7 @@ source:
       - patches/0007-Find-ROCm-device-library-in-conda-layout.patch
       - patches/0008-Add-conda-mingw-paths.patch
       - patches/0009-Look-for-libLTO.dylib-in-the-versioned-ResourceDir.patch
+      - patches/0010-Support-CLANG_ENABLE_CIR-in-standalone-clang-builds.patch
     filter:
       # we don't want to accidentally build more than clang here
       - cmake/*

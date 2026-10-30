@@ -1,17 +1,17 @@
-From 70400a2082370b766afe8b405ec13b2dfee20bfa Mon Sep 17 00:00:00 2001
+From 83fcff818997c70176f9ce04dc3995cb3f2501e6 Mon Sep 17 00:00:00 2001
 From: Isuru Fernando <isuruf@gmail.com>
 Date: Tue, 10 Mar 2026 10:03:35 -0700
-Subject: [PATCH 9/9] Look for libLTO.dylib in the versioned ResourceDir
+Subject: [PATCH 09/10] Look for libLTO.dylib in the versioned ResourceDir
 
 ---
  clang/lib/Driver/ToolChains/Darwin.cpp | 5 ++---
  1 file changed, 2 insertions(+), 3 deletions(-)
 
 diff --git a/clang/lib/Driver/ToolChains/Darwin.cpp b/clang/lib/Driver/ToolChains/Darwin.cpp
-index 021a6867061d..d8efd6cf8198 100644
+index cf5215262632..7eb11a76ad8c 100644
 --- a/clang/lib/Driver/ToolChains/Darwin.cpp
 +++ b/clang/lib/Driver/ToolChains/Darwin.cpp
-@@ -294,9 +294,8 @@ void darwin::Linker::AddLinkArgs(Compilation &C, const ArgList &Args,
+@@ -327,9 +327,8 @@ void darwin::Linker::AddLinkArgs(Compilation &C, const ArgList &Args,
    // lld is built at the same revision as clang and statically links in
    // LLVM libraries, so it doesn't need libLTO.dylib.
    if (Version >= VersionTuple(133) && !LinkerIsLLD) {

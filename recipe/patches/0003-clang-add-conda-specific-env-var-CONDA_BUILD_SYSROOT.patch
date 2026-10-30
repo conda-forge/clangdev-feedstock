@@ -1,7 +1,7 @@
-From d56409d1e26e3bb964f76ed71b84f2a6ec734a03 Mon Sep 17 00:00:00 2001
+From 646c0732a365a32fa474b2be84b472e825496fc3 Mon Sep 17 00:00:00 2001
 From: Nehal J Wani <nehaljw.kkd1@gmail.com>
 Date: Sat, 25 Aug 2018 09:20:04 -0500
-Subject: [PATCH 3/9] clang: add conda specific env var CONDA_BUILD_SYSROOT
+Subject: [PATCH 03/10] clang: add conda specific env var CONDA_BUILD_SYSROOT
 
 And also improve logic for finding the macos sysroot for conda
 
@@ -16,10 +16,10 @@ Co-authored-by: H. Vetinari <h.vetinari@gmx.com>
  3 files changed, 82 insertions(+), 3 deletions(-)
 
 diff --git a/clang/lib/Driver/Driver.cpp b/clang/lib/Driver/Driver.cpp
-index e606cdc4c1cf..9a4e25ed1408 100644
+index 707d6847caf4..079f48a8db6b 100644
 --- a/clang/lib/Driver/Driver.cpp
 +++ b/clang/lib/Driver/Driver.cpp
-@@ -1613,6 +1613,11 @@ Compilation *Driver::BuildCompilation(ArrayRef<const char *> ArgList) {
+@@ -1701,6 +1701,11 @@ Compilation *Driver::BuildCompilation(ArrayRef<const char *> ArgList) {
        CompilerPath = Split.second;
      }
    }
@@ -32,7 +32,7 @@ index e606cdc4c1cf..9a4e25ed1408 100644
      SysRoot = A->getValue();
    if (const Arg *A = Args.getLastArg(options::OPT__dyld_prefix_EQ))
 diff --git a/clang/lib/Driver/ToolChains/Darwin.cpp b/clang/lib/Driver/ToolChains/Darwin.cpp
-index a729fb4fc1a4..9ddd65ce7264 100644
+index 6f18bf14c219..a8a267a06319 100644
 --- a/clang/lib/Driver/ToolChains/Darwin.cpp
 +++ b/clang/lib/Driver/ToolChains/Darwin.cpp
 @@ -27,6 +27,18 @@
@@ -54,7 +54,7 @@ index a729fb4fc1a4..9ddd65ce7264 100644
  #ifdef CLANG_USE_XCSELECT
  #include <xcselect.h> // ::xcselect_host_sdk_path
  #endif
-@@ -2571,6 +2583,8 @@ void Darwin::AddDeploymentTarget(DerivedArgList &Args) const {
+@@ -2646,6 +2658,8 @@ void Darwin::AddDeploymentTarget(DerivedArgList &Args) const {
    // we do not have --no-xcselect.
    bool TryXcselect = false;
    (void)TryXcselect;
@@ -63,7 +63,7 @@ index a729fb4fc1a4..9ddd65ce7264 100644
  
    // Support allowing the SDKROOT environment variable used by xcrun and other
    // Xcode tools to define the default sysroot, by making it the default for
-@@ -2584,14 +2598,70 @@ void Darwin::AddDeploymentTarget(DerivedArgList &Args) const {
+@@ -2659,14 +2673,70 @@ void Darwin::AddDeploymentTarget(DerivedArgList &Args) const {
      // exists, and it is not the root path.
      if (llvm::sys::path::is_absolute(env) && getVFS().exists(env) &&
          StringRef(env) != "/") {

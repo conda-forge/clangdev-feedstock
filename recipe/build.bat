@@ -51,6 +51,7 @@ if NOT "%target_platform%"=="%build_platform%" (
     type native-toolchain.cmake
     set "CMAKE_ARGS=%CMAKE_ARGS% -DCROSS_TOOLCHAIN_FLAGS_NATIVE=-DCMAKE_TOOLCHAIN_FILE=%cd%\\native-toolchain.cmake"
     set "CMAKE_ARGS=!CMAKE_ARGS! -DLLVM_TABLEGEN_EXE=%BUILD_PREFIX%/Library/bin/llvm-tblgen.exe"
+    set "CMAKE_ARGS=!CMAKE_ARGS! -DMLIR_TABLEGEN_EXE=%BUILD_PREFIX%/Library/bin/mlir-tblgen.exe"
 )
 
 cmake -G "Ninja" !CMAKE_ARGS! ^
