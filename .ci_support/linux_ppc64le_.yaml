@@ -1,3 +1,5 @@
+DOCKER_PLATFORM:
+- linux/amd64
 TARGET:
 - powerpc64le-conda-linux-gnu
 TARGET_NO_VER:
