@@ -1,4 +1,4 @@
-From 646c0732a365a32fa474b2be84b472e825496fc3 Mon Sep 17 00:00:00 2001
+From 69858ac177bb8b47fca7e7a1d97d489500b104d9 Mon Sep 17 00:00:00 2001
 From: Nehal J Wani <nehaljw.kkd1@gmail.com>
 Date: Sat, 25 Aug 2018 09:20:04 -0500
 Subject: [PATCH 03/10] clang: add conda specific env var CONDA_BUILD_SYSROOT
@@ -16,10 +16,10 @@ Co-authored-by: H. Vetinari <h.vetinari@gmx.com>
  3 files changed, 82 insertions(+), 3 deletions(-)
 
 diff --git a/clang/lib/Driver/Driver.cpp b/clang/lib/Driver/Driver.cpp
-index 707d6847caf4..079f48a8db6b 100644
+index ae6aae4d0d69..c7831a87f6a9 100644
 --- a/clang/lib/Driver/Driver.cpp
 +++ b/clang/lib/Driver/Driver.cpp
-@@ -1701,6 +1701,11 @@ Compilation *Driver::BuildCompilation(ArrayRef<const char *> ArgList) {
+@@ -1700,6 +1700,11 @@ Compilation *Driver::BuildCompilation(ArrayRef<const char *> ArgList) {
        CompilerPath = Split.second;
      }
    }

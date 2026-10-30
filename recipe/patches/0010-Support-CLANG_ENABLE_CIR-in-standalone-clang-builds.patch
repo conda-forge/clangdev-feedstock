@@ -1,34 +1,22 @@
-From c7cc6afd4c5001e1dec2009214d79e085b1620e4 Mon Sep 17 00:00:00 2001
+From 57318eede770266d346a7ceb6a500abe6b296b9a Mon Sep 17 00:00:00 2001
 From: "H. Vetinari" <h.vetinari@gmx.com>
-Date: Thu, 29 Oct 2026 15:40:34 +1100
+Date: Fri, 30 Oct 2026 14:23:21 +1100
 Subject: [PATCH 10/10] Support CLANG_ENABLE_CIR in standalone clang builds
 
 * Ensure mlir_tablegen() gets found by resolving to a real path.
 * Fix hard-coded MLIR paths in CIR's CMakeLists internal TableGen targets.
-* Only `DEPEND` on MLIR-owned targets if `NOT CLANG_BUILT_STANDALONE`.
 ---
  clang/CMakeLists.txt                          | 28 ++++++++++++++-----
  clang/include/clang/CIR/CMakeLists.txt        |  5 +---
  .../include/clang/CIR/Dialect/CMakeLists.txt  |  6 +---
- clang/lib/CIR/CMakeLists.txt                  | 10 +++++--
- clang/lib/CIR/CodeGen/CMakeLists.txt          | 11 ++++++--
- clang/lib/CIR/Dialect/Analysis/CMakeLists.txt |  7 ++++-
- clang/lib/CIR/Dialect/IR/CMakeLists.txt       | 11 ++++++--
- clang/lib/CIR/Dialect/OpenACC/CMakeLists.txt  | 17 +++++++----
- clang/lib/CIR/Dialect/OpenMP/CMakeLists.txt   |  7 ++++-
- .../lib/CIR/Dialect/Transforms/CMakeLists.txt | 11 ++++++--
- .../Transforms/TargetLowering/CMakeLists.txt  | 11 ++++++--
- clang/lib/CIR/FrontendAction/CMakeLists.txt   | 13 +++++++--
- clang/lib/CIR/Interfaces/CMakeLists.txt       | 27 +++++++++++-------
- clang/lib/CIR/Lowering/CMakeLists.txt         | 11 ++++++--
- .../CIR/Lowering/DirectToLLVM/CMakeLists.txt  | 11 ++++++--
- clang/lib/FrontendTool/CMakeLists.txt         | 21 +++++++-------
+ clang/lib/CIR/CMakeLists.txt                  |  3 +-
+ clang/lib/FrontendTool/CMakeLists.txt         |  6 ++--
  clang/test/CIR/lib/CMakeLists.txt             |  3 +-
  clang/tools/cir-lsp-server/CMakeLists.txt     |  3 +-
  clang/tools/cir-opt/CMakeLists.txt            |  3 +-
  clang/tools/cir-translate/CMakeLists.txt      |  3 +-
  clang/unittests/CIR/CMakeLists.txt            |  5 +---
- 21 files changed, 150 insertions(+), 74 deletions(-)
+ 10 files changed, 31 insertions(+), 34 deletions(-)
 
 diff --git a/clang/CMakeLists.txt b/clang/CMakeLists.txt
 index a516c7a72ff0..5e86c3b94710 100644
@@ -101,7 +89,7 @@ index 2465b537cd81..26c689020fc4 100644
    add_custom_command(
            OUTPUT ${GEN_DOC_FILE}
 diff --git a/clang/lib/CIR/CMakeLists.txt b/clang/lib/CIR/CMakeLists.txt
-index 4e9f817240cd..43595526aa8c 100644
+index 6436d554bb38..fd11f50c5606 100644
 --- a/clang/lib/CIR/CMakeLists.txt
 +++ b/clang/lib/CIR/CMakeLists.txt
 @@ -1,5 +1,4 @@
@@ -111,364 +99,13 @@ index 4e9f817240cd..43595526aa8c 100644
  
  add_subdirectory(Dialect)
  add_subdirectory(CodeGen)
-@@ -7,11 +6,16 @@ add_subdirectory(FrontendAction)
- add_subdirectory(Interfaces)
- add_subdirectory(Lowering)
- 
-+set(deps)
-+if(NOT CLANG_BUILT_STANDALONE)
-+  list(APPEND deps MLIRArithOpsIncGen)
-+endif()
-+
- add_clang_library(CIRRegisterAllDialects
-   RegisterAllDialects.cpp
- 
-   DEPENDS
--  MLIRArithOpsIncGen
-+  ${deps}
- 
-   LINK_LIBS PUBLIC
-   MLIRCIR
-diff --git a/clang/lib/CIR/CodeGen/CMakeLists.txt b/clang/lib/CIR/CodeGen/CMakeLists.txt
-index fdb2c66eb1f7..b1f05ded40d3 100644
---- a/clang/lib/CIR/CodeGen/CMakeLists.txt
-+++ b/clang/lib/CIR/CodeGen/CMakeLists.txt
-@@ -5,6 +5,14 @@ set(
-   Support
- )
- 
-+set(deps)
-+if(NOT CLANG_BUILT_STANDALONE)
-+  list(APPEND deps
-+    MLIRBuiltinLocationAttributesIncGen
-+    MLIRBytecodeOpInterfaceIncGen
-+  )
-+endif()
-+
- add_clang_library(clangCIR
-   CIRDataLayoutSpec.cpp
-   CIRGenerator.cpp
-@@ -68,8 +76,7 @@ add_clang_library(clangCIR
-   DEPENDS
-   MLIRCIR
-   MLIRCIROpInterfacesIncGen
--  MLIRBuiltinLocationAttributesIncGen
--  MLIRBytecodeOpInterfaceIncGen
-+  ${deps}
- 
-   LINK_LIBS
-   clangAST
-diff --git a/clang/lib/CIR/Dialect/Analysis/CMakeLists.txt b/clang/lib/CIR/Dialect/Analysis/CMakeLists.txt
-index 169323557fac..6c3f56a8edb4 100644
---- a/clang/lib/CIR/Dialect/Analysis/CMakeLists.txt
-+++ b/clang/lib/CIR/Dialect/Analysis/CMakeLists.txt
-@@ -1,9 +1,14 @@
-+set(deps)
-+if(NOT CLANG_BUILT_STANDALONE)
-+  list(APPEND deps MLIRPtrMemorySpaceInterfacesIncGen)
-+endif()
-+
- add_clang_library(MLIRCIRAnalysis
-   CIRAliasAnalysis.cpp
-   CIRBasicAliasAnalysis.cpp
- 
-   DEPENDS
--  MLIRPtrMemorySpaceInterfacesIncGen
-+  ${deps}
- 
-   LINK_LIBS PUBLIC
-   MLIRCIR
-diff --git a/clang/lib/CIR/Dialect/IR/CMakeLists.txt b/clang/lib/CIR/Dialect/IR/CMakeLists.txt
-index 34345d765c67..98d88beba8b9 100644
---- a/clang/lib/CIR/Dialect/IR/CMakeLists.txt
-+++ b/clang/lib/CIR/Dialect/IR/CMakeLists.txt
-@@ -1,3 +1,11 @@
-+set(deps)
-+if(NOT CLANG_BUILT_STANDALONE)
-+  list(APPEND deps
-+    MLIRBuiltinLocationAttributesIncGen
-+    MLIRBytecodeOpInterfaceIncGen
-+  )
-+endif()
-+
- add_clang_library(MLIRCIR
-   CIRAttrs.cpp
-   CIRDialect.cpp
-@@ -14,8 +22,7 @@ add_clang_library(MLIRCIR
-   MLIRCIREnumsGen
-   MLIRCIROpInterfacesIncGen
-   MLIRCIRLoopOpInterfaceIncGen
--  MLIRBuiltinLocationAttributesIncGen
--  MLIRBytecodeOpInterfaceIncGen
-+  ${deps}
- 
-   LINK_COMPONENTS
-   TargetParser
-diff --git a/clang/lib/CIR/Dialect/OpenACC/CMakeLists.txt b/clang/lib/CIR/Dialect/OpenACC/CMakeLists.txt
-index d15624e1f21a..68fd2a8de34c 100644
---- a/clang/lib/CIR/Dialect/OpenACC/CMakeLists.txt
-+++ b/clang/lib/CIR/Dialect/OpenACC/CMakeLists.txt
-@@ -1,13 +1,20 @@
-+set(deps)
-+if(NOT CLANG_BUILT_STANDALONE)
-+  list(APPEND deps
-+    MLIRCIRTypeConstraintsIncGen
-+    MLIRArithOpsIncGen
-+    MLIRBuiltinLocationAttributesIncGen
-+    MLIRBytecodeOpInterfaceIncGen
-+    MLIRCallInterfacesIncGen
-+  )
-+endif()
-+
- add_clang_library(CIROpenACCSupport
-   CIROpenACCTypeInterfaces.cpp
-   RegisterOpenACCExtensions.cpp
- 
-   DEPENDS
--  MLIRCIRTypeConstraintsIncGen
--  MLIRArithOpsIncGen
--  MLIRBuiltinLocationAttributesIncGen
--  MLIRBytecodeOpInterfaceIncGen
--  MLIRCallInterfacesIncGen
-+  ${deps}
- 
-   LINK_LIBS PUBLIC
-   MLIRIR
-diff --git a/clang/lib/CIR/Dialect/OpenMP/CMakeLists.txt b/clang/lib/CIR/Dialect/OpenMP/CMakeLists.txt
-index a06f6ff7a52e..a70285914996 100644
---- a/clang/lib/CIR/Dialect/OpenMP/CMakeLists.txt
-+++ b/clang/lib/CIR/Dialect/OpenMP/CMakeLists.txt
-@@ -1,9 +1,14 @@
-+set(deps)
-+if(NOT CLANG_BUILT_STANDALONE)
-+  list(APPEND deps MLIRMemorySlotInterfacesIncGen)
-+endif()
-+
- add_clang_library(CIROpenMPSupport
-   RegisterOpenMPExtensions.cpp
- 
-   DEPENDS
-   MLIRCIROpsIncGen
--  MLIRMemorySlotInterfacesIncGen
-+  ${deps}
- 
-   LINK_LIBS PUBLIC
-   MLIRIR
-diff --git a/clang/lib/CIR/Dialect/Transforms/CMakeLists.txt b/clang/lib/CIR/Dialect/Transforms/CMakeLists.txt
-index 968382bf9f51..7dae70551e63 100644
---- a/clang/lib/CIR/Dialect/Transforms/CMakeLists.txt
-+++ b/clang/lib/CIR/Dialect/Transforms/CMakeLists.txt
-@@ -1,5 +1,13 @@
- add_subdirectory(TargetLowering)
- 
-+set(deps)
-+if(NOT CLANG_BUILT_STANDALONE)
-+  list(APPEND deps
-+    MLIRBuiltinLocationAttributesIncGen
-+    MLIRBytecodeOpInterfaceIncGen
-+  )
-+endif()
-+
- add_clang_library(MLIRCIRTransforms
-   CallConvLoweringPass.cpp
-   CIRCanonicalize.cpp
-@@ -21,8 +29,7 @@ add_clang_library(MLIRCIRTransforms
- 
-   DEPENDS
-   MLIRCIRPassIncGen
--  MLIRBuiltinLocationAttributesIncGen
--  MLIRBytecodeOpInterfaceIncGen
-+  ${deps}
- 
-   LINK_COMPONENTS
-   ABI
-diff --git a/clang/lib/CIR/Dialect/Transforms/TargetLowering/CMakeLists.txt b/clang/lib/CIR/Dialect/Transforms/TargetLowering/CMakeLists.txt
-index 7bad234541d3..a808e5ce2c5a 100644
---- a/clang/lib/CIR/Dialect/Transforms/TargetLowering/CMakeLists.txt
-+++ b/clang/lib/CIR/Dialect/Transforms/TargetLowering/CMakeLists.txt
-@@ -1,3 +1,11 @@
-+set(deps)
-+if(NOT CLANG_BUILT_STANDALONE)
-+  list(APPEND deps
-+    MLIRBuiltinLocationAttributesIncGen
-+    MLIRBytecodeOpInterfaceIncGen
-+  )
-+endif()
-+
- add_clang_library(MLIRCIRTargetLowering
-   CIRABIRewriteContext.cpp
-   CIRCXXABI.cpp
-@@ -11,8 +19,7 @@ add_clang_library(MLIRCIRTargetLowering
- 
-   DEPENDS
-   clangBasic
--  MLIRBuiltinLocationAttributesIncGen
--  MLIRBytecodeOpInterfaceIncGen
-+  ${deps}
- 
-   LINK_COMPONENTS
-   TargetParser
-diff --git a/clang/lib/CIR/FrontendAction/CMakeLists.txt b/clang/lib/CIR/FrontendAction/CMakeLists.txt
-index f83e5b04b9ad..b0d26fd3697e 100644
---- a/clang/lib/CIR/FrontendAction/CMakeLists.txt
-+++ b/clang/lib/CIR/FrontendAction/CMakeLists.txt
-@@ -6,6 +6,15 @@ set(LLVM_LINK_COMPONENTS
-   Support
-   )
- 
-+set(deps)
-+if(NOT CLANG_BUILT_STANDALONE)
-+  list(APPEND deps
-+    MLIRBuiltinLocationAttributesIncGen
-+    MLIRBytecodeOpInterfaceIncGen
-+    MLIRBuiltinOpsIncGen
-+  )
-+endif()
-+
- add_clang_library(clangCIRFrontendAction
-   CIRGenAction.cpp
-   CIRDiagnosticHandler.cpp
-@@ -13,9 +22,7 @@ add_clang_library(clangCIRFrontendAction
-   DEPENDS
-   MLIRCIROpsIncGen
-   MLIRCIROpInterfacesIncGen
--  MLIRBuiltinLocationAttributesIncGen
--  MLIRBytecodeOpInterfaceIncGen
--  MLIRBuiltinOpsIncGen
-+  ${deps}
- 
-   LINK_LIBS
-   clangAST
-diff --git a/clang/lib/CIR/Interfaces/CMakeLists.txt b/clang/lib/CIR/Interfaces/CMakeLists.txt
-index 960dd0dcca5f..6176f2f6c1d3 100644
---- a/clang/lib/CIR/Interfaces/CMakeLists.txt
-+++ b/clang/lib/CIR/Interfaces/CMakeLists.txt
-@@ -1,3 +1,19 @@
-+set(deps)
-+if(NOT CLANG_BUILT_STANDALONE)
-+  list(APPEND deps
-+    MLIRBuiltinLocationAttributesIncGen
-+    MLIRBytecodeOpInterfaceIncGen
-+    # CIR interface headers include generated core MLIR interfaces without
-+    # linking all of their owning libraries.
-+    MLIRCallInterfacesIncGen
-+    MLIRControlFlowInterfacesIncGen
-+    MLIRFunctionInterfacesIncGen
-+    MLIRInferTypeOpInterfaceIncGen
-+    MLIRLoopLikeInterfaceIncGen
-+    MLIRSideEffectInterfacesIncGen
-+  )
-+endif()
-+
- add_clang_library(MLIRCIRInterfaces
-   ASTAttrInterfaces.cpp
-   CIROpInterfaces.cpp
-@@ -13,18 +29,9 @@ add_clang_library(MLIRCIRInterfaces
-   MLIRCIRTypeInterfacesIncGen
-   MLIRCIRLoopOpInterfaceIncGen
-   MLIRCIROpInterfacesIncGen
--  MLIRBuiltinLocationAttributesIncGen
--  MLIRBytecodeOpInterfaceIncGen
-   MLIRCIROpsIncGen
-   MLIRCIRTypeConstraintsIncGen
--  # CIR interface headers include generated core MLIR interfaces without
--  # linking all of their owning libraries.
--  MLIRCallInterfacesIncGen
--  MLIRControlFlowInterfacesIncGen
--  MLIRFunctionInterfacesIncGen
--  MLIRInferTypeOpInterfaceIncGen
--  MLIRLoopLikeInterfaceIncGen
--  MLIRSideEffectInterfacesIncGen
-+  ${deps}
- 
-   LINK_LIBS
-   MLIRIR
-diff --git a/clang/lib/CIR/Lowering/CMakeLists.txt b/clang/lib/CIR/Lowering/CMakeLists.txt
-index 93ca5436d96f..55e2dedf6124 100644
---- a/clang/lib/CIR/Lowering/CMakeLists.txt
-+++ b/clang/lib/CIR/Lowering/CMakeLists.txt
-@@ -3,13 +3,20 @@ set(LLVM_LINK_COMPONENTS
-   Support
-   )
- 
-+set(deps)
-+if(NOT CLANG_BUILT_STANDALONE)
-+  list(APPEND deps
-+    MLIRBuiltinLocationAttributesIncGen
-+    MLIRBytecodeOpInterfaceIncGen
-+  )
-+endif()
-+
- add_clang_library(clangCIRLoweringCommon
-   CIRPasses.cpp
-   LoweringHelpers.cpp
- 
-   DEPENDS
--  MLIRBuiltinLocationAttributesIncGen
--  MLIRBytecodeOpInterfaceIncGen
-+  ${deps}
- 
-   LINK_LIBS
-   clangCIR
-diff --git a/clang/lib/CIR/Lowering/DirectToLLVM/CMakeLists.txt b/clang/lib/CIR/Lowering/DirectToLLVM/CMakeLists.txt
-index ff68221ad59d..1c790da1d00e 100644
---- a/clang/lib/CIR/Lowering/DirectToLLVM/CMakeLists.txt
-+++ b/clang/lib/CIR/Lowering/DirectToLLVM/CMakeLists.txt
-@@ -3,6 +3,14 @@ set(LLVM_LINK_COMPONENTS
-   Support
-   )
- 
-+set(deps)
-+if(NOT CLANG_BUILT_STANDALONE)
-+  list(APPEND deps
-+    MLIRBuiltinLocationAttributesIncGen
-+    MLIRBytecodeOpInterfaceIncGen
-+  )
-+endif()
-+
- add_clang_library(clangCIRLoweringDirectToLLVM
-   LowerToLLVM.cpp
-   LowerToLLVMIR.cpp
-@@ -13,9 +21,8 @@ add_clang_library(clangCIRLoweringDirectToLLVM
-   CIRLowering
-   MLIRCIREnumsGen
-   MLIRCIROpsIncGen
--  MLIRBuiltinLocationAttributesIncGen
--  MLIRBytecodeOpInterfaceIncGen
-   MLIRCIROpInterfacesIncGen
-+  ${deps}
- 
-   LINK_LIBS
-   clangCIRLoweringCommon
 diff --git a/clang/lib/FrontendTool/CMakeLists.txt b/clang/lib/FrontendTool/CMakeLists.txt
-index f4d1834bdb15..10c4f0f62919 100644
+index 079d5a3be24f..e0164f29ff4d 100644
 --- a/clang/lib/FrontendTool/CMakeLists.txt
 +++ b/clang/lib/FrontendTool/CMakeLists.txt
-@@ -20,22 +20,22 @@ set(link_libs
- set(deps)
- 
- if(CLANG_ENABLE_CIR)
--  list(APPEND deps
--    MLIRBuiltinOpsIncGen
--  )
-+  if(NOT CLANG_BUILT_STANDALONE)
-+    list(APPEND deps
-+      MLIRBuiltinLocationAttributesIncGen
-+      MLIRBuiltinOpsIncGen
-+      MLIRBuiltinTypeInterfacesIncGen
-+    )
-+  endif()
-+
-   list(APPEND link_libs
-     clangCIRFrontendAction
-     MLIRCIRTransforms
-     MLIRIR
+@@ -31,8 +31,7 @@ if(CLANG_ENABLE_CIR)
      MLIRPass
      )
--  list(APPEND deps
--    MLIRBuiltinLocationAttributesIncGen
--    MLIRBuiltinTypeInterfacesIncGen
--    )
  
 -  include_directories(${LLVM_MAIN_SRC_DIR}/../mlir/include)
 -  include_directories(${LLVM_BINARY_DIR}/tools/mlir/include)
@@ -476,7 +113,7 @@ index f4d1834bdb15..10c4f0f62919 100644
  endif()
  
  if(CLANG_ENABLE_STATIC_ANALYZER)
-@@ -56,6 +56,5 @@ add_clang_library(clangFrontendTool
+@@ -53,6 +52,5 @@ add_clang_library(clangFrontendTool
    )
  
  if(CLANG_ENABLE_CIR)
@@ -528,7 +165,7 @@ index f12186efe23c..31539bba908d 100644
  add_clang_tool(cir-translate
    cir-translate.cpp
 diff --git a/clang/unittests/CIR/CMakeLists.txt b/clang/unittests/CIR/CMakeLists.txt
-index 04361a54932b..8f0cab0d1e4a 100644
+index 929eefc4d061..32c38b9910f8 100644
 --- a/clang/unittests/CIR/CMakeLists.txt
 +++ b/clang/unittests/CIR/CMakeLists.txt
 @@ -1,7 +1,4 @@
