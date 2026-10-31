@@ -1,7 +1,7 @@
 From 57318eede770266d346a7ceb6a500abe6b296b9a Mon Sep 17 00:00:00 2001
 From: "H. Vetinari" <h.vetinari@gmx.com>
 Date: Fri, 30 Oct 2026 14:23:21 +1100
-Subject: [PATCH 10/10] Support CLANG_ENABLE_CIR in standalone clang builds
+Subject: [PATCH 10/11] Support CLANG_ENABLE_CIR in standalone clang builds
 
 * Ensure mlir_tablegen() gets found by resolving to a real path.
 * Fix hard-coded MLIR paths in CIR's CMakeLists internal TableGen targets.

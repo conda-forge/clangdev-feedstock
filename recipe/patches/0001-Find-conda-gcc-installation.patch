@@ -1,7 +1,7 @@
 From ceb195cb945b8a0458f5ca35a352f644343ab74f Mon Sep 17 00:00:00 2001
 From: Isuru Fernando <isuruf@gmail.com>
 Date: Mon, 8 Apr 2019 16:20:03 -0500
-Subject: [PATCH 01/10] Find conda gcc installation
+Subject: [PATCH 01/11] Find conda gcc installation
 
 ---
  clang/lib/Driver/ToolChains/Gnu.cpp | 7 ++++---

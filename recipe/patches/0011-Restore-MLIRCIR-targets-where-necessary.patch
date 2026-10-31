@@ -1,0 +1,113 @@
+From f0e676a9c019200bff4f57fe18b74e93ad52e2ce Mon Sep 17 00:00:00 2001
+From: "H. Vetinari" <h.vetinari@gmx.com>
+Date: Sat, 31 Oct 2026 11:11:12 +1100
+Subject: [PATCH 11/11] Restore MLIRCIR targets where necessary
+
+This partially revert 8792b526aeac0320cb76c626fa83bc6f0f1dfc2a
+---
+ clang/lib/CIR/CodeGen/CMakeLists.txt               | 1 +
+ clang/lib/CIR/Dialect/IR/CMakeLists.txt            | 4 ++++
+ clang/lib/CIR/Dialect/OpenACC/CMakeLists.txt       | 1 +
+ clang/lib/CIR/Dialect/OpenMP/CMakeLists.txt        | 1 +
+ clang/lib/CIR/FrontendAction/CMakeLists.txt        | 2 ++
+ clang/lib/CIR/Interfaces/CMakeLists.txt            | 6 ++++++
+ clang/lib/CIR/Lowering/DirectToLLVM/CMakeLists.txt | 2 ++
+ 7 files changed, 17 insertions(+)
+
+diff --git a/clang/lib/CIR/CodeGen/CMakeLists.txt b/clang/lib/CIR/CodeGen/CMakeLists.txt
+index 1f4db82585c2..f311657aa282 100644
+--- a/clang/lib/CIR/CodeGen/CMakeLists.txt
++++ b/clang/lib/CIR/CodeGen/CMakeLists.txt
+@@ -67,6 +67,7 @@ add_clang_library(clangCIR
+ 
+   DEPENDS
+   MLIRCIR
++  MLIRCIROpInterfacesIncGen
+   mlir-headers
+ 
+   LINK_LIBS
+diff --git a/clang/lib/CIR/Dialect/IR/CMakeLists.txt b/clang/lib/CIR/Dialect/IR/CMakeLists.txt
+index a326c329cbf9..7742fe57fae1 100644
+--- a/clang/lib/CIR/Dialect/IR/CMakeLists.txt
++++ b/clang/lib/CIR/Dialect/IR/CMakeLists.txt
+@@ -8,8 +8,12 @@ add_clang_library(MLIRCIR
+   CIROpenCLAttrs.cpp
+ 
+   DEPENDS
++  MLIRCIROpsIncGen
+   MLIRCIRDialectBytecodeIncGen
++  MLIRCIRTypeConstraintsIncGen
+   MLIRCIREnumsGen
++  MLIRCIROpInterfacesIncGen
++  MLIRCIRLoopOpInterfaceIncGen
+   mlir-headers
+ 
+   LINK_COMPONENTS
+diff --git a/clang/lib/CIR/Dialect/OpenACC/CMakeLists.txt b/clang/lib/CIR/Dialect/OpenACC/CMakeLists.txt
+index de40a8138af4..1b4b948bdef9 100644
+--- a/clang/lib/CIR/Dialect/OpenACC/CMakeLists.txt
++++ b/clang/lib/CIR/Dialect/OpenACC/CMakeLists.txt
+@@ -3,6 +3,7 @@ add_clang_library(CIROpenACCSupport
+   RegisterOpenACCExtensions.cpp
+ 
+   DEPENDS
++  MLIRCIRTypeConstraintsIncGen
+   mlir-headers
+ 
+   LINK_LIBS PUBLIC
+diff --git a/clang/lib/CIR/Dialect/OpenMP/CMakeLists.txt b/clang/lib/CIR/Dialect/OpenMP/CMakeLists.txt
+index e880e3ccb628..c532948a1eb1 100644
+--- a/clang/lib/CIR/Dialect/OpenMP/CMakeLists.txt
++++ b/clang/lib/CIR/Dialect/OpenMP/CMakeLists.txt
+@@ -2,6 +2,7 @@ add_clang_library(CIROpenMPSupport
+   RegisterOpenMPExtensions.cpp
+ 
+   DEPENDS
++  MLIRCIROpsIncGen
+   mlir-headers
+ 
+   LINK_LIBS PUBLIC
+diff --git a/clang/lib/CIR/FrontendAction/CMakeLists.txt b/clang/lib/CIR/FrontendAction/CMakeLists.txt
+index 4f88af66d010..ca328da31493 100644
+--- a/clang/lib/CIR/FrontendAction/CMakeLists.txt
++++ b/clang/lib/CIR/FrontendAction/CMakeLists.txt
+@@ -11,6 +11,8 @@ add_clang_library(clangCIRFrontendAction
+   CIRDiagnosticHandler.cpp
+ 
+   DEPENDS
++  MLIRCIROpsIncGen
++  MLIRCIROpInterfacesIncGen
+   mlir-headers
+ 
+   LINK_LIBS
+diff --git a/clang/lib/CIR/Interfaces/CMakeLists.txt b/clang/lib/CIR/Interfaces/CMakeLists.txt
+index e9b754b2c5ad..84e815256727 100644
+--- a/clang/lib/CIR/Interfaces/CMakeLists.txt
++++ b/clang/lib/CIR/Interfaces/CMakeLists.txt
+@@ -8,7 +8,13 @@ add_clang_library(MLIRCIRInterfaces
+   ${MLIR_MAIN_INCLUDE_DIR}/mlir/Interfaces
+ 
+   DEPENDS
++  MLIRCIRASTAttrInterfacesIncGen
+   MLIRCIREnumsGen
++  MLIRCIRTypeInterfacesIncGen
++  MLIRCIRLoopOpInterfaceIncGen
++  MLIRCIROpInterfacesIncGen
++  MLIRCIROpsIncGen
++  MLIRCIRTypeConstraintsIncGen
+   mlir-headers
+ 
+   LINK_LIBS
+diff --git a/clang/lib/CIR/Lowering/DirectToLLVM/CMakeLists.txt b/clang/lib/CIR/Lowering/DirectToLLVM/CMakeLists.txt
+index 7331351ff5e8..850563d7bb32 100644
+--- a/clang/lib/CIR/Lowering/DirectToLLVM/CMakeLists.txt
++++ b/clang/lib/CIR/Lowering/DirectToLLVM/CMakeLists.txt
+@@ -12,6 +12,8 @@ add_clang_library(clangCIRLoweringDirectToLLVM
+   DEPENDS
+   CIRLowering
+   MLIRCIREnumsGen
++  MLIRCIROpInterfacesIncGen
++  MLIRCIROpsIncGen
+   MLIRCIRPassIncGen
+   mlir-headers
+ 

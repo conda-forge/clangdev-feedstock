@@ -1,7 +1,7 @@
 From 996d4b91feb6e6dd61498d4acc208b71efde56c2 Mon Sep 17 00:00:00 2001
 From: Isuru Fernando <isuruf@gmail.com>
 Date: Thu, 28 Dec 2023 19:32:19 +0530
-Subject: [PATCH 06/10] Make PIE default on macOS too.
+Subject: [PATCH 06/11] Make PIE default on macOS too.
 
 This is the default for Linux from LLVM-15
 ---

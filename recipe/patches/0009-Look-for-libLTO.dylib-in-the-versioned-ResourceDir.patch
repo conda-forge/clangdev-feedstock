@@ -1,7 +1,7 @@
 From 1b6b7eade34e3fba050ec2f510c9851f2a701838 Mon Sep 17 00:00:00 2001
 From: Isuru Fernando <isuruf@gmail.com>
 Date: Tue, 10 Mar 2026 10:03:35 -0700
-Subject: [PATCH 09/10] Look for libLTO.dylib in the versioned ResourceDir
+Subject: [PATCH 09/11] Look for libLTO.dylib in the versioned ResourceDir
 
 ---
  clang/lib/Driver/ToolChains/Darwin.cpp | 5 ++---

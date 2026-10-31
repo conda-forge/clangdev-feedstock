@@ -1,7 +1,7 @@
 From 76c0514ff06e417caf7fcad98272f9c277a613cb Mon Sep 17 00:00:00 2001
 From: Isuru Fernando <isuruf@gmail.com>
 Date: Mon, 8 Apr 2019 16:32:17 -0500
-Subject: [PATCH 02/10] Fix sysroot detection for linux
+Subject: [PATCH 02/11] Fix sysroot detection for linux
 
 ---
  clang/lib/Driver/ToolChains/Linux.cpp | 20 ++++++++++++++++----
