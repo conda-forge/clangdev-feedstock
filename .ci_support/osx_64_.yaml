@@ -1,5 +1,5 @@
 MACOSX_SDK_VERSION:
-- '15.5'
+- '11.0'
 TARGET:
 - x86_64-apple-darwin13.4.0
 TARGET_NO_VER:
@@ -7,7 +7,7 @@ TARGET_NO_VER:
 c_stdlib:
 - macosx_deployment_target
 c_stdlib_version:
-- '15.5'
+- '11.0'
 channel_sources:
 - conda-forge/label/llvm_dev,conda-forge
 channel_targets:

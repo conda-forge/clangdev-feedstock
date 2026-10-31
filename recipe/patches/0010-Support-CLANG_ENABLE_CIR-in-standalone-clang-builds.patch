@@ -1,0 +1,179 @@
+From 57318eede770266d346a7ceb6a500abe6b296b9a Mon Sep 17 00:00:00 2001
+From: "H. Vetinari" <h.vetinari@gmx.com>
+Date: Fri, 30 Oct 2026 14:23:21 +1100
+Subject: [PATCH 10/11] Support CLANG_ENABLE_CIR in standalone clang builds
+
+* Ensure mlir_tablegen() gets found by resolving to a real path.
+* Fix hard-coded MLIR paths in CIR's CMakeLists internal TableGen targets.
+---
+ clang/CMakeLists.txt                          | 28 ++++++++++++++-----
+ clang/include/clang/CIR/CMakeLists.txt        |  5 +---
+ .../include/clang/CIR/Dialect/CMakeLists.txt  |  6 +---
+ clang/lib/CIR/CMakeLists.txt                  |  3 +-
+ clang/lib/FrontendTool/CMakeLists.txt         |  6 ++--
+ clang/test/CIR/lib/CMakeLists.txt             |  3 +-
+ clang/tools/cir-lsp-server/CMakeLists.txt     |  3 +-
+ clang/tools/cir-opt/CMakeLists.txt            |  3 +-
+ clang/tools/cir-translate/CMakeLists.txt      |  3 +-
+ clang/unittests/CIR/CMakeLists.txt            |  5 +---
+ 10 files changed, 31 insertions(+), 34 deletions(-)
+
+diff --git a/clang/CMakeLists.txt b/clang/CMakeLists.txt
+index a516c7a72ff0..5e86c3b94710 100644
+--- a/clang/CMakeLists.txt
++++ b/clang/CMakeLists.txt
+@@ -197,13 +197,27 @@ if(CLANG_BUILT_STANDALONE)
+ endif()
+ 
+ if(CLANG_ENABLE_CIR)
+-  if (CLANG_BUILT_STANDALONE)
+-    message(FATAL_ERROR
+-      "ClangIR is not yet supported in the standalone build.")
+-  endif()
+-  if (NOT "mlir" IN_LIST LLVM_ENABLE_PROJECTS)
+-    message(FATAL_ERROR
+-      "Cannot build ClangIR without MLIR enabled")
++  if(CLANG_BUILT_STANDALONE)
++    find_package(MLIR REQUIRED CONFIG)
++    list(APPEND CMAKE_MODULE_PATH "${MLIR_CMAKE_DIR}")
++    include(AddMLIR)
++    set(CLANG_CIR_MLIR_INCLUDE_DIRS ${MLIR_INCLUDE_DIRS})
++    # MLIRConfig.cmake sets MLIR_TABLEGEN_EXE to the bare tool name;
++    # resolve it to an actual path, like Flang's standalone build does.
++    find_program(CLANG_MLIR_TABLEGEN_EXE "mlir-tblgen"
++      HINTS "${LLVM_TOOLS_BINARY_DIR}")
++    if(NOT CLANG_MLIR_TABLEGEN_EXE)
++      message(FATAL_ERROR "ClangIR requires mlir-tblgen, which was not found. "
++        "Point CLANG_MLIR_TABLEGEN_EXE at it, or add it to PATH.")
++    endif()
++    set(MLIR_TABLEGEN_EXE "${CLANG_MLIR_TABLEGEN_EXE}")
++  else()
++    # The MLIR_*_INCLUDE_DIR variables cannot be used here: MLIR gets configured
++    # after clang, so they are still empty at this point. Derive the same roots
++    # from the LLVM paths instead.
++    set(CLANG_CIR_MLIR_INCLUDE_DIRS
++      "${LLVM_MAIN_SRC_DIR}/../mlir/include"
++      "${LLVM_BINARY_DIR}/tools/mlir/include")
+   endif()
+ endif()
+ 
+diff --git a/clang/include/clang/CIR/CMakeLists.txt b/clang/include/clang/CIR/CMakeLists.txt
+index 73641606af42..aac485080fe2 100644
+--- a/clang/include/clang/CIR/CMakeLists.txt
++++ b/clang/include/clang/CIR/CMakeLists.txt
+@@ -1,7 +1,4 @@
+-set(MLIR_INCLUDE_DIR ${LLVM_MAIN_SRC_DIR}/../mlir/include ) # --includedir
+-set(MLIR_TABLEGEN_OUTPUT_DIR ${LLVM_BINARY_DIR}/tools/mlir/include)
+-include_directories(${MLIR_INCLUDE_DIR})
+-include_directories(${MLIR_TABLEGEN_OUTPUT_DIR})
++include_directories(${CLANG_CIR_MLIR_INCLUDE_DIRS})
+ 
+ add_subdirectory(Dialect)
+ add_subdirectory(Interfaces)
+diff --git a/clang/include/clang/CIR/Dialect/CMakeLists.txt b/clang/include/clang/CIR/Dialect/CMakeLists.txt
+index 2465b537cd81..26c689020fc4 100644
+--- a/clang/include/clang/CIR/Dialect/CMakeLists.txt
++++ b/clang/include/clang/CIR/Dialect/CMakeLists.txt
+@@ -5,12 +5,8 @@ add_custom_target(clang-cir-doc)
+ # which is not the case for CIR (and also FIR, both have similar workarounds).
+ function(add_clang_mlir_doc doc_filename output_file output_directory command)
+   set(LLVM_TARGET_DEFINITIONS ${doc_filename}.td)
+-  # NB: MLIR_*_INCLUDE_DIR variables cannot be used here: MLIR configures
+-  # after Clang, so they are still empty at this point. Derive the same
+-  # roots from LLVM dirs instead (as CIR/CMakeLists.txt already does).
+   tablegen(MLIR ${output_file}.md ${command} ${ARGN}
+-           EXTRA_INCLUDES ${LLVM_MAIN_SRC_DIR}/../mlir/include
+-                          ${LLVM_BINARY_DIR}/tools/mlir/include)
++           EXTRA_INCLUDES ${CLANG_CIR_MLIR_INCLUDE_DIRS})
+   set(GEN_DOC_FILE ${CLANG_BINARY_DIR}/docs/CIR/_raw/${output_directory}${output_file}.md)
+   add_custom_command(
+           OUTPUT ${GEN_DOC_FILE}
+diff --git a/clang/lib/CIR/CMakeLists.txt b/clang/lib/CIR/CMakeLists.txt
+index 6436d554bb38..fd11f50c5606 100644
+--- a/clang/lib/CIR/CMakeLists.txt
++++ b/clang/lib/CIR/CMakeLists.txt
+@@ -1,5 +1,4 @@
+-include_directories(${LLVM_MAIN_SRC_DIR}/../mlir/include)
+-include_directories(${LLVM_BINARY_DIR}/tools/mlir/include)
++include_directories(${CLANG_CIR_MLIR_INCLUDE_DIRS})
+ 
+ add_subdirectory(Dialect)
+ add_subdirectory(CodeGen)
+diff --git a/clang/lib/FrontendTool/CMakeLists.txt b/clang/lib/FrontendTool/CMakeLists.txt
+index 079d5a3be24f..e0164f29ff4d 100644
+--- a/clang/lib/FrontendTool/CMakeLists.txt
++++ b/clang/lib/FrontendTool/CMakeLists.txt
+@@ -31,8 +31,7 @@ if(CLANG_ENABLE_CIR)
+     MLIRPass
+     )
+ 
+-  include_directories(${LLVM_MAIN_SRC_DIR}/../mlir/include)
+-  include_directories(${LLVM_BINARY_DIR}/tools/mlir/include)
++  include_directories(${CLANG_CIR_MLIR_INCLUDE_DIRS})
+ endif()
+ 
+ if(CLANG_ENABLE_STATIC_ANALYZER)
+@@ -53,6 +52,5 @@ add_clang_library(clangFrontendTool
+   )
+ 
+ if(CLANG_ENABLE_CIR)
+-  target_include_directories(clangFrontendTool PRIVATE ${LLVM_MAIN_SRC_DIR}/../mlir/include)
+-  target_include_directories(clangFrontendTool PRIVATE ${LLVM_BINARY_DIR}/tools/mlir/include)
++  target_include_directories(clangFrontendTool PRIVATE ${CLANG_CIR_MLIR_INCLUDE_DIRS})
+ endif()
+diff --git a/clang/test/CIR/lib/CMakeLists.txt b/clang/test/CIR/lib/CMakeLists.txt
+index 910ebd1512e4..ec140da519be 100644
+--- a/clang/test/CIR/lib/CMakeLists.txt
++++ b/clang/test/CIR/lib/CMakeLists.txt
+@@ -1,4 +1,3 @@
+-include_directories(${LLVM_MAIN_SRC_DIR}/../mlir/include)
+-include_directories(${LLVM_BINARY_DIR}/tools/mlir/include)
++include_directories(${CLANG_CIR_MLIR_INCLUDE_DIRS})
+ 
+ add_subdirectory(Analysis)
+diff --git a/clang/tools/cir-lsp-server/CMakeLists.txt b/clang/tools/cir-lsp-server/CMakeLists.txt
+index 5fb4422c3e79..5a4c65b1ba4d 100644
+--- a/clang/tools/cir-lsp-server/CMakeLists.txt
++++ b/clang/tools/cir-lsp-server/CMakeLists.txt
+@@ -1,5 +1,4 @@
+-include_directories(${LLVM_MAIN_SRC_DIR}/../mlir/include)
+-include_directories(${LLVM_BINARY_DIR}/tools/mlir/include)
++include_directories(${CLANG_CIR_MLIR_INCLUDE_DIRS})
+ 
+ set(LIBS
+   ${test_libs}
+diff --git a/clang/tools/cir-opt/CMakeLists.txt b/clang/tools/cir-opt/CMakeLists.txt
+index 0203721cf5a1..d1f26a226c43 100644
+--- a/clang/tools/cir-opt/CMakeLists.txt
++++ b/clang/tools/cir-opt/CMakeLists.txt
+@@ -1,5 +1,4 @@
+-include_directories(${LLVM_MAIN_SRC_DIR}/../mlir/include)
+-include_directories(${LLVM_BINARY_DIR}/tools/mlir/include)
++include_directories(${CLANG_CIR_MLIR_INCLUDE_DIRS})
+ 
+ if(CLANG_INCLUDE_TESTS)
+   set(cir_opt_test_libs CIRTestAnalysis)
+diff --git a/clang/tools/cir-translate/CMakeLists.txt b/clang/tools/cir-translate/CMakeLists.txt
+index f12186efe23c..31539bba908d 100644
+--- a/clang/tools/cir-translate/CMakeLists.txt
++++ b/clang/tools/cir-translate/CMakeLists.txt
+@@ -1,5 +1,4 @@
+-include_directories(${LLVM_MAIN_SRC_DIR}/../mlir/include)
+-include_directories(${LLVM_BINARY_DIR}/tools/mlir/include)
++include_directories(${CLANG_CIR_MLIR_INCLUDE_DIRS})
+ 
+ add_clang_tool(cir-translate
+   cir-translate.cpp
+diff --git a/clang/unittests/CIR/CMakeLists.txt b/clang/unittests/CIR/CMakeLists.txt
+index 929eefc4d061..32c38b9910f8 100644
+--- a/clang/unittests/CIR/CMakeLists.txt
++++ b/clang/unittests/CIR/CMakeLists.txt
+@@ -1,7 +1,4 @@
+-set(MLIR_INCLUDE_DIR ${LLVM_MAIN_SRC_DIR}/../mlir/include )
+-set(MLIR_TABLEGEN_OUTPUT_DIR ${LLVM_BINARY_DIR}/tools/mlir/include)
+-include_directories(SYSTEM ${MLIR_INCLUDE_DIR})
+-include_directories(${MLIR_TABLEGEN_OUTPUT_DIR})
++include_directories(SYSTEM ${CLANG_CIR_MLIR_INCLUDE_DIRS})
+ 
+ add_distinct_clang_unittest(CIRUnitTests
+   CallOpTest.cpp

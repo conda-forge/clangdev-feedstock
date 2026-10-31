@@ -1,6 +1,6 @@
 context:
-  version: "23.1.4"
-  build_number: 1
+  version: "24.0.0.dev2"
+  build_number: 0
   # derived quanities
   major_version: "${{ (version | split('.'))[0] }}"
   # tail is not necessarily equal to patch version; e.g. 23.1.0.rc1
@@ -11,6 +11,7 @@ context:
   # as of LLVM 19, we expect an "-rcX" suffix for the release candidates
   extra: ${{ "git" if tail_version|trim("0123456789") == "dev" else "-" ~ tail_version if tail_version not in "0123456789" else "" }}
   sover: ${{ maj_min ~ extra }}
+  cli_version: "${{ (version | split('.'))[:3] | join('.') ~ extra }}"
 
   # see https://github.com/llvm/llvm-project/blob/release/22.x/clang/tools/libclang/CMakeLists.txt#L14
   libclang_soversion: "13"
@@ -20,8 +21,9 @@ recipe:
   version: ${{ version }}
 
 source:
-  - url: https://github.com/llvm/llvm-project/archive/refs/tags/llvmorg-${{ version|replace(".rc", "-rc") }}.tar.gz
-    sha256: 3e1c70b30f623976c2046d94b8eeab6cac536f107914cb4ed7bac572a03131db
+  # - url: https://github.com/llvm/llvm-project/archive/refs/tags/llvmorg-{{ version.replace(".rc", "-rc") }}.tar.gz
+  - url: https://github.com/llvm/llvm-project/archive/59798fc8ac13ad8dbdfbc3d329d545d5563d46eb.tar.gz
+    sha256: 49da5bc98aebc0376e9ceba6a878bf79ff9acb98e68bae7e9755b7a15f992bbb
     patches:
       - patches/0001-Find-conda-gcc-installation.patch
       - patches/0002-Fix-sysroot-detection-for-linux.patch
@@ -32,6 +34,8 @@ source:
       - patches/0007-Find-ROCm-device-library-in-conda-layout.patch
       - patches/0008-Add-conda-mingw-paths.patch
       - patches/0009-Look-for-libLTO.dylib-in-the-versioned-ResourceDir.patch
+      - patches/0010-Support-CLANG_ENABLE_CIR-in-standalone-clang-builds.patch
+      - patches/0011-Restore-MLIRCIR-targets-where-necessary.patch
     filter:
       # we don't want to accidentally build more than clang here
       - cmake/*
@@ -68,11 +72,13 @@ outputs:
         - if: build_platform != target_platform
           then:
             - llvmdev ==${{ version }}
+            - mlir ==${{ version }}
             - libxml2-devel
             - zlib
             - zstd
       host:
         - llvmdev ==${{ version }}
+        - mlir ==${{ version }}
         - libxml2-devel
         - zlib
         - zstd
@@ -94,14 +100,18 @@ outputs:
             - include/clang-tidy/*
             - lib/cmake/clang/*
             - lib/libclang*.a
+            - lib/libCIR*.a
             - lib/libfindAllSymbols.a
+            - lib/libMLIRCIR*.a
           else:
             - Library/include/clang/*
             - Library/include/clang-c/*
             - Library/include/clang-tidy/*
             - Library/lib/cmake/clang/*
             - Library/lib/clang*.lib
+            - Library/lib/CIR*.lib
             - Library/lib/findAllSymbols.lib
+            - Library/lib/MLIRCIR*.lib
       variant:
         down_prioritize_variant: ${{ 0 if variant == "default" else 1 }}
     requirements:
@@ -143,7 +153,8 @@ outputs:
                 - Library/lib/clangBasic.lib
       - requirements:
           run:
-            - ${{ compiler('cxx') }}
+            - if: not osx
+              then: ${{ compiler('cxx') }}
             - cmake
             - ninja
         files:
@@ -153,14 +164,18 @@ outputs:
         script:
           - if: unix
             then:
+              # check we got the right version
+              - test "$($PREFIX/bin/clang -dumpversion)" = "${{ cli_version }}"
               # symlinks
               - $PREFIX/bin/clang --version
               - $PREFIX/bin/clang++ --version
               - $PREFIX/bin/clang-check --version
               # basic compilation
               - $PREFIX/bin/clang -v -c mytest.c
+              - $PREFIX/bin/clang -v -fclangir -c mytest.c
             else:
               - '%LIBRARY_BIN%/clang -v -c mytest.c'
+              - '%LIBRARY_BIN%\clang -v -fclangir -c mytest.c'
           # ensure CMake metadata is correct & working
           - cd cmake_test
           - if: unix
