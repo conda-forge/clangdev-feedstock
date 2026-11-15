@@ -90,6 +90,38 @@ source:
       - patches/root/0050-Store-token-literal-data-in-PCH.-Avoids-disk-read-on.patch
       - patches/root/0051-Add-support-for-DiagnosticEngine-state-change-within.patch
       - patches/root/0052-Allow-cling-as-ASTSource-to-complete-tmplt-spec.patch
+{% if variant and variant.startswith("cling_") %}
+      - patches/cling/0001-UPSTREAM-clang-headers-Apple-Don-t-include_next-floa.patch
+      - patches/cling/0002-UPSTREAM-Reland-Reland-Modules-Remove-unnecessary-ch.patch
+      - patches/cling/0003-UPSTREAM-Work-around-a-build-issue-with-MSVC-NFC-142.patch
+      - patches/cling/0004-UPSTREAM-clang-repl-Always-clean-up-scope-and-contex.patch
+      - patches/cling/0005-UPSTREAM-Clang-AST-Fix-printing-for-atomic_test_and_.patch
+      - patches/cling/0006-UPSTREAM-CodeGen-Get-rid-of-incorrect-std-template-s.patch
+      - patches/cling/0007-UPSTREAM-C23-Support-the-SNAN-macros-in-float.h-1628.patch
+      - patches/cling/0008-UPSTREAM-clang-headers-Need-a-way-for-math.h-to-shar.patch
+      - patches/cling/0009-Add-Parser-ParserCurTokRestoreRAII.patch
+      - patches/cling/0010-Allow-cling-DeclUnloader-access-to-CXXRecordDecl-and.patch
+      - patches/cling/0011-More-RAIIs-for-autoloading.patch
+      - patches/cling/0012-Allow-cling-ParserStateRAII-access-to-Parser-interna.patch
+      - patches/cling/0013-Provide-possibly-updated-CodegenOpts-to-StartModule.patch
+      - patches/cling/0014-Implement-a-module-attribute-optional-to-allow-missi.patch
+      - patches/cling/0015-Remove-macro-and-print-macro.patch
+      - patches/cling/0016-Add-method-forgetGlobal-needed-to-unload-transaction.patch
+      - patches/cling/0017-Buffer-the-pending-instantiations-in-case-or-recursi.patch
+      - patches/cling/0018-Add-method-to-forget-generated-declarations.patch
+      - patches/cling/0019-Add-debug-printout-of-ModuleBuilder-data-structures.patch
+      - patches/cling/0020-D154328-AST-Add-API-to-iterate-already-loaded-specia.patch
+      - patches/cling/0021-Let-autoload-act-on-fwd-declares.patch
+      - patches/cling/0022-In-cases-of-nested-parsing-at-execution-time-sometim.patch
+      - patches/cling/0023-Make-sure-the-inode-did-not-get-updated-since-we-rea.patch
+      - patches/cling/0024-Use-raw-string-literals-to-correctly-stringify-and-i.patch
+      - patches/cling/0025-Clear-pending-decls-from-Builder-in-case-of-errors-R.patch
+      - patches/cling/0026-Do-not-load-the-source-file-just-to-get-an-irrelevan.patch
+      - patches/cling/0027-Do-not-collect-DeleteExprs-over-incremental-end-of-T.patch
+      - patches/cling/0028-Keep-into-account-if-files-were-virtual.patch
+      - patches/cling/0029-cxxmodules-Don-t-complain-when-modulemap-for-implici.patch
+      - patches/cling/0030-survive-Inon-accessible-directory.patch
+      - patches/cling/0031-Implement-FileManager-uncaching.patch
 {% endif %}
     # name folder for easier deletion; we do the equivalent of downloading
     # the subproject sources, so the work folder then has clang in it;
