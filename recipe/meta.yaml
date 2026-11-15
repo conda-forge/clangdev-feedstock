@@ -137,6 +137,7 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
+        - cling        # [variant and variant.startswith("cling_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
@@ -211,6 +212,7 @@ outputs:
       skip: true  # [win]
       track_features:
         - root         # [variant and variant.startswith("root_")]
+        - cling        # [variant and variant.startswith("cling_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:
         - {{ pin_subpackage("libclang-cpp" ~ maj_min, max_pin="x.x") }}   # [unix]
@@ -257,6 +259,7 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
+        - cling        # [variant and variant.startswith("cling_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:   # [unix]
         - {{ pin_subpackage("libclang-cpp" ~ maj_min, max_pin="x.x") }}   # [unix]
@@ -303,6 +306,7 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
+        - cling        # [variant and variant.startswith("cling_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:
         # note that the name (e.g. libclang13) does not necessarily
@@ -365,6 +369,7 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
+        - cling        # [variant and variant.startswith("cling_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       run_exports:
         # note that the name (e.g. libclang13) does not necessarily
@@ -415,6 +420,7 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
+        - cling        # [variant and variant.startswith("cling_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
@@ -483,6 +489,7 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
+        - cling        # [variant and variant.startswith("cling_")]
         - clang_nocfg  # [unix and not with_cfg]
       string: {{ variant }}_cfg_h{{ PKG_HASH }}_{{ build_number }}    # [with_cfg]
       string: {{ variant }}_nocfg_h{{ PKG_HASH }}_{{ build_number }}  # [not with_cfg]
@@ -521,6 +528,7 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
+        - cling        # [variant and variant.startswith("cling_")]
         - clang_nocfg  # [unix and not with_cfg]
       string: {{ variant }}_cfg_h{{ PKG_HASH }}_{{ build_number }}    # [with_cfg]
       string: {{ variant }}_nocfg_h{{ PKG_HASH }}_{{ build_number }}  # [not with_cfg]
@@ -566,6 +574,7 @@ outputs:
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       track_features:
         - root         # [variant and variant.startswith("root_")]
+        - cling        # [variant and variant.startswith("cling_")]
     requirements:
       run:
         - clang {{ version }} {{ variant }}_nocfg_*_{{ build_number }}
@@ -580,6 +589,7 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
+        - cling        # [variant and variant.startswith("cling_")]
         - clang_nocfg  # [unix and not with_cfg]
       string: {{ variant }}_cfg_h{{ PKG_HASH }}_{{ build_number }}    # [with_cfg]
       string: {{ variant }}_nocfg_h{{ PKG_HASH }}_{{ build_number }}  # [not with_cfg]
@@ -607,6 +617,7 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
+        - cling        # [variant and variant.startswith("cling_")]
         - clang_nocfg  # [unix and not with_cfg]
       string: {{ variant }}_cfg_h{{ PKG_HASH }}_{{ build_number }}    # [with_cfg]
       string: {{ variant }}_nocfg_h{{ PKG_HASH }}_{{ build_number }}  # [not with_cfg]
@@ -661,6 +672,7 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
+        - cling        # [variant and variant.startswith("cling_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       # for windows, use the clang-format package.
       skip: true  # [win]
@@ -704,6 +716,7 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
+        - cling        # [variant and variant.startswith("cling_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
@@ -782,6 +795,7 @@ outputs:
     build:
       track_features:
         - root         # [variant and variant.startswith("root_")]
+        - cling        # [variant and variant.startswith("cling_")]
       string: {{ variant }}_h{{ PKG_HASH }}_{{ build_number }}
       ignore_run_exports_from:
         # the build fails if it doesn't find the following, but it's not used
