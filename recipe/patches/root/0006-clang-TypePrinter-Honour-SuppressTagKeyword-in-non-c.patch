@@ -1,0 +1,36 @@
+From 81e906ede0ebdcc7f9a02d3b6f4a3e35f044ff88 Mon Sep 17 00:00:00 2001
+From: Devajith Valaparambil Sreeramaswamy
+ <devajith.valaparambil.sreeramaswamy@cern.ch>
+Date: Fri, 19 Jun 2026 11:15:11 +0200
+Subject: [PATCH 06/44] [clang][TypePrinter] Honour SuppressTagKeyword in
+ non-canonical TagType path
+
+After https://github.com/llvm/llvm-project/pull/147835
+
+The else-branch of printTagType (handling sugar TagTypes with an
+explicit written keyword) unconditionally emitted the tag keyword
+without checking Policy.SuppressTagKeyword. The canonical path
+already honoured the policy. Align the non-canonical path to match.
+---
+ clang/lib/AST/TypePrinter.cpp | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/clang/lib/AST/TypePrinter.cpp b/clang/lib/AST/TypePrinter.cpp
+index 5a0cbc47e7c1..f66036030e52 100644
+--- a/clang/lib/AST/TypePrinter.cpp
++++ b/clang/lib/AST/TypePrinter.cpp
+@@ -1526,10 +1526,11 @@ void TypePrinter::printTagType(const TagType *T, raw_ostream &OS) {
+       OS << ' ';
+     }
+   } else {
+-    OS << TypeWithKeyword::getKeywordName(T->getKeyword());
+-    if (T->getKeyword() != ElaboratedTypeKeyword::None) {
+-      PrintedKindDecoration = true;
++    auto Keyword = T->getKeyword();
++    if (!Policy.SuppressTagKeyword && Keyword != ElaboratedTypeKeyword::None) {
++      OS << TypeWithKeyword::getKeywordName(Keyword);
+       OS << ' ';
++      PrintedKindDecoration = true;
+     }
+   }
+ 

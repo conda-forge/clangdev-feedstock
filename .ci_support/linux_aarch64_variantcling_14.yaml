@@ -1,7 +1,9 @@
+DOCKER_PLATFORM:
+- linux/aarch64
 TARGET:
-- powerpc64le-conda-linux-gnu
+- aarch64-conda-linux-gnu
 TARGET_NO_VER:
-- powerpc64le-conda-linux-gnu
+- aarch64-conda-linux-gnu
 c_stdlib:
 - sysroot
 c_stdlib_version:
@@ -15,15 +17,15 @@ cxx_compiler:
 cxx_compiler_version:
 - '15'
 docker_image:
-- quay.io/condaforge/linux-anvil-x86_64:alma10
+- quay.io/condaforge/linux-anvil-aarch64:alma10
 libxml2_devel:
 - '2.15'
 python_min:
 - '3.11'
 target_platform:
-- linux-ppc64le
+- linux-aarch64
 variant:
-- default
+- cling_14
 with_cfg:
 - false
 - true

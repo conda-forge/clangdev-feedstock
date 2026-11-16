@@ -1,0 +1,53 @@
+From 32c37580b81d8045cb10adcafa9f16038d858848 Mon Sep 17 00:00:00 2001
+From: Jonas Hahnfeld <jonas.hahnfeld@cern.ch>
+Date: Mon, 7 Sep 2026 13:23:37 +0200
+Subject: [PATCH 05/44] UPSTREAM: [clang][AST] Fix generation with multiple
+ external sources
+
+ExternalASTSource::incrementGeneration returns the OldGeneration,
+which must be taken into account in case it is delegated to the topmost
+external source.
+
+This obsoletes a long-standing downstream patch in Cling that was
+previously submitted in https://reviews.llvm.org/D39714.
+
+Test proposed by Vassil Vassilev, assisted by Claude.
+
+(cherry picked from commit be0fa604519d749fdd6e3f3b943f85a9cbdb13bf)
+---
+ clang/lib/AST/ExternalASTSource.cpp | 17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
+
+diff --git a/clang/lib/AST/ExternalASTSource.cpp b/clang/lib/AST/ExternalASTSource.cpp
+index e8c100408971..1888ffd6bd27 100644
+--- a/clang/lib/AST/ExternalASTSource.cpp
++++ b/clang/lib/AST/ExternalASTSource.cpp
+@@ -118,19 +118,20 @@ void ExternalASTSource::FindExternalLexicalDecls(
+ void ExternalASTSource::getMemoryBufferSizes(MemoryBufferSizes &sizes) const {}
+ 
+ uint32_t ExternalASTSource::incrementGeneration(ASTContext &C) {
+-  uint32_t OldGeneration = CurrentGeneration;
+-
+   // Make sure the generation of the topmost external source for the context is
+   // incremented. That might not be us.
+   auto *P = C.getExternalSource();
+-  if (P && P != this)
++  if (P && P != this) {
++    // The call itself returns the OldGeneration of the topmost external source.
+     CurrentGeneration = P->incrementGeneration(C);
+-  else {
+-    // FIXME: Only bump the generation counter if the current generation number
+-    // has been observed?
+-    if (!++CurrentGeneration)
+-      llvm::reportFatalUsageError("generation counter overflowed");
+   }
+ 
++  uint32_t OldGeneration = CurrentGeneration;
++
++  // FIXME: Only bump the generation counter if the current generation number
++  // has been observed?
++  if (!++CurrentGeneration)
++    llvm::reportFatalUsageError("generation counter overflowed");
++
+   return OldGeneration;
+ }

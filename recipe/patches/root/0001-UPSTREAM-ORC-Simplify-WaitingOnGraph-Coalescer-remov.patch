@@ -1,0 +1,156 @@
+From a9633d2af6ad98ac7838b428bb485b2ae18e0351 Mon Sep 17 00:00:00 2001
+From: Lang Hames <lhames@gmail.com>
+Date: Wed, 25 Feb 2026 19:01:29 +1100
+Subject: [PATCH 01/44] UPSTREAM: [ORC] Simplify
+ WaitingOnGraph::Coalescer::remove.
+
+This reapplies 85354c6d8bc, which was reverted in d7347c0b81a due to bot
+failures.
+
+In this commit further changes are made to address the bot failure, and
+general readability.
+
+WaitingOnGraph::Coalescer::remove is renamed WaitingOnGraph::Coalescer::erase,
+since its behavior is now similar to common container erase operations.
+
+WaitingOnGraph::Coalescer::clear is provided to enable a fast reset of
+Coalescer state.
+
+SuperNodeBuilder::takeSuperNodes is updated to clear the Coalescer state before
+returning the SuperNodes, ensuring that future calls to SuperNodeBuilder::add
+do not trip the assert that caused the builder failures.
+
+(cherry picked from commit 55ce4b7cc601b586dd365843a2021d662baea78d)
+---
+ .../llvm/ExecutionEngine/Orc/WaitingOnGraph.h | 70 +++++++++++++------
+ 1 file changed, 48 insertions(+), 22 deletions(-)
+
+diff --git a/llvm/include/llvm/ExecutionEngine/Orc/WaitingOnGraph.h b/llvm/include/llvm/ExecutionEngine/Orc/WaitingOnGraph.h
+index 93412d9d22f8..9625218a414e 100644
+--- a/llvm/include/llvm/ExecutionEngine/Orc/WaitingOnGraph.h
++++ b/llvm/include/llvm/ExecutionEngine/Orc/WaitingOnGraph.h
+@@ -130,6 +130,8 @@ private:
+       auto NewSN =
+           std::make_unique<SuperNode>(std::move(Defs), std::move(Deps));
+       CanonicalSNs[H].push_back(NewSN.get());
++      assert(!SNHashes.count(NewSN.get()));
++      SNHashes[NewSN.get()] = H;
+       return NewSN;
+     }
+ 
+@@ -137,6 +139,8 @@ private:
+                   ElemToSuperNodeMap &ElemToSN) {
+       for (size_t I = 0; I != SNs.size();) {
+         auto &SN = SNs[I];
++        assert(!SNHashes.count(SN.get()) &&
++               "Elements of SNs should be new to the coalescer");
+         auto H = getHash(SN->Deps);
+         if (auto *CanonicalSN = findCanonicalSuperNode(H, SN->Deps)) {
+           for (auto &[Container, Elems] : SN->Defs) {
+@@ -149,26 +153,49 @@ private:
+           SNs.pop_back();
+         } else {
+           CanonicalSNs[H].push_back(SN.get());
++          SNHashes[SN.get()] = H;
+           ++I;
+         }
+       }
+     }
+ 
+-    template <typename Pred> void remove(Pred &&Remove) {
+-      std::vector<hash_code> HashesToErase;
+-      for (auto &[Hash, SNs] : CanonicalSNs) {
+-        for (size_t I = 0; I != SNs.size();) {
+-          if (Remove(SNs[I])) {
+-            std::swap(SNs[I], SNs.back());
+-            SNs.pop_back();
+-          } else
+-            ++I;
+-        }
+-        if (SNs.empty())
+-          HashesToErase.push_back(Hash);
++    /// Remove all coalescing information.
++    ///
++    /// This resets the Coalescer to the same functional state that it was
++    /// constructed in.
++    void clear() {
++      CanonicalSNs.clear();
++      SNHashes.clear();
++    }
++
++    /// Remove the given node from the Coalescer.
++    void erase(SuperNode *SN) {
++      hash_code H;
++
++      {
++        // Look up hash. We expect to find it in SNHashes.
++        auto I = SNHashes.find(SN);
++        assert(I != SNHashes.end() && "SN not tracked by coalescer");
++        H = I->second;
++        SNHashes.erase(I);
+       }
+-      for (auto Hash : HashesToErase)
+-        CanonicalSNs.erase(Hash);
++
++      // Now remove from CanonicalSNs.
++      auto I = CanonicalSNs.find(H);
++      assert(I != CanonicalSNs.end() && "Hash not in CanonicalSNs");
++      auto &SNs = I->second;
++
++      size_t J = 0;
++      for (; J != SNs.size(); ++J)
++        if (SNs[J] == SN)
++          break;
++
++      assert(J < SNs.size() && "SN not in CanonicalSNs map");
++      std::swap(SNs[J], SNs.back());
++      SNs.pop_back();
++
++      if (SNs.empty())
++        CanonicalSNs.erase(I);
+     }
+ 
+   private:
+@@ -198,6 +225,7 @@ private:
+     }
+ 
+     DenseMap<hash_code, SmallVector<SuperNode *>> CanonicalSNs;
++    DenseMap<SuperNode *, hash_code> SNHashes;
+   };
+ 
+ public:
+@@ -228,6 +256,7 @@ public:
+         SNs.push_back(std::move(SN));
+     }
+     std::vector<std::unique_ptr<SuperNode>> takeSuperNodes() {
++      C.clear();
+       return std::move(SNs);
+     }
+ 
+@@ -326,8 +355,9 @@ public:
+     SuperNodeDepsMap SuperNodeDeps;
+     hoistDeps(SuperNodeDeps, ModifiedPendingSNs, ElemToNewSN);
+ 
+-    CoalesceToPendingSNs.remove(
+-        [&](SuperNode *SN) { return SuperNodeDeps.count(SN); });
++    // If SN's deps are about to be modified then remove it from the coalescer.
++    for (auto &[SN, Deps] : SuperNodeDeps)
++      CoalesceToPendingSNs.erase(SN);
+ 
+     hoistDeps(SuperNodeDeps, NewSNs, ElemToPendingSN);
+     propagateSuperNodeDeps(SuperNodeDeps);
+@@ -394,12 +424,8 @@ public:
+         ++I;
+     }
+ 
+-    CoalesceToPendingSNs.remove([&](SuperNode *SN) {
+-      for (auto &E : FailedSNs)
+-        if (E.get() == SN)
+-          return true;
+-      return false;
+-    });
++    for (auto &FailedSN : FailedSNs)
++      CoalesceToPendingSNs.erase(FailedSN.get());
+ 
+     for (auto &SN : FailedSNs) {
+       for (auto &[Container, Elems] : SN->Defs) {

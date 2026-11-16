@@ -1,0 +1,58 @@
+From f8526d172c75b1318b569b64599b6e929bd566bc Mon Sep 17 00:00:00 2001
+From: Vassil Vassilev <vasil.georgiev.vasilev@cern.ch>
+Date: Fri, 16 Nov 2012 15:42:03 +0000
+Subject: [PATCH 08/44] Add Parser::ParserCurTokRestoreRAII
+
+---
+ clang/include/clang/Parse/Parser.h | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
+
+diff --git a/clang/include/clang/Parse/Parser.h b/clang/include/clang/Parse/Parser.h
+index f7e7b0ec51d8..2a7e9093969d 100644
+--- a/clang/include/clang/Parse/Parser.h
++++ b/clang/include/clang/Parse/Parser.h
+@@ -51,6 +51,7 @@ struct OMPTraitProperty;
+ struct OMPTraitSelector;
+ struct OMPTraitSet;
+ class OMPTraitInfo;
++class DestroyTemplateIdAnnotationsRAIIObj;
+ 
+ enum class AnnotatedNameKind {
+   /// Annotation has failed and emitted an error.
+@@ -197,6 +198,7 @@ public:
+   friend class PoisonSEHIdentifiersRAIIObject;
+   friend class ParenBraceBracketBalancer;
+   friend class BalancedDelimiterTracker;
++  friend class DestroyTemplateIdAnnotationsRAIIObj;
+ 
+   Parser(Preprocessor &PP, Sema &Actions, bool SkipFunctionBodies);
+   ~Parser() override;
+@@ -208,6 +210,28 @@ public:
+   AttributeFactory &getAttrFactory() { return AttrFactory; }
+ 
+   const Token &getCurToken() const { return Tok; }
++
++  /// A RAII object to temporarily reset PP's state and restore it.
++  class ParserCurTokRestoreRAII {
++  private:
++    Parser &P;
++    Token SavedTok;
++
++  public:
++    ParserCurTokRestoreRAII(Parser &P) : P(P), SavedTok(P.Tok) {}
++
++    void pop() {
++      if (SavedTok.is(tok::unknown))
++        return;
++
++      P.Tok = SavedTok;
++
++      SavedTok.startToken();
++    }
++
++    ~ParserCurTokRestoreRAII() { pop(); }
++  };
++
+   Scope *getCurScope() const { return Actions.getCurScope(); }
+ 
+   void incrementMSManglingNumber() const {

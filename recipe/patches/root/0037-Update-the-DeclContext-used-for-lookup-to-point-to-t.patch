@@ -1,0 +1,142 @@
+From bb5a975358b8a2ee3bcda5e4eaa8446c7c1f1991 Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Wed, 16 Jul 2014 11:28:29 +0200
+Subject: [PATCH 37/44] Update the DeclContext used for lookup to point to the
+ definition.
+
+While the ASTReader fills the existing Decl, we create a new redecl.
+This patch can be removed once we use real PCMs.
+
+Co-authored-by: Philippe Canal <pcanal@fnal.gov>
+---
+ clang/include/clang/Sema/Sema.h     |  2 +-
+ clang/lib/Sema/SemaCXXScopeSpec.cpp | 20 ++++++++++++++++----
+ clang/lib/Sema/SemaDecl.cpp         | 11 ++++++++---
+ clang/lib/Sema/SemaDeclCXX.cpp      |  2 +-
+ clang/lib/Sema/SemaExprCXX.cpp      |  3 ++-
+ clang/lib/Sema/SemaTemplate.cpp     |  5 +++++
+ 6 files changed, 33 insertions(+), 10 deletions(-)
+
+diff --git a/clang/include/clang/Sema/Sema.h b/clang/include/clang/Sema/Sema.h
+index 4fb66970d585..dd31b1eef2c4 100644
+--- a/clang/include/clang/Sema/Sema.h
++++ b/clang/include/clang/Sema/Sema.h
+@@ -3193,7 +3193,7 @@ public:
+ 
+ public:
+   // Marks SS invalid if it represents an incomplete type.
+-  bool RequireCompleteDeclContext(CXXScopeSpec &SS, DeclContext *DC);
++  bool RequireCompleteDeclContext(CXXScopeSpec &SS, DeclContext *&DC);
+   // Complete an enum decl, maybe without a scope spec.
+   bool RequireCompleteEnumDecl(EnumDecl *D, SourceLocation L,
+                                CXXScopeSpec *SS = nullptr);
+diff --git a/clang/lib/Sema/SemaCXXScopeSpec.cpp b/clang/lib/Sema/SemaCXXScopeSpec.cpp
+index fdbd46c10924..93d7876d382e 100644
+--- a/clang/lib/Sema/SemaCXXScopeSpec.cpp
++++ b/clang/lib/Sema/SemaCXXScopeSpec.cpp
+@@ -176,7 +176,7 @@ CXXRecordDecl *Sema::getCurrentInstantiationOf(NestedNameSpecifier NNS) {
+ /// a class template specialization that is not a complete type, we
+ /// will attempt to instantiate that class template.
+ bool Sema::RequireCompleteDeclContext(CXXScopeSpec &SS,
+-                                      DeclContext *DC) {
++                                      DeclContext *&DC) {
+   assert(DC && "given null context");
+ 
+   TagDecl *tag = dyn_cast<TagDecl>(DC);
+@@ -202,6 +202,12 @@ bool Sema::RequireCompleteDeclContext(CXXScopeSpec &SS,
+   if (RequireCompleteType(loc, Context.getCanonicalTagType(tag),
+                           diag::err_incomplete_nested_name_spec,
+                           SS.getRange())) {
++    // The actual information about the decl may have been loaded via an
++    // external source that created a new AST node/decl for the definition
++    // rather than reusing the one we had (DC) like the ASTReader does.
++    // To avoid the caller to continue using the still incomplete decl, let's
++    // set it to the definition.
++    DC = tag->getDefinition();
+     SS.SetInvalid(SS.getRange());
+     return true;
+   }
+@@ -493,9 +499,15 @@ bool Sema::BuildCXXNestedNameSpecifier(Scope *S, NestedNameSpecInfo &IdInfo,
+     // nested-name-specifier.
+ 
+     // The declaration context must be complete.
+-    if (!LookupCtx->isDependentContext() &&
+-        RequireCompleteDeclContext(SS, LookupCtx))
+-      return true;
++    if (!LookupCtx->isDependentContext()) {
++      if (RequireCompleteDeclContext(SS, LookupCtx)) {
++        return true;
++      } else if (TagDecl* TD = dyn_cast<TagDecl>(LookupCtx)) {
++        // Update the DeclContext to point to the Tag definition.
++        LookupCtx = TD->getDefinition();
++      }
++    }
++
+ 
+     LookupQualifiedName(Found, LookupCtx);
+ 
+diff --git a/clang/lib/Sema/SemaDecl.cpp b/clang/lib/Sema/SemaDecl.cpp
+index d67220a2f170..bc28fa66f9e1 100644
+--- a/clang/lib/Sema/SemaDecl.cpp
++++ b/clang/lib/Sema/SemaDecl.cpp
+@@ -338,9 +338,14 @@ ParsedType Sema::getTypeName(const IdentifierInfo &II, SourceLocation NameLoc,
+       return nullptr;
+     }
+ 
+-    if (!LookupCtx->isDependentContext() &&
+-        RequireCompleteDeclContext(*SS, LookupCtx))
+-      return nullptr;
++    if (!LookupCtx->isDependentContext()) {
++      if (RequireCompleteDeclContext(*SS, LookupCtx)) {
++        return nullptr;
++      } else if (TagDecl* TD = dyn_cast<TagDecl>(LookupCtx)) {
++        // Update the DeclContext to point to the Tag definition.
++        LookupCtx = TD->getDefinition();
++      }
++    }
+   }
+ 
+   // In the case where we know that the identifier is a class name, we know that
+diff --git a/clang/lib/Sema/SemaDeclCXX.cpp b/clang/lib/Sema/SemaDeclCXX.cpp
+index 51b3f80590d1..f2e3a2235a5b 100644
+--- a/clang/lib/Sema/SemaDeclCXX.cpp
++++ b/clang/lib/Sema/SemaDeclCXX.cpp
+@@ -13586,7 +13586,7 @@ bool Sema::CheckUsingDeclQualifier(SourceLocation UsingLoc, bool HasTypename,
+     if (Cxx20Enumerator)
+       return false; // OK
+ 
+-    auto *RD = NamedContext
++    DeclContext *RD = NamedContext
+                    ? cast<CXXRecordDecl>(NamedContext->getRedeclContext())
+                    : nullptr;
+     if (RD && !RequireCompleteDeclContext(const_cast<CXXScopeSpec &>(SS), RD)) {
+diff --git a/clang/lib/Sema/SemaExprCXX.cpp b/clang/lib/Sema/SemaExprCXX.cpp
+index 91967a7a9ff9..c465fa7e8403 100644
+--- a/clang/lib/Sema/SemaExprCXX.cpp
++++ b/clang/lib/Sema/SemaExprCXX.cpp
+@@ -84,7 +84,8 @@ ParsedType Sema::getConstructorName(const IdentifierInfo &II,
+     return ParsedType::make(T);
+   }
+ 
+-  if (SS.isNotEmpty() && RequireCompleteDeclContext(SS, CurClass))
++  DeclContext *DC = CurClass;
++  if (SS.isNotEmpty() && RequireCompleteDeclContext(SS, DC))
+     return ParsedType();
+ 
+   // Find the injected-class-name declaration. Note that we make no attempt to
+diff --git a/clang/lib/Sema/SemaTemplate.cpp b/clang/lib/Sema/SemaTemplate.cpp
+index 7489c2718fb4..0b364409c5a8 100644
+--- a/clang/lib/Sema/SemaTemplate.cpp
++++ b/clang/lib/Sema/SemaTemplate.cpp
+@@ -439,6 +439,11 @@ bool Sema::LookupTemplateName(LookupResult &Found, Scope *S, CXXScopeSpec &SS,
+     // The declaration context must be complete.
+     if (LookupCtx && RequireCompleteDeclContext(SS, LookupCtx))
+       return true;
++
++    if (TagDecl* TD = dyn_cast_or_null<TagDecl>(LookupCtx)) {
++      // Update the DeclContext to point to the Tag definition.
++      LookupCtx = TD->getDefinition();
++    }
+   }
+ 
+   bool ObjectTypeSearchedInScope = false;

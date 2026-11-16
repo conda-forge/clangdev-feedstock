@@ -1,0 +1,29 @@
+From 135ab2675a00cd13489a225975f65027f62a4d36 Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Mon, 26 Aug 2013 14:30:31 +0200
+Subject: [PATCH 18/44] Let autoload act on fwd declares.
+
+---
+ clang/lib/Sema/SemaLookup.cpp | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/clang/lib/Sema/SemaLookup.cpp b/clang/lib/Sema/SemaLookup.cpp
+index 7c5124a38d81..352692dec145 100644
+--- a/clang/lib/Sema/SemaLookup.cpp
++++ b/clang/lib/Sema/SemaLookup.cpp
+@@ -2305,8 +2305,14 @@ bool Sema::LookupName(LookupResult &R, Scope *S, bool AllowBuiltinCreation,
+       }
+   } else {
+     // Perform C++ unqualified name lookup.
+-    if (CppLookupName(R, S))
++    if (CppLookupName(R, S)) {
++      if (R.isSingleResult())
++        if (const TagDecl *TD = dyn_cast<TagDecl>(R.getFoundDecl())) {
++          if (!TD->getDefinition() && ExternalSource)
++            ExternalSource->LookupUnqualified(R, S);
++        }
+       return true;
++    }
+   }
+ 
+   // If we didn't find a use of this identifier, and if the identifier

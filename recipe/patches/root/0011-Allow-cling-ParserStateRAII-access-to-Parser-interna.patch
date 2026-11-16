@@ -1,0 +1,38 @@
+From 410c68fa5f87346f7e4307cffda8bff0740b1e06 Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Thu, 8 Jan 2015 18:29:58 +0100
+Subject: [PATCH 11/44] Allow `cling::ParserStateRAII` access to `Parser`
+ internals
+
+ORIGINAL COMMIT:
+Also store Parser paren numbers; likely fixes ROOT-6976:
+
+The parser (or rather the BalancedDelimiterTracker) was doing a Parser::cutOffParsing() because
+of an overflow of open ( - because we never reset the count.
+---
+ clang/include/clang/Parse/Parser.h | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/clang/include/clang/Parse/Parser.h b/clang/include/clang/Parse/Parser.h
+index 2a7e9093969d..82c8d961e6fc 100644
+--- a/clang/include/clang/Parse/Parser.h
++++ b/clang/include/clang/Parse/Parser.h
+@@ -28,6 +28,10 @@
+ #include <optional>
+ #include <stack>
+ 
++namespace cling {
++class ParserStateRAII;
++}
++
+ namespace clang {
+ class PragmaHandler;
+ class Scope;
+@@ -199,6 +203,7 @@ public:
+   friend class ParenBraceBracketBalancer;
+   friend class BalancedDelimiterTracker;
+   friend class DestroyTemplateIdAnnotationsRAIIObj;
++  friend class ::cling::ParserStateRAII;
+ 
+   Parser(Preprocessor &PP, Sema &Actions, bool SkipFunctionBodies);
+   ~Parser() override;

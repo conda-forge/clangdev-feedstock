@@ -1,0 +1,69 @@
+From 5ec979527faf66a0293b182dd6ecb69b11c7cc4a Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Tue, 28 Oct 2014 18:20:18 +0100
+Subject: [PATCH 42/44] Store token literal data in PCH. Avoids disk read on
+ PreProc expansion (ROOT-6794).
+
+---
+ clang/include/clang/Serialization/ASTReader.h |  3 +++
+ clang/lib/Serialization/ASTReader.cpp         | 11 +++++++++++
+ clang/lib/Serialization/ASTWriter.cpp         |  3 +++
+ 3 files changed, 17 insertions(+)
+
+diff --git a/clang/include/clang/Serialization/ASTReader.h b/clang/include/clang/Serialization/ASTReader.h
+index 2b3fa6d52f16..b9807b6c6e2e 100644
+--- a/clang/include/clang/Serialization/ASTReader.h
++++ b/clang/include/clang/Serialization/ASTReader.h
+@@ -800,6 +800,9 @@ private:
+   /// files.
+   llvm::DenseSet<LoadedMacroInfo> LoadedUndefs;
+ 
++  /// \Token literal data loaded and owned by us.
++  std::vector<std::string *> TokenLiteralDataLoaded;
++
+   /// A vector containing submodules that have already been loaded.
+   ///
+   /// This vector is indexed by the Submodule ID (-1). NULL submodule entries
+diff --git a/clang/lib/Serialization/ASTReader.cpp b/clang/lib/Serialization/ASTReader.cpp
+index 62bf5bb19ab5..6801a9a4ee09 100644
+--- a/clang/lib/Serialization/ASTReader.cpp
++++ b/clang/lib/Serialization/ASTReader.cpp
+@@ -2135,6 +2135,14 @@ Token ASTReader::ReadToken(ModuleFile &M, const RecordDataImpl &Record,
+     if (IdentifierInfo *II = getLocalIdentifier(M, Record[Idx++]))
+       Tok.setIdentifierInfo(II);
+   }
++
++  if (Tok.isLiteral()) {
++    const RecordData& RD = reinterpret_cast<const RecordData&>(Record);
++    std::string* Lit = new std::string(ReadString(RD, Idx));
++    TokenLiteralDataLoaded.push_back(Lit);
++    Tok.setLiteralData(Lit->c_str());
++  }
++
+   return Tok;
+ }
+ 
+@@ -11269,6 +11277,9 @@ ASTReader::ASTReader(Preprocessor &PP, ModuleCache &ModCache,
+ ASTReader::~ASTReader() {
+   if (OwnsDeserializationListener)
+     delete DeserializationListener;
++  for (auto PStr: TokenLiteralDataLoaded) {
++     delete PStr;
++  }
+ }
+ 
+ IdentifierResolver &ASTReader::getIdResolver() {
+diff --git a/clang/lib/Serialization/ASTWriter.cpp b/clang/lib/Serialization/ASTWriter.cpp
+index 39104da10d0b..59ecb7fe3e5e 100644
+--- a/clang/lib/Serialization/ASTWriter.cpp
++++ b/clang/lib/Serialization/ASTWriter.cpp
+@@ -5322,6 +5322,9 @@ void ASTWriter::AddToken(const Token &Tok, RecordDataImpl &Record) {
+     // is needed.
+     AddIdentifierRef(Tok.getIdentifierInfo(), Record);
+   }
++
++  if (Tok.isLiteral())
++    AddString(StringRef(Tok.getLiteralData(), Tok.getLength()), Record);
+ }
+ 
+ void ASTWriter::AddString(StringRef Str, RecordDataImpl &Record) {
