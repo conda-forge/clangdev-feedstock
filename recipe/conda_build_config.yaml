@@ -38,7 +38,7 @@ libclang_soversion:
 variant:
   - default
   - root_64200  # [linux or osx]
-  - cling_1.4
+  - cling_14
 
 with_cfg:
   - true    # [unix]
