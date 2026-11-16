@@ -36,10 +36,10 @@ source:
       # shared patches between cling & root; root patchset is (re)based on cling one
       - if: variant != "default"
         then:
-          - patches/root/0001-UPSTREAM-ORC-Simplify-WaitingOnGraph-Coalescer-remov.patch
-          - patches/root/0002-UPSTREAM-ORC-WaitingOnGraph-perf-faster-dependence-p.patch
+          # - patches/root/0001-UPSTREAM-ORC-Simplify-WaitingOnGraph-Coalescer-remov.patch
+          # - patches/root/0002-UPSTREAM-ORC-WaitingOnGraph-perf-faster-dependence-p.patch
           - patches/root/0003-UPSTREAM-Serialization-Fix-lazy-template-loading.patch
-          - patches/root/0004-UPSTREAM-TableGen-Emit-the-primary-input-file-in-d-d.patch
+          # - patches/root/0004-UPSTREAM-TableGen-Emit-the-primary-input-file-in-d-d.patch
           - patches/root/0005-UPSTREAM-clang-AST-Fix-generation-with-multiple-exte.patch
           - patches/root/0006-clang-TypePrinter-Honour-SuppressTagKeyword-in-non-c.patch
           - patches/root/0007-clang-modules-Restore-LLVM20-submodule-visibility-be.patch
