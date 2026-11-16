@@ -5,59 +5,74 @@
 jobs:
 - job: osx
   pool:
-    vmImage: $(VMIMAGE)
+    vmImage: $(vm_image)
   strategy:
     matrix:
+      osx_64_variantcling_1.3:
+        CONFIG: osx_64_variantcling_1.3
+        UPLOAD_PACKAGES: 'True'
+        build_workspace_dir: ~/miniforge3/conda-bld
+        free_disk_space: skip
+        pagefile_size: 0
+        resize_partitions: false
+        store_build_artifacts: false
+        tools_install_dir: ~/miniforge3
+        vm_image: macOS-15
       osx_64_variantdefault:
         CONFIG: osx_64_variantdefault
         UPLOAD_PACKAGES: 'True'
-        VMIMAGE: macOS-15
         build_workspace_dir: ~/miniforge3/conda-bld
-        free_disk_space: quick
+        free_disk_space: skip
         pagefile_size: 0
         resize_partitions: false
         store_build_artifacts: false
         tools_install_dir: ~/miniforge3
+        vm_image: macOS-15
       osx_64_variantroot_64004:
         CONFIG: osx_64_variantroot_64004
         UPLOAD_PACKAGES: 'True'
-        VMIMAGE: macOS-15
         build_workspace_dir: ~/miniforge3/conda-bld
-        free_disk_space: quick
+        free_disk_space: skip
         pagefile_size: 0
         resize_partitions: false
         store_build_artifacts: false
         tools_install_dir: ~/miniforge3
+        vm_image: macOS-15
+      osx_arm64_variantcling_1.3:
+        CONFIG: osx_arm64_variantcling_1.3
+        UPLOAD_PACKAGES: 'True'
+        build_workspace_dir: ~/miniforge3/conda-bld
+        free_disk_space: skip
+        pagefile_size: 0
+        resize_partitions: false
+        store_build_artifacts: false
+        tools_install_dir: ~/miniforge3
+        vm_image: macOS-15-arm64
       osx_arm64_variantdefault:
         CONFIG: osx_arm64_variantdefault
         UPLOAD_PACKAGES: 'True'
-        VMIMAGE: macOS-15
         build_workspace_dir: ~/miniforge3/conda-bld
-        free_disk_space: quick
+        free_disk_space: skip
         pagefile_size: 0
         resize_partitions: false
         store_build_artifacts: false
         tools_install_dir: ~/miniforge3
+        vm_image: macOS-15-arm64
       osx_arm64_variantroot_64004:
         CONFIG: osx_arm64_variantroot_64004
         UPLOAD_PACKAGES: 'True'
-        VMIMAGE: macOS-15
         build_workspace_dir: ~/miniforge3/conda-bld
-        free_disk_space: quick
+        free_disk_space: skip
         pagefile_size: 0
         resize_partitions: false
         store_build_artifacts: false
         tools_install_dir: ~/miniforge3
+        vm_image: macOS-15-arm64
   timeoutInMinutes: 360
   variables: {}
 
   steps:
   # TODO: Fast finish on azure pipelines?
-  - script: |
-      .scripts/free_disk_space.sh "$(free_disk_space)"
-    env:
-      OS: macos
-    displayName: Manage disk space
   - script: |
       export CI=azure
       export CONDA_BLD_PATH=$(build_workspace_dir)

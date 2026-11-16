@@ -22,13 +22,25 @@ jobs:
       max-parallel: 50
       matrix:
         include:
+          - CONFIG: linux_64_variantcling_1.3
+            DOCKER_IMAGE: quay.io/condaforge/linux-anvil-x86_64:alma10
+            STORE_BUILD_ARTIFACTS: False
+            UPLOAD_PACKAGES: True
+            build_workspace_dir: build_artifacts
+            docker_run_args: 
+            free_disk_space: quick
+            os: ubuntu
+            pagefile_size: 0
+            resize_partitions: False
+            runs_on: ['ubuntu-latest']
+            tools_install_dir: ~/miniforge3
           - CONFIG: linux_64_variantdefault
             DOCKER_IMAGE: quay.io/condaforge/linux-anvil-x86_64:alma10
             STORE_BUILD_ARTIFACTS: False
             UPLOAD_PACKAGES: True
             build_workspace_dir: build_artifacts
             docker_run_args: 
-            free_disk_space: skip
+            free_disk_space: quick
             os: ubuntu
             pagefile_size: 0
             resize_partitions: False
@@ -40,31 +52,55 @@ jobs:
             UPLOAD_PACKAGES: True
             build_workspace_dir: build_artifacts
             docker_run_args: 
-            free_disk_space: skip
+            free_disk_space: quick
             os: ubuntu
             pagefile_size: 0
             resize_partitions: False
             runs_on: ['ubuntu-latest']
+            tools_install_dir: ~/miniforge3
+          - CONFIG: linux_aarch64_variantcling_1.3
+            DOCKER_IMAGE: quay.io/condaforge/linux-anvil-aarch64:alma10
+            STORE_BUILD_ARTIFACTS: False
+            UPLOAD_PACKAGES: True
+            build_workspace_dir: build_artifacts
+            docker_run_args: 
+            free_disk_space: quick
+            os: ubuntu
+            pagefile_size: 0
+            resize_partitions: False
+            runs_on: ['ubuntu-24.04-arm']
             tools_install_dir: ~/miniforge3
           - CONFIG: linux_aarch64_variantdefault
-            DOCKER_IMAGE: quay.io/condaforge/linux-anvil-x86_64:alma10
+            DOCKER_IMAGE: quay.io/condaforge/linux-anvil-aarch64:alma10
             STORE_BUILD_ARTIFACTS: False
             UPLOAD_PACKAGES: True
             build_workspace_dir: build_artifacts
             docker_run_args: 
-            free_disk_space: skip
+            free_disk_space: quick
             os: ubuntu
             pagefile_size: 0
             resize_partitions: False
-            runs_on: ['ubuntu-latest']
+            runs_on: ['ubuntu-24.04-arm']
             tools_install_dir: ~/miniforge3
           - CONFIG: linux_aarch64_variantroot_64004
+            DOCKER_IMAGE: quay.io/condaforge/linux-anvil-aarch64:alma10
+            STORE_BUILD_ARTIFACTS: False
+            UPLOAD_PACKAGES: True
+            build_workspace_dir: build_artifacts
+            docker_run_args: 
+            free_disk_space: quick
+            os: ubuntu
+            pagefile_size: 0
+            resize_partitions: False
+            runs_on: ['ubuntu-24.04-arm']
+            tools_install_dir: ~/miniforge3
+          - CONFIG: linux_ppc64le_variantcling_1.3
             DOCKER_IMAGE: quay.io/condaforge/linux-anvil-x86_64:alma10
             STORE_BUILD_ARTIFACTS: False
             UPLOAD_PACKAGES: True
             build_workspace_dir: build_artifacts
             docker_run_args: 
-            free_disk_space: skip
+            free_disk_space: quick
             os: ubuntu
             pagefile_size: 0
             resize_partitions: False
@@ -76,7 +112,7 @@ jobs:
             UPLOAD_PACKAGES: True
             build_workspace_dir: build_artifacts
             docker_run_args: 
-            free_disk_space: skip
+            free_disk_space: quick
             os: ubuntu
             pagefile_size: 0
             resize_partitions: False
@@ -88,22 +124,56 @@ jobs:
             UPLOAD_PACKAGES: True
             build_workspace_dir: build_artifacts
             docker_run_args: 
-            free_disk_space: skip
+            free_disk_space: quick
             os: ubuntu
             pagefile_size: 0
             resize_partitions: False
             runs_on: ['ubuntu-latest']
             tools_install_dir: ~/miniforge3
+          - CONFIG: win_64_variantcling_1.3
+            STORE_BUILD_ARTIFACTS: False
+            UPLOAD_PACKAGES: True
+            build_platform: win-64
+            build_workspace_dir: D:\\bld\\
+            docker_run_args: 
+            free_disk_space: skip
+            os: windows
+            pagefile_size: 0
+            resize_partitions: False
+            runs_on: ['windows-2022']
+            tools_install_dir: D:\Miniforge
+          - CONFIG: win_64_variantdefault
+            STORE_BUILD_ARTIFACTS: False
+            UPLOAD_PACKAGES: True
+            build_platform: win-64
+            build_workspace_dir: D:\\bld\\
+            docker_run_args: 
+            free_disk_space: skip
+            os: windows
+            pagefile_size: 0
+            resize_partitions: False
+            runs_on: ['windows-2022']
+            tools_install_dir: D:\Miniforge
     steps:
 
     - name: Checkout code
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+    - name: Manage disk space
+      env:
+        FREE_DISK_SPACE: ${{ matrix.free_disk_space }}
+        OS: ${{ matrix.os }}
+      shell: bash
+      run: |
+        .scripts/free_disk_space.sh "${FREE_DISK_SPACE}"
     - name: Configure binfmt_misc
       if: matrix.os == 'ubuntu'
       shell: bash
       run: |
         if [[ "$(uname -m)" == "x86_64" ]]; then
           docker run --rm --privileged multiarch/qemu-user-static:register --reset --credential yes
+        elif [[ "$(uname -m)" == "aarch64" ]]; then
+          docker run --rm --privileged --entrypoint /opt/docker/bin/register-binfmt ${{ matrix.DOCKER_IMAGE }} aarch64
         fi
 
     - name: Build on Linux
