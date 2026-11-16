@@ -5,29 +5,69 @@
 jobs:
 - job: osx
   pool:
-    vmImage: $(VMIMAGE)
+    vmImage: $(vm_image)
   strategy:
     matrix:
-      osx_64_:
-        CONFIG: osx_64_
+      osx_64_variantcling_14:
+        CONFIG: osx_64_variantcling_14
         UPLOAD_PACKAGES: 'True'
-        VMIMAGE: macOS-15
         build_workspace_dir: ~/miniforge3/conda-bld
         free_disk_space: skip
         pagefile_size: 0
         resize_partitions: false
         store_build_artifacts: false
         tools_install_dir: ~/miniforge3
-      osx_arm64_:
-        CONFIG: osx_arm64_
+        vm_image: macOS-15
+      osx_64_variantdefault:
+        CONFIG: osx_64_variantdefault
         UPLOAD_PACKAGES: 'True'
-        VMIMAGE: macOS-15-arm64
         build_workspace_dir: ~/miniforge3/conda-bld
         free_disk_space: skip
         pagefile_size: 0
         resize_partitions: false
         store_build_artifacts: false
         tools_install_dir: ~/miniforge3
+        vm_image: macOS-15
+      osx_64_variantroot_64200:
+        CONFIG: osx_64_variantroot_64200
+        UPLOAD_PACKAGES: 'True'
+        build_workspace_dir: ~/miniforge3/conda-bld
+        free_disk_space: skip
+        pagefile_size: 0
+        resize_partitions: false
+        store_build_artifacts: false
+        tools_install_dir: ~/miniforge3
+        vm_image: macOS-15
+      osx_arm64_variantcling_14:
+        CONFIG: osx_arm64_variantcling_14
+        UPLOAD_PACKAGES: 'True'
+        build_workspace_dir: ~/miniforge3/conda-bld
+        free_disk_space: skip
+        pagefile_size: 0
+        resize_partitions: false
+        store_build_artifacts: false
+        tools_install_dir: ~/miniforge3
+        vm_image: macOS-15-arm64
+      osx_arm64_variantdefault:
+        CONFIG: osx_arm64_variantdefault
+        UPLOAD_PACKAGES: 'True'
+        build_workspace_dir: ~/miniforge3/conda-bld
+        free_disk_space: skip
+        pagefile_size: 0
+        resize_partitions: false
+        store_build_artifacts: false
+        tools_install_dir: ~/miniforge3
+        vm_image: macOS-15-arm64
+      osx_arm64_variantroot_64200:
+        CONFIG: osx_arm64_variantroot_64200
+        UPLOAD_PACKAGES: 'True'
+        build_workspace_dir: ~/miniforge3/conda-bld
+        free_disk_space: skip
+        pagefile_size: 0
+        resize_partitions: false
+        store_build_artifacts: false
+        tools_install_dir: ~/miniforge3
+        vm_image: macOS-15-arm64
   timeoutInMinutes: 360
   variables: {}
 

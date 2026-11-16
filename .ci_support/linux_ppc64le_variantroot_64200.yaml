@@ -1,11 +1,13 @@
+DOCKER_PLATFORM:
+- linux/amd64
 TARGET:
-- riscv64-conda-linux-gnu
+- powerpc64le-conda-linux-gnu
 TARGET_NO_VER:
-- riscv64-conda-linux-gnu
+- powerpc64le-conda-linux-gnu
 c_stdlib:
 - sysroot
 c_stdlib_version:
-- '2.39'
+- '2.17'
 channel_sources:
 - conda-forge
 channel_targets:
@@ -19,11 +21,11 @@ docker_image:
 libxml2_devel:
 - '2.15'
 python_min:
-- '3.14'
+- '3.11'
 target_platform:
-- linux-riscv64
+- linux-ppc64le
 variant:
-- default
+- root_64200
 with_cfg:
 - false
 - true
