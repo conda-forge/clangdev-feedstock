@@ -1,0 +1,31 @@
+From bcceede070999eca0541d7a842833bc361e6da21 Mon Sep 17 00:00:00 2001
+From: Devajith Valaparambil Sreeramaswamy
+ <devajith.valaparambil.sreeramaswamy@cern.ch>
+Date: Fri, 19 Jun 2026 17:36:58 +0200
+Subject: [PATCH 07/44] [clang][modules] Restore LLVM20 submodule visibility
+ behavior
+
+When entering a submodule, LLVM22 changed the default to hide its exports
+
+Currently -Druntime_cxxmodules=ON will fail with a bunch of redefinition errors without this.
+
+Revisit this after merging CIFactory refractor and incremental action support.
+
+Ref: https://github.com/llvm/llvm-project/commit/4bb04d4
+---
+ clang/lib/Lex/PPLexerChange.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/clang/lib/Lex/PPLexerChange.cpp b/clang/lib/Lex/PPLexerChange.cpp
+index b014124153c8..9132500a0d4b 100644
+--- a/clang/lib/Lex/PPLexerChange.cpp
++++ b/clang/lib/Lex/PPLexerChange.cpp
+@@ -751,7 +751,7 @@ void Preprocessor::EnterSubmodule(Module *M, SourceLocation ImportLoc,
+   // This module is visible to itself, but exports should not be made visible
+   // until they are imported.
+   if (FirstTime)
+-    makeModuleVisible(M, ImportLoc, /*IncludeExports=*/false);
++    makeModuleVisible(M, ImportLoc, /*IncludeExports=*/true);
+ }
+ 
+ bool Preprocessor::needModuleMacros() const {

@@ -1,0 +1,53 @@
+From f719415d7eee1b1c371f30a6c71fe2e4cee94894 Mon Sep 17 00:00:00 2001
+From: Vassil Vassilev <vvasilev@cern.ch>
+Date: Fri, 28 Mar 2014 10:48:12 +0100
+Subject: [PATCH 09/44] Allow `cling::DeclUnloader` access to `CXXRecordDecl`
+ and `Sema` internals
+
+ORIGINAL COMMIT:
+Access sema internals and revert the list of unused decls.
+---
+ clang/include/clang/AST/Decl.h    | 4 ++++
+ clang/include/clang/AST/DeclCXX.h | 1 +
+ clang/include/clang/Sema/Sema.h   | 1 +
+ 3 files changed, 6 insertions(+)
+
+diff --git a/clang/include/clang/AST/Decl.h b/clang/include/clang/AST/Decl.h
+index 5c46c912186c..94389a75f86e 100644
+--- a/clang/include/clang/AST/Decl.h
++++ b/clang/include/clang/AST/Decl.h
+@@ -53,6 +53,10 @@
+ #include <string>
+ #include <utility>
+ 
++namespace cling {
++class DeclUnloader;
++}
++
+ namespace clang {
+ 
+ class ASTContext;
+diff --git a/clang/include/clang/AST/DeclCXX.h b/clang/include/clang/AST/DeclCXX.h
+index 5c4ad3c45da1..f3b1eeabfe02 100644
+--- a/clang/include/clang/AST/DeclCXX.h
++++ b/clang/include/clang/AST/DeclCXX.h
+@@ -266,6 +266,7 @@ class CXXRecordDecl : public RecordDecl {
+   friend class DeclContext;
+   friend class LambdaExpr;
+   friend class ODRDiagsEmitter;
++  friend class ::cling::DeclUnloader;
+ 
+   friend void FunctionDecl::setIsPureVirtual(bool);
+   friend void TagDecl::startDefinition();
+diff --git a/clang/include/clang/Sema/Sema.h b/clang/include/clang/Sema/Sema.h
+index d68ed7c75b86..38b3c0b006b0 100644
+--- a/clang/include/clang/Sema/Sema.h
++++ b/clang/include/clang/Sema/Sema.h
+@@ -1559,6 +1559,7 @@ protected:
+   friend class ASTReader;
+   friend class ASTDeclReader;
+   friend class ASTWriter;
++  friend class ::cling::DeclUnloader;
+ 
+ private:
+   std::optional<std::unique_ptr<DarwinSDKInfo>> CachedDarwinSDKInfo;

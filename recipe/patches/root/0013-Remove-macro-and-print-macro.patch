@@ -1,0 +1,111 @@
+From e1a55c322365fc4be6b7e9d86514e15677f09ad8 Mon Sep 17 00:00:00 2001
+From: CristinaCristescu <bianca-cristina.cristescu@cern.ch>
+Date: Tue, 29 Oct 2013 09:57:54 +0100
+Subject: [PATCH 13/44] Remove macro and print macro.
+
+---
+ clang/include/clang/Lex/Preprocessor.h | 11 ++++++++
+ clang/lib/Lex/PPMacroExpansion.cpp     | 13 ++++++++++
+ clang/lib/Lex/Preprocessor.cpp         | 36 ++++++++++++++++++++++++++
+ 3 files changed, 60 insertions(+)
+
+diff --git a/clang/include/clang/Lex/Preprocessor.h b/clang/include/clang/Lex/Preprocessor.h
+index a960406ee49a..5692434b7e93 100644
+--- a/clang/include/clang/Lex/Preprocessor.h
++++ b/clang/include/clang/Lex/Preprocessor.h
+@@ -1464,6 +1464,11 @@ public:
+     return appendDefMacroDirective(II, MI, MI->getDefinitionLoc());
+   }
+ 
++  /// Remove a IdentifierInfo and MacroDirective from the history.
++  /// Given an IdentifierInfo and a MacroDirective we can remove them from
++  /// the macros vector.
++  void removeMacro(IdentifierInfo *II, MacroDirective *MD);
++
+   /// Set a MacroDirective that was loaded from a PCH file.
+   void setLoadedMacroDirective(IdentifierInfo *II, MacroDirective *ED,
+                                MacroDirective *MD);
+@@ -2331,6 +2336,12 @@ public:
+   void DumpMacro(const MacroInfo &MI) const;
+   void dumpMacroInfo(const IdentifierInfo *II);
+ 
++  /// Print a Macro to an ostream used for ClangInternalState
++  /// Same as dump, but without orinting source location.
++  void printMacros(raw_ostream &OS) const;
++  void printMacro(const IdentifierInfo *II, const MacroDirective *MD,
++                  llvm::raw_ostream &OS) const;
++
+   /// Given a location that specifies the start of a
+   /// token, return a new location that specifies a character within the token.
+   SourceLocation AdvanceToTokenCharacter(SourceLocation TokStart,
+diff --git a/clang/lib/Lex/PPMacroExpansion.cpp b/clang/lib/Lex/PPMacroExpansion.cpp
+index 09cf77893842..b93f35470cdb 100644
+--- a/clang/lib/Lex/PPMacroExpansion.cpp
++++ b/clang/lib/Lex/PPMacroExpansion.cpp
+@@ -91,6 +91,19 @@ void Preprocessor::appendMacroDirective(IdentifierInfo *II, MacroDirective *MD){
+     II->setChangedSinceDeserialization();
+ }
+ 
++void Preprocessor::removeMacro(IdentifierInfo *II, MacroDirective *MD) {
++  assert(II && MD);
++  II->setHasMacroDefinition(false);
++  CurSubmoduleState->Macros.erase(II);
++  if (MacroDirective *prevMD = MD->getPrevious()) {
++    // Avoid assertion in appendMacroDirective.
++    MacroDirective *prevPrevMD = prevMD->getPrevious();
++    prevMD->setPrevious(0);
++    appendMacroDirective(II, prevMD);
++    prevMD->setPrevious(prevPrevMD);
++  }
++}
++
+ void Preprocessor::setLoadedMacroDirective(IdentifierInfo *II,
+                                            MacroDirective *ED,
+                                            MacroDirective *MD) {
+diff --git a/clang/lib/Lex/Preprocessor.cpp b/clang/lib/Lex/Preprocessor.cpp
+index 0a25dc19548e..6742eb80118d 100644
+--- a/clang/lib/Lex/Preprocessor.cpp
++++ b/clang/lib/Lex/Preprocessor.cpp
+@@ -272,6 +272,42 @@ void Preprocessor::DumpMacro(const MacroInfo &MI) const {
+   llvm::errs() << "\n";
+ }
+ 
++void Preprocessor::printMacros(raw_ostream &OS) const {
++  for (macro_iterator I = macro_begin(), E = macro_end(); I != E; ++I) {
++    Preprocessor::printMacro(I->first, I->second.getLatest(), OS);
++  }
++}
++
++void Preprocessor::printMacro(const IdentifierInfo *II,
++                              const MacroDirective *MD,
++                              llvm::raw_ostream &OS) const {
++  OS << "<MD: " << MD << ">";
++  OS << II->getName() << " ";
++  OS << "(Tokens:)";
++  const MacroInfo *MI = MD->getMacroInfo();
++  for (unsigned i = 0, e = MI->getNumTokens(); i != e; ++i) {
++    const Token &Tok = MI->getReplacementToken(i);
++    OS << tok::getTokenName(Tok.getKind()) << " '" << getSpelling(Tok) << "'";
++    OS << "\t";
++    if (Tok.isAtStartOfLine())
++      OS << " [StartOfLine]";
++    if (Tok.hasLeadingSpace())
++      OS << " [LeadingSpace]";
++    if (Tok.isExpandDisabled())
++      OS << " [ExpandDisabled]";
++    if (Tok.needsCleaning()) {
++      const char *Start = SourceMgr.getCharacterData(Tok.getLocation());
++      OS << " [UnClean='" << StringRef(Start, Tok.getLength()) << "']";
++    }
++    // Do not print location it uses the SourceManager dump to llvm::errs.
++    OS << "\tLoc=<";
++    Tok.getLocation().print(OS, SourceMgr);
++    OS << ">";
++    OS << "  ";
++  }
++  OS << "\n";
++}
++
+ void Preprocessor::PrintStats() {
+   llvm::errs() << "\n*** Preprocessor Stats:\n";
+   llvm::errs() << NumDirectives << " directives found:\n";

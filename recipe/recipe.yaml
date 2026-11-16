@@ -33,6 +33,56 @@ source:
       - patches/0008-Find-ROCm-device-library-in-conda-layout.patch
       - patches/0009-Add-conda-mingw-paths.patch
       - patches/0010-Look-for-libLTO.dylib-in-the-versioned-ResourceDir.patch
+      # shared patches between cling & root; root patchset is (re)based on cling one
+      - if: variant != "default"
+        then:
+          - patches/root/0001-UPSTREAM-ORC-Simplify-WaitingOnGraph-Coalescer-remov.patch
+          - patches/root/0002-UPSTREAM-ORC-WaitingOnGraph-perf-faster-dependence-p.patch
+          - patches/root/0003-UPSTREAM-Serialization-Fix-lazy-template-loading.patch
+          - patches/root/0004-UPSTREAM-TableGen-Emit-the-primary-input-file-in-d-d.patch
+          - patches/root/0005-UPSTREAM-clang-AST-Fix-generation-with-multiple-exte.patch
+          - patches/root/0006-clang-TypePrinter-Honour-SuppressTagKeyword-in-non-c.patch
+          - patches/root/0007-clang-modules-Restore-LLVM20-submodule-visibility-be.patch
+          - patches/root/0008-Add-Parser-ParserCurTokRestoreRAII.patch
+          - patches/root/0009-Allow-cling-DeclUnloader-access-to-CXXRecordDecl-and.patch
+          - patches/root/0010-More-RAIIs-for-autoloading.patch
+          - patches/root/0011-Allow-cling-ParserStateRAII-access-to-Parser-interna.patch
+          - patches/root/0012-Implement-a-module-attribute-optional-to-allow-missi.patch
+          - patches/root/0013-Remove-macro-and-print-macro.patch
+          - patches/root/0014-Add-debug-printout-of-ModuleBuilder-data-structures.patch
+          - patches/root/0015-Add-method-forgetGlobal-needed-to-unload-transaction.patch
+          - patches/root/0016-Buffer-the-pending-instantiations-in-case-or-recursi.patch
+          - patches/root/0017-Add-method-to-forget-generated-declarations.patch
+          - patches/root/0018-Let-autoload-act-on-fwd-declares.patch
+          - patches/root/0019-In-cases-of-nested-parsing-at-execution-time-sometim.patch
+          - patches/root/0020-Make-sure-the-inode-did-not-get-updated-since-we-rea.patch
+          - patches/root/0021-Use-raw-string-literals-to-correctly-stringify-and-i.patch
+          - patches/root/0022-Clear-pending-decls-from-Builder-in-case-of-errors-R.patch
+          - patches/root/0023-Do-not-collect-DeleteExprs-over-incremental-end-of-T.patch
+          - patches/root/0024-cxxmodules-Don-t-complain-when-modulemap-for-implici.patch
+          - patches/root/0025-survive-Inon-accessible-directory.patch
+          - patches/root/0026-Implement-FileManager-uncaching.patch
+      # root-only patches
+      - if: variant is startingwith('root_')
+        then:
+          - patches/root/0027-Add-RAII-to-buffer-delayed-infos-for-recursive-parsi.patch
+          - patches/root/0028-Import-various-changes-to-the-global-module-index.patch
+          - patches/root/0029-Improve-ROOT-startup-time-by-not-merging-identifier-.patch
+          - patches/root/0030-Implement-implicit-auto-keyword-injection-in-clang-i.patch
+          - patches/root/0031-Improve-int-literal-printing-for-template-args.-To-b.patch
+          - patches/root/0032-cxxmodules-Do-not-cache-the-file-lookup-failure.patch
+          - patches/root/0033-cxxmodules-Don-t-complain-when-modulemap-for-implici.patch
+          - patches/root/0034-Disable-validation-of-transent-files.patch
+          - patches/root/0035-Before-generating-a-template-instantiation-check-if-.patch
+          - patches/root/0036-Duplicate-declarations-of-template-default-argument-.patch
+          - patches/root/0037-Update-the-DeclContext-used-for-lookup-to-point-to-t.patch
+          - patches/root/0038-Disable-diags-of-dupe-default-args-func-templt-tempo.patch
+          - patches/root/0039-Do-not-unload-enum-fwd-decl-but-silence-redecl-diag-.patch
+          - patches/root/0040-Fix-fwddecls-of-templates-with-tmplt-arg-defauls-com.patch
+          - patches/root/0041-Expose-all-files-included-in-PCH-PCM-to-FileManager.patch
+          - patches/root/0042-Store-token-literal-data-in-PCH.-Avoids-disk-read-on.patch
+          - patches/root/0043-Add-support-for-DiagnosticEngine-state-change-within.patch
+          - patches/root/0044-Allow-cling-as-ASTSource-to-complete-tmplt-spec.patch
     filter:
       # we don't want to accidentally build more than clang here
       - cmake/*

@@ -1,0 +1,80 @@
+From 13f84a98a52e0744a5e7f8314cb7af4756a3871a Mon Sep 17 00:00:00 2001
+From: Reid Kleckner <rnk@llvm.org>
+Date: Mon, 11 May 2026 19:26:50 -0700
+Subject: [PATCH 04/44] UPSTREAM: [TableGen] Emit the primary input file in -d
+ depfile output
+
+This fixes a bug where old, but still supported, versions of CMake and
+ninja perpetually consider zero-include tablegen files to be out of
+date. It also matches what Clang and GCC do for regular C compilations.
+
+When a .td input has no `include` directives, the depfile produced by
+`-d` contains only `<output>:` followed by zero dependencies. My version
+(3.27) of CMake's `cmake_transform_depfile` step then writes a 0-byte
+file, which old versions of ninja treat as a missing depfile and re-run
+the rule on every incremental build (e.g. Attributes.td, ValueTypes.td).
+
+Here's the effect on Attributes.inc.d:
+
+```
+$ cat ./build/include/llvm/IR/Attributes.inc.d
+Attributes.inc:
+$ cat ./build/include/llvm/IR/Attributes.inc.d
+Attributes.inc: /work/llvm-project/llvm/include/llvm/IR/Attributes.td
+```
+
+An LLM was used to help create this change.
+
+(cherry picked from commit 05c0db7f0aa10f04dc545eef7b3768528523ca98)
+---
+ llvm/lib/TableGen/Main.cpp    | 10 ++++++++++
+ llvm/test/TableGen/depfile.td | 19 +++++++++++++++++++
+ 2 files changed, 29 insertions(+)
+ create mode 100644 llvm/test/TableGen/depfile.td
+
+diff --git a/llvm/lib/TableGen/Main.cpp b/llvm/lib/TableGen/Main.cpp
+index ec4579f378dc..99994f06c551 100644
+--- a/llvm/lib/TableGen/Main.cpp
++++ b/llvm/lib/TableGen/Main.cpp
+@@ -97,6 +97,16 @@ static int createDependencyFile(const TGParser &Parser, const char *argv0) {
+     return reportError(argv0, "error opening " + DependFilename + ":" +
+                                   EC.message() + "\n");
+   DepOut.os() << OutputFilename << ":";
++
++  // Emit the primary input file as a dependency. This matches C compilers like
++  // Clang and GCC. Without it, a .td file with no `include` directives would
++  // produce a depfile listing zero dependencies. CMake's
++  // `cmake_transform_depfile` then collapses that to a 0-byte file, which Ninja
++  // treats as a missing depfile and re-runs the rule on every incremental
++  // build.
++  if (InputFilename != "-")
++    DepOut.os() << ' ' << InputFilename;
++
+   for (const auto &Dep : Parser.getDependencies()) {
+     DepOut.os() << ' ' << Dep;
+   }
+diff --git a/llvm/test/TableGen/depfile.td b/llvm/test/TableGen/depfile.td
+new file mode 100644
+index 000000000000..cb3e0644de86
+--- /dev/null
++++ b/llvm/test/TableGen/depfile.td
+@@ -0,0 +1,19 @@
++// Verify that `-d` emits a non-empty depfile that always names the primary
++// input file, even when the input has no `include` directives. A depfile
++// containing only `<output>:` (no deps) round-trips through CMake's
++// `cmake_transform_depfile` step to a 0-byte file, which Ninja treats as a
++// missing depfile and unconditionally re-runs the edge.
++
++// RUN: llvm-tblgen -print-records %s -o %t.out -d %t.d
++// RUN: FileCheck %s --input-file=%t.d
++
++// CHECK: {{.*}}depfile.td.tmp.out: {{.*}}depfile.td
++
++// When the input is stdin (`-`), there is no input path to emit, so the
++// depfile lists only the output target with no dependencies.
++// RUN: llvm-tblgen -print-records - -o %t.stdin.out -d %t.stdin.d < %s
++// RUN: FileCheck %s --check-prefix=STDIN --input-file=%t.stdin.d
++
++// STDIN: {{.*}}depfile.td.tmp.stdin.out:{{$}}
++
++def Empty;
