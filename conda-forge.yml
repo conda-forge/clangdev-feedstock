@@ -1,17 +1,10 @@
-azure:
-  settings_win:
-    variables:
-      CONDA_BLD_PATH: C:\\bld\\
-      MINIFORGE_HOME: C:\Miniforge
-      SET_PAGEFILE: 'True'
 bot:
   abi_migration_branches:
   - 18.x
   - 17.x
 build_platform:
-  linux_aarch64: linux_64
   linux_ppc64le: linux_64
-  osx_arm64: osx_64
+  osx_64: osx_arm64
 conda_build:
   pkg_format: '2'
 conda_forge_output_validation: true
@@ -19,5 +12,10 @@ github:
   branch_name: main
   tooling_branch_name: main
 provider:
-  win: azure
+  linux_aarch64: default
+  osx_arm64: default
 test: native_and_emulated
+workflow_settings:
+  free_disk_space:
+    - value: quick
+      os: linux
