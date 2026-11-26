@@ -1,3 +1,5 @@
+DOCKER_PLATFORM:
+- linux/amd64
 TARGET:
 - powerpc64le-conda-linux-gnu
 TARGET_NO_VER:
@@ -30,4 +32,4 @@ with_cfg:
 zlib:
 - '1'
 zstd:
-- '1.5'
+- '1.6'
