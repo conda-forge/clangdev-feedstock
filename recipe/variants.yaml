@@ -1,0 +1,63 @@
+c_compiler:
+  - if: osx
+    then: clang_bootstrap
+cxx_compiler:
+  - if: osx
+    then: clang_bootstrap
+
+github_actions_labels:
+  - if: win
+    then: namespace-profile-8cpu-on-win-64
+
+TARGET:
+  - if: linux and x86_64
+    then: x86_64-conda-linux-gnu
+  - if: linux and aarch64
+    then: aarch64-conda-linux-gnu
+  - if: linux and ppc64le
+    then: powerpc64le-conda-linux-gnu
+  - if: linux and riscv64
+    then: riscv64-conda-linux-gnu
+  - if: osx and x86_64
+    then: x86_64-apple-darwin13.4.0
+  - if: osx and arm64
+    then: arm64-apple-darwin20.0.0
+  - if: win and x86_64
+    then: x86_64-pc-windows-msvc
+  - if: win and arm64
+    then: arm64-pc-windows-msvc
+# by default, osx targets contain the target version; we provide a configuration file
+# without the target version to allow `-arch x86_64 -arch arm64` etc.
+# see also: https://github.com/conda-forge/conda-forge.github.io/issues/2695
+TARGET_NO_VER:
+  - if: linux and x86_64
+    then: x86_64-conda-linux-gnu
+  - if: linux and aarch64
+    then: aarch64-conda-linux-gnu
+  - if: linux and ppc64le
+    then: powerpc64le-conda-linux-gnu
+  - if: linux and riscv64
+    then: riscv64-conda-linux-gnu
+  - if: osx and x86_64
+    then: x86_64-apple-darwin
+  - if: osx and arm64
+    then: arm64-apple-darwin
+  - if: win and x86_64
+    then: x86_64-pc-windows-msvc
+  - if: win and arm64
+    then: arm64-pc-windows-msvc
+
+# Starting from LLVM 14, the ABI of libclang doesn't necessarily
+# match the major version anymore - cf. #170 and
+# https://github.com/llvm/llvm-project/issues/54004
+libclang_soversion:
+  - "13"
+
+# keep for use with root when it catches up
+variant:
+  - default
+
+with_cfg:
+  - if: unix
+    then: true
+  - false
